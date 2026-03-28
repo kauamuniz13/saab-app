@@ -1,7 +1,11 @@
+import { useState, useEffect, useMemo } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import logoSaab from '../assets/logo-saab.svg'
 import styles from './AdminDashboard.module.css'
+import { fetchOrders } from '../services/orderService'
+import { fetchUsers } from '../services/authService'
+import { fetchContainers } from '../services/inventoryService'
 
 /* ── Icons ── */
 const IconInventory = () => (
@@ -70,35 +74,80 @@ const PAGE_TITLES = {
 }
 
 /* ── Home panel — rendered at /admin/dashboard ── */
-export const AdminHome = () => (
-  <div className={styles.homeContent}>
-    <div className={styles.welcomeCard}>
-      <p className={styles.welcomeEyebrow}>Painel de Controlo</p>
-      <h1 className={styles.welcomeTitle}>
-        Bem-vindo ao Sistema de Gestão SAAB
-      </h1>
-      <p className={styles.welcomeText}>
-        Aceda ao inventário de contêineres, gira pedidos de clientes
-        e acompanhe as rotas de entrega em tempo real.
-      </p>
-    </div>
+export const AdminHome = () => {
+  const [orders,     setOrders]     = useState([])
+  const [users,      setUsers]      = useState([])
+  const [containers, setContainers] = useState([])
+  const [loading,    setLoading]    = useState(true)
 
-    <div className={styles.statsRow}>
-      <div className={styles.statCard}>
-        <p className={styles.statLabel}>Contêineres ativos</p>
-        <p className={styles.statValue}>—</p>
+  useEffect(() => {
+    Promise.all([fetchOrders(), fetchUsers(), fetchContainers()])
+      .then(([ords, usrs, ctrs]) => {
+        setOrders(ords); setUsers(usrs); setContainers(ctrs)
+      })
+      .finally(() => setLoading(false))
+  }, [])
+
+  const stats = useMemo(() => ({
+    totalOrders:     orders.length,
+    pendingOrders:   orders.filter(o => o.status === 'PENDING').length,
+    deliveredToday:  orders.filter(o =>
+      o.status === 'DELIVERED' &&
+      o.deliveredAt &&
+      new Date(o.deliveredAt).toDateString() === new Date().toDateString()
+    ).length,
+    totalClients:    users.filter(u => u.role === 'CLIENTE').length,
+    totalDrivers:    users.filter(u => u.role === 'MOTORISTA').length,
+    totalBoxesStock: containers.reduce((s, c) => s + c.quantity, 0),
+    totalCapacity:   containers.reduce((s, c) => s + c.capacity, 0),
+  }), [orders, users, containers])
+
+  const v = (val) => loading ? '—' : val
+
+  return (
+    <div className={styles.homeContent}>
+      <div className={styles.welcomeCard}>
+        <p className={styles.welcomeEyebrow}>Painel de Controlo</p>
+        <h1 className={styles.welcomeTitle}>
+          Bem-vindo ao Sistema de Gestão SAAB
+        </h1>
+        <p className={styles.welcomeText}>
+          Aceda ao inventário de contêineres, gira pedidos de clientes
+          e acompanhe as rotas de entrega em tempo real.
+        </p>
       </div>
-      <div className={styles.statCard}>
-        <p className={styles.statLabel}>Pedidos hoje</p>
-        <p className={styles.statValue}>—</p>
-      </div>
-      <div className={styles.statCard}>
-        <p className={styles.statLabel}>Rotas em curso</p>
-        <p className={styles.statValue}>—</p>
+
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Total de Pedidos</p>
+          <p className={styles.statValue}>{v(stats.totalOrders)}</p>
+        </div>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Pendentes</p>
+          <p className={styles.statValue}>{v(stats.pendingOrders)}</p>
+        </div>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Entregas Hoje</p>
+          <p className={styles.statValue}>{v(stats.deliveredToday)}</p>
+        </div>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Clientes</p>
+          <p className={styles.statValue}>{v(stats.totalClients)}</p>
+        </div>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Motoristas</p>
+          <p className={styles.statValue}>{v(stats.totalDrivers)}</p>
+        </div>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Caixas em Stock</p>
+          <p className={styles.statValue}>
+            {loading ? '—' : `${stats.totalBoxesStock} / ${stats.totalCapacity}`}
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 /* ── Layout shell ── */
 const AdminDashboard = () => {

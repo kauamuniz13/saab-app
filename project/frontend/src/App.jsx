@@ -8,8 +8,10 @@ import AdminDashboard, { AdminHome } from './pages/AdminDashboard'
 import Inventory      from './pages/Inventory'
 import OrderEntry     from './pages/OrderEntry'
 import Logistics      from './pages/Logistics'
-import DriverRoutes   from './pages/DriverRoutes'
+import DriverRoutes    from './pages/DriverRoutes'
+import MotoristaLayout from './pages/MotoristaLayout'
 import ClientOrders   from './pages/ClientOrders'
+import ClienteLayout  from './pages/ClienteLayout'
 
 const App = () => {
   return (
@@ -43,30 +45,32 @@ const App = () => {
 
           {/* CLIENTE */}
           <Route
-            path="/cliente/*"
+            path="/cliente"
             element={
               <ProtectedRoute allowedRoles={['CLIENTE']}>
-                <Routes>
-                  <Route path="orders"     element={<ClientOrders />} />
-                  <Route path="orders/new" element={<OrderEntry />} />
-                  <Route path="*"          element={<Navigate to="orders" replace />} />
-                </Routes>
+                <ClienteLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index             element={<Navigate to="orders" replace />} />
+            <Route path="orders"     element={<ClientOrders />} />
+            <Route path="orders/new" element={<OrderEntry />} />
+            <Route path="*"          element={<Navigate to="orders" replace />} />
+          </Route>
 
           {/* MOTORISTA */}
           <Route
-            path="/motorista/*"
+            path="/motorista"
             element={
               <ProtectedRoute allowedRoles={['MOTORISTA']}>
-                <Routes>
-                  <Route path="routes" element={<DriverRoutes />} />
-                  <Route path="*"      element={<Navigate to="routes" replace />} />
-                </Routes>
+                <MotoristaLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index         element={<Navigate to="routes" replace />} />
+            <Route path="routes" element={<DriverRoutes />} />
+            <Route path="*"      element={<Navigate to="routes" replace />} />
+          </Route>
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />

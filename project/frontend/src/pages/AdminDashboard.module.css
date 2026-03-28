@@ -218,12 +218,19 @@
   line-height: 1.6;
 }
 
-/* ── Stats row ── */
+/* ── Stats row (legacy) ── */
 .statsRow {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-top: 1.5rem;
+}
+
+/* ── Stats grid ── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
 .statCard {
@@ -301,13 +308,15 @@
     display: none;
   }
 
-  .statsRow {
-    grid-template-columns: 1fr;
-  }
+  .statsRow  { grid-template-columns: 1fr; }
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (min-width: 1024px) {
-  .statsRow {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .statsRow  { grid-template-columns: repeat(3, 1fr); }
+  .statsGrid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .statsGrid { grid-template-columns: 1fr; }
 }

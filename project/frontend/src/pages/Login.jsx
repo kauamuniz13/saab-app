@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-console.log('Login Renderizado')
 import { useAuth } from '../context/AuthContext'
 import logoSaab from '../assets/logo-saab.svg'
 import styles from './Login.module.css'
 
 const ROLE_REDIRECT = {
   ADMIN:     '/admin/dashboard',
-  CLIENTE:   '/cliente/catalog',
+  CLIENTE:   '/cliente/orders',
   MOTORISTA: '/motorista/routes',
 }
 
