@@ -1,0 +1,338 @@
+/* ─────────────────────────────────────────
+   DriverDelivery.module.css — SAAB
+───────────────────────────────────────── */
+
+.page {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 720px;
+}
+
+/* ── State ── */
+.state {
+  padding: 3rem 1.5rem;
+  font-size: 0.875rem;
+  color: #505050;
+  text-align: center;
+}
+
+/* ── Back ── */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.15s;
+  width: fit-content;
+}
+
+.backBtn:hover { color: #f0f0f0; }
+
+/* ── Header ── */
+.header {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-left: 4px solid #8b0000;
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.eyebrow {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #8b0000;
+  margin: 0;
+}
+
+.orderNum {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin: 0;
+  line-height: 1;
+  font-family: monospace;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.625rem;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  width: fit-content;
+}
+
+.mapsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #888;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.mapsLink:hover {
+  border-color: #1a6bb5;
+  color: #4a9fd4;
+}
+
+.metaGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.metaRow {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  align-items: baseline;
+}
+
+.metaLabel {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #505050;
+  min-width: 64px;
+  flex-shrink: 0;
+}
+
+.metaValue { color: #cccccc; }
+
+/* ── Section ── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #505050;
+  margin: 0;
+}
+
+/* ── Items card ── */
+.itemsCard {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid #252525;
+  gap: 1rem;
+}
+
+.itemRow:last-of-type { border-bottom: none; }
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.itemName {
+  font-size: 0.875rem;
+  color: #f0f0f0;
+  font-weight: 500;
+}
+
+.itemType {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.itemNums {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.itemQty {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  min-width: 48px;
+  text-align: right;
+}
+
+.itemWeight {
+  font-size: 0.875rem;
+  color: #888;
+  min-width: 56px;
+  text-align: right;
+}
+
+.totalsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  background-color: #252525;
+  border-top: 1px solid #333;
+}
+
+.totalsLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #505050;
+}
+
+.totalsNums {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.totalsValue {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  min-width: 48px;
+  text-align: right;
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.actionPanel {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.actionPanelGreen {
+  border-color: #15803d;
+  background-color: #0d1a0f;
+}
+
+.actionHint {
+  font-size: 0.8125rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.btnPrimary {
+  background-color: #8b0000;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  cursor: pointer;
+  width: fit-content;
+  transition: background-color 0.18s;
+}
+
+.btnPrimary:hover:not(:disabled) { background-color: #720000; }
+.btnPrimary:active:not(:disabled) { background-color: #5a0000; }
+.btnPrimary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.deliveredConfirm {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.deliveredIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: #15803d;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.deliveredTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #15803d;
+  margin: 0 0 0.25rem;
+}
+
+.deliveredTime {
+  font-size: 0.8125rem;
+  color: #888;
+  margin: 0;
+}
+
+.errorMsg {
+  font-size: 0.8125rem;
+  color: #f87171;
+  background-color: #140a0a;
+  border: 1px solid #f8717133;
+  border-radius: 4px;
+  padding: 0.625rem 0.875rem;
+  margin: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .itemNums { gap: 0.75rem; }
+  .totalsNums { gap: 0.75rem; }
+  .btnPrimary { width: 100%; text-align: center; }
+}

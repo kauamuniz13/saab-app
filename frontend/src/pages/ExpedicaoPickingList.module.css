@@ -1,0 +1,373 @@
+/* ─────────────────────────────────────────
+   ExpedicaoPickingList.module.css — SAAB
+───────────────────────────────────────── */
+
+.page {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 900px;
+}
+
+/* ── State (loading / error) ── */
+.state {
+  padding: 3rem 1.5rem;
+  font-size: 0.875rem;
+  color: #505050;
+  text-align: center;
+}
+
+/* ── Back button ── */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.15s;
+  width: fit-content;
+}
+
+.backBtn:hover {
+  color: #f0f0f0;
+}
+
+/* ── Header ── */
+.header {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-left: 4px solid #8b0000;
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.eyebrow {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #8b0000;
+  margin: 0;
+}
+
+.orderNum {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin: 0;
+  line-height: 1;
+  font-family: monospace;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.625rem;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  width: fit-content;
+}
+
+.headerMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.metaRow {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  align-items: baseline;
+}
+
+.metaLabel {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #505050;
+  min-width: 64px;
+  flex-shrink: 0;
+}
+
+.metaValue {
+  color: #cccccc;
+}
+
+/* ── Section ── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #505050;
+  margin: 0;
+}
+
+/* ── Table ── */
+.tableWrap {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 44px 80px 1fr 100px 70px 90px;
+  align-items: center;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #505050;
+  border-bottom: 1px solid #2a2a2a;
+  gap: 0.5rem;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 44px 80px 1fr 100px 70px 90px;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  gap: 0.5rem;
+  border-bottom: 1px solid #252525;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background-color: #252525;
+}
+
+.tableRow.rowChecked {
+  background-color: #0d1a0f;
+  opacity: 0.85;
+}
+
+.checkCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 4px;
+  border: 2px solid #3a3a3a;
+  background-color: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background-color 0.15s;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.checkbox.checkboxOn {
+  border-color: #15803d;
+  background-color: #15803d;
+}
+
+.containerLabel {
+  font-family: monospace;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #888;
+}
+
+.productName {
+  font-size: 0.875rem;
+  color: #f0f0f0;
+}
+
+.productType {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.num {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f0f0f0;
+}
+
+.right {
+  text-align: right;
+}
+
+.empty {
+  padding: 2rem 1.25rem;
+  font-size: 0.875rem;
+  color: #505050;
+  margin: 0;
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.actionPanel {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.actionPanelGreen {
+  border-color: #15803d;
+  background-color: #0d1a0f;
+}
+
+.actionHint {
+  font-size: 0.8125rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.actionReady {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #15803d;
+  margin: 0;
+}
+
+.weightRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.weightLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #888;
+  white-space: nowrap;
+}
+
+.weightInput {
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  color: #f0f0f0;
+  width: 140px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.weightInput::placeholder {
+  color: #505050;
+}
+
+.weightInput:focus {
+  outline: none;
+  border-color: #8b0000;
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.22);
+}
+
+.btnPrimary {
+  background-color: #8b0000;
+  border: none;
+  border-radius: 4px;
+  padding: 0.625rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  cursor: pointer;
+  width: fit-content;
+  transition: background-color 0.18s;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background-color: #720000;
+}
+
+.btnPrimary:active:not(:disabled) {
+  background-color: #5a0000;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hintWarn {
+  font-size: 0.75rem;
+  color: #b45309;
+  margin: 0;
+}
+
+.errorMsg {
+  font-size: 0.8125rem;
+  color: #f87171;
+  background-color: #140a0a;
+  border: 1px solid #f8717133;
+  border-radius: 4px;
+  padding: 0.625rem 0.875rem;
+  margin: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 44px 70px 1fr 70px 80px;
+  }
+
+  /* oculta tipo */
+  .tableHeader span:nth-child(4),
+  .tableRow span:nth-child(4) {
+    display: none;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
