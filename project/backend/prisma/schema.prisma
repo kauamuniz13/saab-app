@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Valores válidos: "ADMIN" | "CLIENTE" | "MOTORISTA"
+// Valores válidos: "ADMIN" | "EXPEDICAO" | "MOTORISTA" | "CLIENTE"
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -21,26 +21,43 @@ model User {
 model Product {
   id          Int         @id @default(autoincrement())
   name        String
-  type        String      // ex: "Bovino", "Suíno", "Frango", "Cordeiro"
-  pricePerBox Float       @default(0) // preço por caixa em EUR
+  type        String      // categoria livre: "Bovino", "Bebidas", "Acessórios", etc.
+  pricePerBox Float       @default(0) // price per box in USD
+  active      Boolean     @default(true)
   createdAt   DateTime    @default(now())
   containers  Container[]
   orderItems  OrderItem[] @relation("OrderItemProduct")
 }
 
-model Container {
-  id         Int         @id @default(autoincrement())
-  label      String      @unique // ex: "C-01"
-  capacity   Int
-  quantity   Int         @default(0)
-  productId  Int?
-  product    Product?    @relation(fields: [productId], references: [id])
-  orderItems OrderItem[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+enum ContainerZone {
+  CAMARA_FRIA
+  CAMARA_FRIA_FORA
+  CONTAINERS
+  SECOS
+  OPEN_BOX
 }
 
-// Valores válidos: "PENDING" | "CONFIRMED" | "DELIVERED" | "CANCELLED"
+enum SecosSubZone {
+  NASSIF
+  SAAB
+  BEBIDAS
+}
+
+model Container {
+  id         Int              @id @default(autoincrement())
+  label      String           @unique // ex: "CF-01", "SN-02"
+  zone       ContainerZone    @default(CONTAINERS)
+  subZone    SecosSubZone?
+  capacity   Int
+  quantity   Int              @default(0)
+  productId  Int?
+  product    Product?         @relation(fields: [productId], references: [id])
+  orderItems OrderItem[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+// Valores válidos: "PENDING" | "CONFIRMED" | "SEPARATING" | "READY" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED"
 model Order {
   id                  Int         @id @default(autoincrement())
   clientId            Int
@@ -58,6 +75,13 @@ model Order {
   signature           String?
   deliveredAt         DateTime?
   deliveredById       Int?
+  // Expedição
+  separatedById       Int?
+  separatedAt         DateTime?
+  packedById          Int?
+  packedAt            DateTime?
+  // Motorista
+  loadedAt            DateTime?
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   items               OrderItem[]

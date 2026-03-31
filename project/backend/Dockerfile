@@ -18,4 +18,4 @@ COPY . .
 EXPOSE 3000
 
 # Ao arrancar: aplica migrações pendentes e inicia o servidor
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node prisma/seed.js && node server.js"]

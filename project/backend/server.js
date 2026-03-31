@@ -5,6 +5,7 @@ const authRoutes      = require('./src/routes/authRoutes')
 const inventoryRoutes = require('./src/routes/inventoryRoutes')
 const orderRoutes     = require('./src/routes/orderRoutes')
 const routeRoutes     = require('./src/routes/routeRoutes')
+const userRoutes      = require('./src/routes/userRoutes')
 
 const app  = express()
 const PORT = process.env.PORT || 3000
@@ -16,6 +17,7 @@ app.use('/auth',      authRoutes)
 app.use('/inventory', inventoryRoutes)
 app.use('/orders',    orderRoutes)
 app.use('/routes',    routeRoutes)
+app.use('/users',     userRoutes)
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }))
 

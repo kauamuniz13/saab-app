@@ -1,0 +1,178 @@
+/* ─────────────────────────────────────────
+   ExpedicaoDashboard.module.css — SAAB
+───────────────────────────────────────── */
+
+.page {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  max-width: 960px;
+}
+
+/* ── Cards ── */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.card {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-top: 3px solid;
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+}
+
+.cardLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #888888;
+  margin: 0 0 0.5rem;
+}
+
+.cardValue {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+/* ── Section ── */
+.section {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.sectionTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f0f0f0;
+  margin: 0;
+}
+
+.btnSecondary {
+  background: transparent;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  padding: 0.4rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #888888;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btnSecondary:hover {
+  border-color: #555;
+  color: #f0f0f0;
+}
+
+/* ── Table ── */
+.tableHeader {
+  display: grid;
+  grid-template-columns: 80px 1fr 140px 130px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #505050;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 80px 1fr 140px 130px;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  color: #f0f0f0;
+  border-bottom: 1px solid #252525;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background-color: #252525;
+}
+
+.orderId {
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 0.8125rem;
+  color: #888;
+}
+
+.clientEmail {
+  font-size: 0.8125rem;
+  color: #ccc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 1rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.625rem;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 0.75rem;
+  color: #505050;
+}
+
+.empty {
+  padding: 2rem 1.25rem;
+  font-size: 0.875rem;
+  color: #505050;
+  margin: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .cardsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 70px 1fr 110px;
+  }
+
+  .tableHeader span:last-child,
+  .tableRow span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .cardsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

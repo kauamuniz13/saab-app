@@ -1,194 +1,260 @@
-# CLAUDE.md - Project Guide
+# CLAUDE.md — SAAB Gestão Logística
+
+## Project Overview
+
+Sistema de gestão para distribuidora de carnes, bebidas e acessórios para churrasco, baseada em Orlando, FL (EUA).
+Moeda: **USD ($)**. Localização: **Orlando, Florida**.
+Fluxo operacional: **Cliente faz pedido → Expedição confirma e separa → Motorista carrega e entrega → Admin monitoriza tudo.**
+
+## Tech Stack
+
+| Camada    | Stack                                       |
+|-----------|---------------------------------------------|
+| Frontend  | React 18, Vite, CSS Modules, react-router-dom, axios, react-signature-canvas |
+| Backend   | Node.js, Express 5, Prisma ORM, PostgreSQL, JWT, pdfkit, bcrypt |
+| Infra     | Docker Compose (PostgreSQL + backend), frontend local via Vite  |
 
 ## Commands
-- Install: npm install (run in root, frontend, and backend)
-- Dev Frontend: cd frontend && npm run dev
-- Dev Backend: cd backend && npm run dev
-- Test: npm test
-- Lint: npm run lint
+
+```bash
+# Infra — PostgreSQL + Backend (Docker)
+docker compose up --build -d          # build + start (auto migrate + seed)
+docker compose logs -f backend        # logs
+docker compose down                   # stop (dados preservados)
+docker compose down -v                # stop + apagar DB
+
+# Migrations & Seed (dentro do container ou local)
+cd backend && npx prisma migrate dev --name <nome>
+cd backend && npx prisma db seed
+
+# Dev — Frontend (local)
+cd frontend && npm install && npm run dev
+
+# Dev — Backend (local, alternativa ao Docker)
+cd backend && npm install && npm run dev
+```
+
+## Architecture
+
+```
+project/
+├── backend/
+│   ├── server.js                      # Express entry point, monta todas as rotas
+│   ├── Dockerfile                     # Node 20-alpine, auto migrate deploy + seed + start
+│   ├── prisma/
+│   │   ├── schema.prisma              # User, Product, Container, Order, OrderItem
+│   │   └── seed.js                    # 6 users + ~191 produtos reais + ~240 contêineres
+│   └── src/
+│       ├── middlewares/authMiddleware.js   # authMiddleware + authorizeRoles
+│       ├── controllers/               # HTTP layer — validação de input, status codes
+│       │   ├── AuthController.js
+│       │   ├── InventoryController.js
+│       │   ├── OrderController.js
+│       │   ├── RouteController.js
+│       │   └── UserController.js
+│       ├── services/                  # Business logic — Prisma queries, cálculos
+│       │   ├── InventoryService.js
+│       │   ├── OrderService.js
+│       │   ├── InvoiceService.js      # PDF generation (pdfkit), currency USD
+│       │   ├── RouteService.js        # Haversine + nearest-neighbor, depot Orlando FL
+│       │   └── UserService.js
+│       └── routes/
+│           ├── authRoutes.js          # POST /auth/login
+│           ├── inventoryRoutes.js     # GET/PATCH /inventory/containers, GET/POST/PATCH/DELETE /inventory/products
+│           ├── orderRoutes.js         # CRUD + /confirm /separate /pack /load /deliver /invoice
+│           ├── routeRoutes.js         # GET /routes/daily
+│           └── userRoutes.js          # GET/POST/PATCH /users (ADMIN only)
+└── frontend/src/
+    ├── context/AuthContext.jsx         # AuthProvider, useAuth — login, logout, token, user
+    ├── services/
+    │   ├── authService.js             # Axios instance + JWT interceptor
+    │   ├── inventoryService.js        # fetchContainers, fetchProducts, fetchAllProducts, createProduct, updateProduct, deleteProduct
+    │   ├── orderService.js            # fetchOrders, fetchOrderById, createOrder, confirmOrder, separateOrder, packOrder, loadOrder, openInvoice
+    │   ├── routeService.js            # fetchDailyRoute
+    │   └── userService.js             # fetchUsers, createUser, updateUser
+    ├── constants/
+    │   ├── zones.js                   # ZONE_CONFIG, ZONE_LABELS, SUBZONE_LABELS
+    │   └── categories.js             # CATEGORIES (Bovino, Suíno, Aves, Miúdos, Laticínios, Congelados, Secos, Bebidas, Outros)
+    ├── components/
+    │   ├── ProtectedRoute.jsx         # Route guard por role JWT
+    │   ├── SignatureModal.jsx         # Captura assinatura digital + PATCH deliver
+    │   └── Inventory/
+    │       ├── InventoryGrid.jsx      # Grid de contêineres por zona com busca e progresso
+    │       ├── ContainerEditModal.jsx # Modal edição de contêiner
+    │       └── ProductPanel.jsx       # Painel CRUD de produtos (preços em $)
+    └── pages/
+        ├── Login.jsx                  # Autenticação, redireciona por role
+        ├── Unauthorized.jsx
+        ├── AdminDashboard.jsx         # Layout shell admin (sidebar + topbar + Outlet) + AdminHome (KPIs)
+        ├── AdminUsers.jsx             # CRUD utilizadores (modal)
+        ├── AdminProducts.jsx          # CRUD produtos (modal, toggle activo/inactivo, preços em $)
+        ├── Inventory.jsx              # Wrapper → InventoryGrid
+        ├── OrderEntry.jsx             # Formulário de pedido com validação de stock
+        ├── Logistics.jsx              # Tabela de pedidos, fatura PDF, mapa (endereços Orlando FL)
+        ├── DriverRoutes.jsx           # Rota optimizada, paradas, link Google Maps
+        ├── DriverDelivery.jsx         # Detalhe entrega: carga → assinatura → entregue
+        ├── ExpedicaoLayout.jsx        # Layout shell expedição (sidebar + topbar + Outlet)
+        ├── ExpedicaoDashboard.jsx     # Contadores por status
+        ├── ExpedicaoOrders.jsx        # Fila de trabalho com filtros
+        ├── ExpedicaoPickingList.jsx   # Picking list + transições de status
+        ├── MotoristaLayout.jsx        # Layout shell motorista (topbar + Outlet)
+        ├── ClienteLayout.jsx          # Layout shell cliente (topbar + Outlet)
+        └── ClientOrders.jsx           # Pedidos do cliente
+```
+
+## Roles & Permissions
+
+| Role       | Redirect        | Access |
+|------------|-----------------|--------|
+| `ADMIN`    | `/admin`        | Dashboard KPIs, inventário, produtos, pedidos, logística, rotas, utilizadores |
+| `EXPEDICAO`| `/expedicao`    | Dashboard contadores, fila de pedidos, picking list, contêineres |
+| `MOTORISTA`| `/motorista`    | Rota do dia, detalhe de entrega, assinatura digital |
+| `CLIENTE`  | `/cliente`      | Pedidos próprios, novo pedido, fatura PDF |
+
+## Order Status Pipeline
+
+```
+PENDING → CONFIRMED → SEPARATING → READY → IN_TRANSIT → DELIVERED
+                   ↘ CANCELLED (antes de IN_TRANSIT)
+```
+
+| Transition              | Who              | Endpoint                  |
+|-------------------------|------------------|---------------------------|
+| → CONFIRMED             | Admin, Expedição | PATCH /orders/:id/status  |
+| → SEPARATING            | Admin, Expedição | PATCH /orders/:id/separate|
+| → READY                 | Admin, Expedição | PATCH /orders/:id/pack    |
+| → IN_TRANSIT            | Motorista        | PATCH /orders/:id/load    |
+| → DELIVERED (+ assinatura) | Motorista     | PATCH /orders/:id/deliver |
+| → CANCELLED             | Admin, Expedição | PATCH /orders/:id/status  |
+
+## Routes (React Router)
+
+```
+/                          → Login
+/login                     → Login
+/unauthorized              → Unauthorized
+
+/admin                     → AdminDashboard (layout)
+  /admin/dashboard         → AdminHome (KPIs reais)
+  /admin/inventory         → Inventory (InventoryGrid)
+  /admin/products          → AdminProducts (CRUD)
+  /admin/orders/new        → OrderEntry
+  /admin/logistics         → Logistics
+  /admin/routes            → DriverRoutes
+  /admin/users             → AdminUsers (CRUD)
+
+/expedicao                 → ExpedicaoLayout
+  /expedicao/dashboard     → ExpedicaoDashboard
+  /expedicao/orders        → ExpedicaoOrders
+  /expedicao/orders/:id    → ExpedicaoPickingList
+  /expedicao/containers    → Inventory (InventoryGrid reutilizado)
+
+/motorista                 → MotoristaLayout
+  /motorista/routes        → DriverRoutes
+  /motorista/delivery/:id  → DriverDelivery
+
+/cliente                   → ClienteLayout
+  /cliente/orders          → ClientOrders
+  /cliente/orders/new      → OrderEntry
+```
+
+## Database Models (Prisma)
+
+```
+User         → id, email, password, role (ADMIN|EXPEDICAO|MOTORISTA|CLIENTE)
+Product      → id, name, type (Bovino|Suíno|Aves|Miúdos|Laticínios|Congelados|Secos|Bebidas|Outros), pricePerBox (USD), active
+Container    → id, label, zone (CAMARA_FRIA|CAMARA_FRIA_FORA|CONTAINERS|SECOS|OPEN_BOX),
+               subZone? (NASSIF|SAAB|BEBIDAS), capacity, quantity, productId?
+Order        → id, clientId, status, totalBoxes, weightKg, address, lat/lon,
+               deliveryWindow, signature, deliveredAt/By, separatedAt/By, packedAt/By, loadedAt
+OrderItem    → id, orderId, containerId, productId, quantity, weightKg
+```
+
+## Seed Data
+
+### Accounts
+
+| Email               | Password       | Role      |
+|---------------------|----------------|-----------|
+| admin@saab.com      | 123456         | ADMIN     |
+| expedicao@saab.com  | expedicao123   | EXPEDICAO |
+| motorista@saab.com  | motorista123   | MOTORISTA |
+| frigorifico.norte@saab.com | 123456  | CLIENTE   |
+| distribuidora.sul@saab.com | 123456  | CLIENTE   |
+| supermercado.abc@saab.com  | 123456  | CLIENTE   |
+
+### Inventory (~191 produtos, ~240 contêineres)
+
+| Zona | Prefixo | Conteúdo |
+|------|---------|----------|
+| Câmara Fria | CF-xx | Carnes bovinas, suínas, laticínios |
+| Câmara Fria / Fora | CFF-xx | Carnes, aves, miúdos |
+| Container 36 | CT36-xx | Carnes, congelados (tostones, yuca, batata) |
+| Container 33 | CT33-xx | Miúdos, aves, suínos, congelados |
+| Container 32 | CT32-xx | Carnes bovinas, aves |
+| Container 31 | CT31-xx | Aves, carnes, congelados |
+| Secos / Nassif | SN-xx | Polvilho, palmito |
+| Secos / Saab | SS-xx | Polvilho, palmito |
+| Bebidas | SB-xx | Cerveja (Império), cachaça (51), vinhos, energéticos (Baly) |
+| Open Box | OB-xx | Bebidas avulsas |
+
+### Product Categories
+
+`Bovino` · `Suíno` · `Aves` · `Miúdos` · `Laticínios` · `Congelados` · `Secos` · `Bebidas` · `Outros`
+
+### Location (Orlando, FL)
+
+- **Depot:** 28.5383, -81.3792 (Orlando, FL)
+- **Client addresses:** Dr Phillips Blvd, Conroy Rd (Orlando), Irlo Bronson Hwy (Kissimmee)
 
 ## Coding Standards
-- React: Functional components, Hooks, CSS Modules for styling (NO Tailwind).
-- Node: Express, REST patterns, Controllers/Services/Models separation.
-- Security: JWT for authentication, environment variables for secrets.
-- Patterns: Clean Code, DRY, SOLID principles.
-- Components: Reusable components in src/components.
 
-## Architecture Guidelines
-- Never mix frontend and backend code.
-- Validation must be performed on both frontend (UX) and backend (Security).
-- Backend services handle business logic; controllers handle HTTP.
+- **React**: Functional components, Hooks only. No class components.
+- **CSS**: CSS Modules exclusively (`Component.module.css`). NO Tailwind, NO inline styles, NO styled-components.
+- **Node**: Express, REST, Controllers/Services separation. Controllers = HTTP, Services = business logic.
+- **Currency**: USD ($). Preços em dólar americano. `toLocaleString('en-US', { currency: 'USD' })`.
+- **Security**: JWT authentication, bcrypt for passwords, environment variables for secrets.
+- **Validation**: Frontend (UX) + Backend (Security). Never trust client input.
+- **Patterns**: Clean Code, DRY, SOLID. Reusable components in `src/components/`.
+- **Boolean fields**: Use `!== false` checks (not truthy) when a DB field has `@default(true)`, to handle `undefined` gracefully.
 
-## UI/UX Guidelines
-- UI Pattern: Mobile-first (mesmo na web) para uso em tablets no galpão.
-- Inventory UI: Usar Grid System para representar o Mapa de Contêineres.
-- Forms: Validação rigorosa de pesos (kg) e quantidades (caixas).
+## Style Guide
 
-## Style Guide — SAAB Gestão Logística
+### Theme
+Tema industrial escuro, sóbrio e funcional. Alto contraste, vermelho como cor de acento.
 
-### Identidade Visual
-Tema industrial escuro, sóbrio e funcional. Inspirado em ambientes de galpão frigorífico:
-alto contraste, tipografia clara, uso de vermelho como cor de acento (referência à carne).
+### Palette
 
-### Paleta de Cores
-
-#### Backgrounds
-| Token         | Hex       | Uso                                      |
+| Token         | Hex       | Usage                                    |
 |---------------|-----------|------------------------------------------|
-| bg-page       | `#1a1a1a` | Fundo de todas as páginas                |
-| bg-surface    | `#1e1e1e` | Cards, painéis, sidebars                 |
-| bg-input      | `#2a2a2a` | Inputs, selects, textareas               |
-| bg-hover      | `#252525` | Hover em linhas de tabela / list items   |
+| bg-page       | `#1a1a1a` | Page backgrounds                         |
+| bg-surface    | `#1e1e1e` | Cards, panels, sidebars                  |
+| bg-input      | `#2a2a2a` | Inputs, selects                          |
+| bg-hover      | `#252525` | Table row hover                          |
+| border-base   | `#333333` | Card borders                             |
+| border-input  | `#3a3a3a` | Input borders                            |
+| text-primary  | `#f0f0f0` | Titles, body                             |
+| text-secondary| `#888888` | Labels, meta                             |
+| text-muted    | `#505050` | Placeholders, disabled                   |
+| red-base      | `#8b0000` | Primary buttons, focus borders, badges   |
+| red-hover     | `#720000` | Button hover                             |
+| red-active    | `#5a0000` | Button pressed                           |
+| status-ok     | `#15803d` | Success, ready, delivered                |
+| status-warn   | `#b45309` | Warning, pending                         |
+| status-error  | `#f87171` | Error, cancelled                         |
+| blue-accent   | `#1a6bb5` | Separating status, info highlights       |
 
-#### Borders
-| Token         | Hex       | Uso                                      |
-|---------------|-----------|------------------------------------------|
-| border-base   | `#333333` | Bordas de cards e containers             |
-| border-input  | `#3a3a3a` | Bordas de inputs em repouso              |
+### Components
+- Cards: `border-radius: 6px`, `border: 1px solid #333`
+- Inputs: `border-radius: 4px`, focus `box-shadow: 0 0 0 3px rgba(139,0,0,0.22)`
+- Badges: `border-radius: 999px` (pill), `border: 1px solid`, colored per status
+- Buttons primary: `bg #8b0000`, white text, bold, uppercase
+- Buttons secondary: `bg transparent`, `border: 1px solid #3a3a3a`
+- Shadows: elevated `0 16px 48px rgba(0,0,0,0.55)`, subtle `0 4px 12px rgba(0,0,0,0.4)`
+- Logo: Use `logo-saab.png` (transparent background), NOT the SVG
 
-#### Texto
-| Token         | Hex       | Uso                                      |
-|---------------|-----------|------------------------------------------|
-| text-primary  | `#f0f0f0` | Títulos e conteúdo principal             |
-| text-secondary| `#888888` | Labels, subtítulos, meta-informação      |
-| text-muted    | `#505050` | Placeholders, rodapés, desabilitados     |
+### Responsiveness
+Mobile-first. Breakpoints: `480px` → `768px` → `1024px`.
 
-#### Acento — Vermelho (ação e destaque)
-| Token         | Hex       | Uso                                      |
-|---------------|-----------|------------------------------------------|
-| red-dark      | `#3d0000` | Header de card, fundo de secções críticas|
-| red-base      | `#8b0000` | Botões primários, bordas de foco, badges |
-| red-hover     | `#720000` | Hover em botões primários                |
-| red-active    | `#5a0000` | Active/pressed em botões                 |
-| red-accent    | `#f4a0a0` | Eyebrow text sobre fundo vermelho escuro |
-
-#### Estado — Feedback
-| Token         | Hex       | Uso                                      |
-|---------------|-----------|------------------------------------------|
-| status-ok     | `#15803d` | Sucesso, disponível, entregue            |
-| status-warn   | `#b45309` | Atenção, parcial, em trânsito            |
-| status-error  | `#f87171` | Erro, cheio, rejeitado                   |
-| status-error-bg| `#140a0a`| Fundo de banners de erro                 |
-
-### Tipografia
-- Font: `system-ui, 'Segoe UI', Roboto, sans-serif`
-- Labels de campo: `0.6875rem`, uppercase, `letter-spacing: 0.12em`, `color: #888`
-- Eyebrow/categoria: `0.625rem`, uppercase, `letter-spacing: 0.25em`
-- Body: `0.875rem`, `color: #f0f0f0`
-- Subtítulo/meta: `0.8125rem`, `color: #666`
-
-### Bordas e Arredondamento
-- Cards e containers: `border-radius: 6px`
-- Inputs e botões: `border-radius: 4px`
-- Badges de status: `border-radius: 999px` (pill)
-- Evitar arredondamentos superiores a `8px` — estilo sóbrio industrial.
-
-### Sombras
-- Card elevado: `box-shadow: 0 16px 48px rgba(0,0,0,0.55)`
-- Card sutil: `box-shadow: 0 4px 12px rgba(0,0,0,0.4)`
-
-### Botões
-- **Primário**: `bg #8b0000`, texto branco, bold, uppercase, `border-radius: 4px`
-- **Secundário**: `bg transparent`, `border: 1px solid #3a3a3a`, texto `#888`
-- **Destrutivo**: `bg #5a0000`, reservado para ações irreversíveis
-- Todos os botões: `transition: background-color 0.18s`, cursor `not-allowed` quando disabled
-
-### Inputs
-- Fundo `#2a2a2a`, border `#3a3a3a`, texto `#f0f0f0`
-- Foco: `border-color: #8b0000`, `box-shadow: 0 0 0 3px rgba(139,0,0,0.22)`
-- Placeholder: `#505050`
-
-### Estilização
-- Usar exclusivamente **CSS Modules** (`Component.module.css`).
-- Sem Tailwind, sem CSS inline, sem styled-components.
-- Cada componente/página tem o seu próprio `.module.css` na mesma pasta.
-
-### Responsividade
-- Mobile-first. Breakpoints:
-  - `480px` — tablets pequenos / landscape mobile
-  - `768px` — tablets
-  - `1024px` — desktop
-
----
-
-## Componentes e Páginas Existentes
-
-> Lista completa para evitar importações erradas ou ficheiros duplicados.
-
-### Backend — `backend/`
-
-| Caminho | Descrição |
-|---|---|
-| `server.js` | Entry point Express, monta as 4 rotas |
-| `prisma/schema.prisma` | Modelos: User, Product, Container, Order, OrderItem |
-| `prisma/seed.js` | Seed: admin@saab.com + 3 clientes + 7 produtos + 12 contêineres |
-| `src/middlewares/authMiddleware.js` | `authMiddleware` + `authorizeRoles` (aceita token via header ou query param `?token=`) |
-| `src/controllers/AuthController.js` | `login` |
-| `src/controllers/InventoryController.js` | `listContainers`, `getContainer`, `updateContainer`, `listProducts` |
-| `src/controllers/OrderController.js` | `createOrder`, `listOrders`, `getOrder`, `listClients`, `getInvoice`, `deliverOrder` |
-| `src/controllers/RouteController.js` | `getDailyRoute` |
-| `src/services/InventoryService.js` | CRUD de contêineres e produtos (Prisma) |
-| `src/services/OrderService.js` | `createOrder` (transação Prisma), `deliverOrder` |
-| `src/services/InvoiceService.js` | Geração de PDF com pdfkit (cabeçalho SAAB, tabela de produtos, total) |
-| `src/services/RouteService.js` | Haversine + nearest-neighbor + penalidade de janela de entrega |
-| `src/services/UserService.js` | `findByEmail`, `validatePassword` |
-| `src/routes/authRoutes.js` | `POST /auth/login` |
-| `src/routes/inventoryRoutes.js` | `GET/PATCH /inventory/containers`, `GET /inventory/products` |
-| `src/routes/orderRoutes.js` | `GET /orders/clients`, `GET /orders/:id/invoice`, `PATCH /orders/:id/deliver`, `GET/POST /orders`, `GET /orders/:id` |
-| `src/routes/routeRoutes.js` | `GET /routes/daily` |
-
-### Frontend — `frontend/src/`
-
-#### Páginas (`pages/`)
-
-| Ficheiro | Rota | Descrição |
-|---|---|---|
-| `Login.jsx` + `.module.css` | `/login` | Autenticação JWT, redireciona por role |
-| `AdminDashboard.jsx` + `.module.css` | `/admin` | **Layout shell** — sidebar azul naval + topbar + `<Outlet />`. Exporta também `AdminHome` (painel de boas-vindas + stats) |
-| `Inventory.jsx` + `.module.css` | `/admin/inventory` | Wrapper do Módulo A — monta `<InventoryGrid />` |
-| `OrderEntry.jsx` + `.module.css` | `/admin/orders/new` | Módulo B — formulário de pedido com validação de stock |
-| `Logistics.jsx` + `.module.css` | `/admin/logistics` | Módulo C — tabela de pedidos, fatura PDF, modal de mapa |
-| `DriverRoutes.jsx` + `.module.css` | `/admin/routes` e `/motorista/routes` | Módulo D — rota optimizada com paradas numeradas e link Google Maps |
-| `Unauthorized.jsx` | `/unauthorized` | Página de acesso negado |
-| `Dashboard.jsx` | *(não usado)* | Ficheiro legado — não importar |
-| `NewOrder.jsx` | *(não usado)* | Ficheiro legado — não importar |
-
-#### Componentes (`components/`)
-
-| Ficheiro | Descrição |
-|---|---|
-| `ProtectedRoute.jsx` | Guard de rota por role JWT |
-| `SignatureModal.jsx` + `.module.css` | Modal react-signature-canvas — captura assinatura e envia PATCH `/orders/:id/deliver` |
-| `Inventory/InventoryGrid.jsx` + `.module.css` | **Grid de 12 contêineres** — barra de busca, glow azul (#1a6bb5) no match, barra de progresso por slot. Já implementado e funcional. |
-| `Inventory/ContainerCard.jsx` | Card individual de contêiner (legado/placeholder) |
-| `Inventory/ContainerMap.jsx` | Mapa de contêineres (legado/placeholder) |
-| `Inventory/InventoryList.jsx` | Lista de inventário (legado/placeholder) |
-| `Orders/OrderForm.jsx` | Formulário de pedido (legado/placeholder) |
-| `Orders/ProductSelector.jsx` | Selector de produto (legado/placeholder) |
-
-#### Contexto, Serviços e Config
-
-| Ficheiro | Descrição |
-|---|---|
-| `context/AuthContext.jsx` | `AuthProvider`, `useAuth` — login, logout, token, user |
-| `services/authService.js` | Instância axios com interceptor JWT automático |
-| `services/inventoryService.js` | `fetchContainers()`, `fetchProducts()` |
-| `services/orderService.js` | `fetchOrders()`, `fetchClients()`, `createOrder()`, `openInvoice()` |
-| `services/routeService.js` | `fetchDailyRoute()` |
-
-### Rotas React (`App.jsx`)
-
-```
-/                    → Login
-/login               → Login
-/unauthorized        → Unauthorized
-/admin               → AdminDashboard (layout)
-  /admin/dashboard   → AdminHome
-  /admin/inventory   → Inventory (InventoryGrid)
-  /admin/orders/new  → OrderEntry
-  /admin/logistics   → Logistics
-  /admin/routes      → DriverRoutes
-/cliente/catalog     → placeholder
-/cliente/orders/new  → OrderEntry
-/motorista/routes    → DriverRoutes
-```
+### Legacy Files (do NOT import)
+`Dashboard.jsx`, `NewOrder.jsx`, `ContainerCard.jsx`, `ContainerMap.jsx`, `InventoryList.jsx`, `OrderForm.jsx`, `ProductSelector.jsx`

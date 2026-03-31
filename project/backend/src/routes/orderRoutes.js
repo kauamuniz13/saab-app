@@ -8,6 +8,9 @@ const {
   deliverOrder,
   updateStatus,
   getInvoice,
+  separateOrder,
+  packOrder,
+  loadOrder,
 } = require('../controllers/OrderController')
 
 const router = Router()
@@ -15,13 +18,16 @@ const router = Router()
 router.use(authMiddleware)
 
 /* Rotas específicas ANTES de /:id para evitar colisões */
-router.get('/clients',       authorizeRoles('ADMIN'),                       listClients)
-router.get('/:id/invoice',   authorizeRoles('ADMIN', 'CLIENTE'),            getInvoice)
-router.patch('/:id/deliver', authorizeRoles('ADMIN', 'MOTORISTA'),          deliverOrder)
-router.patch('/:id/status',  authorizeRoles('ADMIN'),                       updateStatus)
+router.get('/clients',        authorizeRoles('ADMIN'),                              listClients)
+router.get('/:id/invoice',    authorizeRoles('ADMIN', 'CLIENTE'),                   getInvoice)
+router.patch('/:id/deliver',  authorizeRoles('ADMIN', 'MOTORISTA'),                 deliverOrder)
+router.patch('/:id/status',   authorizeRoles('ADMIN', 'EXPEDICAO'),                 updateStatus)
+router.patch('/:id/separate', authorizeRoles('ADMIN', 'EXPEDICAO'),                 separateOrder)
+router.patch('/:id/pack',     authorizeRoles('ADMIN', 'EXPEDICAO'),                 packOrder)
+router.patch('/:id/load',     authorizeRoles('MOTORISTA'),                          loadOrder)
 
-router.get('/',    authorizeRoles('ADMIN', 'CLIENTE', 'MOTORISTA'), listOrders)
-router.post('/',   authorizeRoles('ADMIN'),                          createOrder)
-router.get('/:id', authorizeRoles('ADMIN', 'CLIENTE', 'MOTORISTA'), getOrder)
+router.get('/',    authorizeRoles('ADMIN', 'EXPEDICAO', 'MOTORISTA', 'CLIENTE'), listOrders)
+router.post('/',   authorizeRoles('ADMIN', 'CLIENTE'),                           createOrder)
+router.get('/:id', authorizeRoles('ADMIN', 'EXPEDICAO', 'MOTORISTA', 'CLIENTE'), getOrder)
 
 module.exports = router

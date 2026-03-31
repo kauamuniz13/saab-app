@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { fetchDailyRoute } from '../services/routeService'
-import SignatureModal from '../components/SignatureModal'
 import styles from './DriverRoutes.module.css'
 
 /* ── Icons ── */
@@ -208,17 +208,16 @@ const StopCard = ({ stop, isLast, isDelivered, onDeliver }) => {
 
 /* ── DriverRoutes ── */
 const DriverRoutes = () => {
-  const [route,     setRoute]     = useState(null)
-  const [loading,   setLoading]   = useState(true)
-  const [error,     setError]     = useState('')
-  const [activeSig, setActiveSig] = useState(null)
-  const [delivered, setDelivered] = useState({})
+  const [route,   setRoute]   = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState('')
+  const navigate = useNavigate()
 
   const load = useCallback(() => {
     setLoading(true)
     setError('')
     fetchDailyRoute()
-      .then(data => { setRoute(data); setDelivered({}) })
+      .then(data => { setRoute(data) })
       .catch(() => setError('Erro ao carregar a rota. Verifique a ligação ao servidor.'))
       .finally(() => setLoading(false))
   }, [])
@@ -298,27 +297,13 @@ const DriverRoutes = () => {
                   key={stop.orderId}
                   stop={stop}
                   isLast={i === route.stops.length - 1}
-                  isDelivered={!!delivered[stop.orderId]}
-                  onDeliver={() => setActiveSig({
-                    id: stop.orderId,
-                    client: { email: stop.clientEmail },
-                  })}
+                  isDelivered={stop.status === 'DELIVERED'}
+                  onDeliver={() => navigate(`/motorista/delivery/${stop.orderId}`)}
                 />
               ))}
             </div>
           )}
         </>
-      )}
-
-      {activeSig && (
-        <SignatureModal
-          order={activeSig}
-          onClose={() => setActiveSig(null)}
-          onDelivered={(updated) => {
-            setDelivered(prev => ({ ...prev, [updated.id]: true }))
-            setActiveSig(null)
-          }}
-        />
       )}
 
     </div>

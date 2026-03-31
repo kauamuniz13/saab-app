@@ -8,10 +8,17 @@ import AdminDashboard, { AdminHome } from './pages/AdminDashboard'
 import Inventory      from './pages/Inventory'
 import OrderEntry     from './pages/OrderEntry'
 import Logistics      from './pages/Logistics'
+import AdminUsers     from './pages/AdminUsers'
+import AdminProducts  from './pages/AdminProducts'
 import DriverRoutes    from './pages/DriverRoutes'
+import DriverDelivery  from './pages/DriverDelivery'
 import MotoristaLayout from './pages/MotoristaLayout'
 import ClientOrders   from './pages/ClientOrders'
 import ClienteLayout  from './pages/ClienteLayout'
+import ExpedicaoLayout      from './pages/ExpedicaoLayout'
+import ExpedicaoDashboard   from './pages/ExpedicaoDashboard'
+import ExpedicaoOrders      from './pages/ExpedicaoOrders'
+import ExpedicaoPickingList from './pages/ExpedicaoPickingList'
 
 const App = () => {
   return (
@@ -37,9 +44,11 @@ const App = () => {
             <Route index                element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard"     element={<AdminHome />} />
             <Route path="inventory"     element={<Inventory />} />
+            <Route path="products"      element={<AdminProducts />} />
             <Route path="orders/new"    element={<OrderEntry />} />
             <Route path="logistics"     element={<Logistics />} />
             <Route path="routes"        element={<DriverRoutes />} />
+            <Route path="users"         element={<AdminUsers />} />
             <Route path="*"             element={<Navigate to="dashboard" replace />} />
           </Route>
 
@@ -58,6 +67,23 @@ const App = () => {
             <Route path="*"          element={<Navigate to="orders" replace />} />
           </Route>
 
+          {/* EXPEDIÇÃO */}
+          <Route
+            path="/expedicao"
+            element={
+              <ProtectedRoute allowedRoles={['EXPEDICAO']}>
+                <ExpedicaoLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index                element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard"     element={<ExpedicaoDashboard />} />
+            <Route path="orders"        element={<ExpedicaoOrders />} />
+            <Route path="orders/:id"    element={<ExpedicaoPickingList />} />
+            <Route path="containers"    element={<Inventory />} />
+            <Route path="*"             element={<Navigate to="dashboard" replace />} />
+          </Route>
+
           {/* MOTORISTA */}
           <Route
             path="/motorista"
@@ -67,9 +93,10 @@ const App = () => {
               </ProtectedRoute>
             }
           >
-            <Route index         element={<Navigate to="routes" replace />} />
-            <Route path="routes" element={<DriverRoutes />} />
-            <Route path="*"      element={<Navigate to="routes" replace />} />
+            <Route index                    element={<Navigate to="routes" replace />} />
+            <Route path="routes"            element={<DriverRoutes />} />
+            <Route path="delivery/:id"      element={<DriverDelivery />} />
+            <Route path="*"                 element={<Navigate to="routes" replace />} />
           </Route>
 
           {/* Fallback */}

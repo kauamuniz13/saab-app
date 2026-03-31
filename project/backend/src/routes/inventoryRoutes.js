@@ -15,8 +15,8 @@ const router = Router()
 router.use(authMiddleware)
 
 /* ── Containers ── */
-router.get('/containers',       authorizeRoles('ADMIN', 'CLIENTE'), listContainers)
-router.get('/containers/:id',   authorizeRoles('ADMIN', 'CLIENTE'), getContainer)
+router.get('/containers',       authorizeRoles('ADMIN', 'CLIENTE', 'EXPEDICAO'), listContainers)
+router.get('/containers/:id',   authorizeRoles('ADMIN', 'CLIENTE', 'EXPEDICAO'), getContainer)
 router.patch('/containers/:id', authorizeRoles('ADMIN'),            updateContainer)
 
 /* ── Products ── */

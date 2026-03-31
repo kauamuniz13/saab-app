@@ -87,6 +87,36 @@ const updateStatus = async (req, res) => {
   }
 }
 
+/* ── Separate (CONFIRMED → SEPARATING) ── */
+const separateOrder = async (req, res) => {
+  try {
+    const order = await OrderService.separateOrder(req.params.id, req.user.sub)
+    return res.json(order)
+  } catch (err) {
+    return res.status(err.status || 500).json({ message: err.message })
+  }
+}
+
+/* ── Pack (SEPARATING → READY) ── */
+const packOrder = async (req, res) => {
+  try {
+    const order = await OrderService.packOrder(req.params.id, req.user.sub)
+    return res.json(order)
+  } catch (err) {
+    return res.status(err.status || 500).json({ message: err.message })
+  }
+}
+
+/* ── Load (READY → IN_TRANSIT) ── */
+const loadOrder = async (req, res) => {
+  try {
+    const order = await OrderService.loadOrder(req.params.id)
+    return res.json(order)
+  } catch (err) {
+    return res.status(err.status || 500).json({ message: err.message })
+  }
+}
+
 /* ── Invoice ── */
 const getInvoice = async (req, res) => {
   const order = await OrderService.getOrderById(req.params.id)
@@ -111,4 +141,7 @@ module.exports = {
   deliverOrder,
   updateStatus,
   getInvoice,
+  separateOrder,
+  packOrder,
+  loadOrder,
 }

@@ -1,11 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import logoSaab from '../assets/logo-saab.svg'
+import logoSaab from '../assets/logo-saab.png'
 import styles from './AdminDashboard.module.css'
 import { fetchOrders } from '../services/orderService'
-import { fetchUsers } from '../services/authService'
-import { fetchContainers } from '../services/inventoryService'
 
 /* ── Icons ── */
 const IconInventory = () => (
@@ -49,6 +47,28 @@ const IconRoutes = () => (
   </svg>
 )
 
+const IconProducts = () => (
+  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591
+         l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223
+         c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z
+         M6 6h.008v.008H6V6z" />
+  </svg>
+)
+
+const IconUsers = () => (
+  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952
+         4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07
+         M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766
+         l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0
+         3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0
+         2.625 2.625 0 015.25 0z" />
+  </svg>
+)
+
 const IconLogout = () => (
   <svg style={{ width: '1rem', height: '1rem' }} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
@@ -59,58 +79,77 @@ const IconLogout = () => (
 )
 
 const NAV_ITEMS = [
-  { key: 'inventory', label: 'Inventário', Icon: IconInventory, path: '/admin/inventory'  },
-  { key: 'orders',    label: 'Pedidos',    Icon: IconOrders,    path: '/admin/orders/new' },
-  { key: 'logistics', label: 'Logística',  Icon: IconLogistics, path: '/admin/logistics'  },
-  { key: 'routes',    label: 'Rotas',      Icon: IconRoutes,    path: '/admin/routes'     },
+  { key: 'inventory', label: 'Inventário',   Icon: IconInventory, path: '/admin/inventory'  },
+  { key: 'products',  label: 'Produtos',      Icon: IconProducts,  path: '/admin/products'   },
+  { key: 'orders',    label: 'Pedidos',       Icon: IconOrders,    path: '/admin/orders/new' },
+  { key: 'logistics', label: 'Logística',     Icon: IconLogistics, path: '/admin/logistics'  },
+  { key: 'routes',    label: 'Rotas',         Icon: IconRoutes,    path: '/admin/routes'     },
+  { key: 'users',     label: 'Utilizadores',  Icon: IconUsers,     path: '/admin/users'      },
 ]
 
 const PAGE_TITLES = {
   inventory: 'Inventário',
+  products:  'Produtos',
   orders:    'Pedidos',
   logistics: 'Logística',
   routes:    'Rotas',
+  users:     'Utilizadores',
   dashboard: 'Dashboard',
 }
 
+const STATUS_CONFIG = {
+  PENDING:    { label: 'Pendente',      color: '#b45309', bg: '#b4530918' },
+  CONFIRMED:  { label: 'Confirmado',    color: '#888888', bg: '#88888818' },
+  SEPARATING: { label: 'Em Separação',  color: '#1a6bb5', bg: '#1a6bb518' },
+  READY:      { label: 'Pronto',        color: '#15803d', bg: '#15803d18' },
+  IN_TRANSIT: { label: 'Em Trânsito',   color: '#1a6bb5', bg: '#1a6bb518' },
+  DELIVERED:  { label: 'Entregue',      color: '#15803d', bg: '#15803d18' },
+  CANCELLED:  { label: 'Cancelado',     color: '#f87171', bg: '#f8717118' },
+}
+
+const isToday = (dateStr) =>
+  new Date(dateStr).toDateString() === new Date().toDateString()
+
 /* ── Home panel — rendered at /admin/dashboard ── */
 export const AdminHome = () => {
-  const [orders,     setOrders]     = useState([])
-  const [users,      setUsers]      = useState([])
-  const [containers, setContainers] = useState([])
-  const [loading,    setLoading]    = useState(true)
+  const [orders,  setOrders]  = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([fetchOrders(), fetchUsers(), fetchContainers()])
-      .then(([ords, usrs, ctrs]) => {
-        setOrders(ords); setUsers(usrs); setContainers(ctrs)
-      })
+    fetchOrders()
+      .then(setOrders)
       .finally(() => setLoading(false))
   }, [])
 
-  const stats = useMemo(() => ({
-    totalOrders:     orders.length,
-    pendingOrders:   orders.filter(o => o.status === 'PENDING').length,
-    deliveredToday:  orders.filter(o =>
-      o.status === 'DELIVERED' &&
-      o.deliveredAt &&
-      new Date(o.deliveredAt).toDateString() === new Date().toDateString()
-    ).length,
-    totalClients:    users.filter(u => u.role === 'CLIENTE').length,
-    totalDrivers:    users.filter(u => u.role === 'MOTORISTA').length,
-    totalBoxesStock: containers.reduce((s, c) => s + c.quantity, 0),
-    totalCapacity:   containers.reduce((s, c) => s + c.capacity, 0),
-  }), [orders, users, containers])
+  const kpis = useMemo(() => {
+    const today = orders.filter(o => isToday(o.createdAt))
+    return {
+      pedidosHoje:     today.length,
+      kgEntreguesHoje: orders
+        .filter(o => o.status === 'DELIVERED' && o.deliveredAt && isToday(o.deliveredAt))
+        .reduce((s, o) => s + (o.weightKg ?? 0), 0)
+        .toFixed(1),
+      prontos:         orders.filter(o => o.status === 'READY').length,
+      emSeparacao:     orders.filter(o => o.status === 'SEPARATING').length,
+      pendentes:       orders.filter(o => o.status === 'PENDING').length,
+    }
+  }, [orders])
+
+  const recentOrders = useMemo(() =>
+    [...orders]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 10),
+    [orders]
+  )
 
   const v = (val) => loading ? '—' : val
 
   return (
     <div className={styles.homeContent}>
+
       <div className={styles.welcomeCard}>
         <p className={styles.welcomeEyebrow}>Painel de Controlo</p>
-        <h1 className={styles.welcomeTitle}>
-          Bem-vindo ao Sistema de Gestão SAAB
-        </h1>
+        <h1 className={styles.welcomeTitle}>Bem-vindo ao Sistema de Gestão SAAB</h1>
         <p className={styles.welcomeText}>
           Aceda ao inventário de contêineres, gira pedidos de clientes
           e acompanhe as rotas de entrega em tempo real.
@@ -119,32 +158,72 @@ export const AdminHome = () => {
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <p className={styles.statLabel}>Total de Pedidos</p>
-          <p className={styles.statValue}>{v(stats.totalOrders)}</p>
+          <p className={styles.statLabel}>Pedidos Hoje</p>
+          <p className={styles.statValue}>{v(kpis.pedidosHoje)}</p>
+        </div>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Kg Entregues Hoje</p>
+          <p className={styles.statValue}>{v(kpis.kgEntreguesHoje)}</p>
+        </div>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Prontos para Carga</p>
+          <p className={`${styles.statValue} ${styles.statGreen}`}>{v(kpis.prontos)}</p>
+        </div>
+        <div className={styles.statCard}>
+          <p className={styles.statLabel}>Em Separação</p>
+          <p className={`${styles.statValue} ${styles.statBlue}`}>{v(kpis.emSeparacao)}</p>
         </div>
         <div className={styles.statCard}>
           <p className={styles.statLabel}>Pendentes</p>
-          <p className={styles.statValue}>{v(stats.pendingOrders)}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Entregas Hoje</p>
-          <p className={styles.statValue}>{v(stats.deliveredToday)}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Clientes</p>
-          <p className={styles.statValue}>{v(stats.totalClients)}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Motoristas</p>
-          <p className={styles.statValue}>{v(stats.totalDrivers)}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Caixas em Stock</p>
-          <p className={styles.statValue}>
-            {loading ? '—' : `${stats.totalBoxesStock} / ${stats.totalCapacity}`}
-          </p>
+          <p className={`${styles.statValue} ${styles.statWarn}`}>{v(kpis.pendentes)}</p>
         </div>
       </div>
+
+      <div className={styles.recentSection}>
+        <h2 className={styles.recentTitle}>Últimos Pedidos</h2>
+        <div className={styles.recentTable}>
+          <div className={styles.recentHeader}>
+            <span>Pedido</span>
+            <span>Cliente</span>
+            <span>Status</span>
+            <span>Criado em</span>
+          </div>
+          {loading ? (
+            <p className={styles.recentEmpty}>A carregar...</p>
+          ) : recentOrders.length === 0 ? (
+            <p className={styles.recentEmpty}>Sem pedidos registados.</p>
+          ) : (
+            recentOrders.map(order => {
+              const cfg = STATUS_CONFIG[order.status] ?? { label: order.status, color: '#888', bg: '#88888818' }
+              return (
+                <div key={order.id} className={styles.recentRow}>
+                  <span className={styles.recentId}>
+                    #{String(order.id).padStart(4, '0')}
+                  </span>
+                  <span className={styles.recentEmail}>
+                    {order.client?.email ?? '—'}
+                  </span>
+                  <span>
+                    <span
+                      className={styles.recentBadge}
+                      style={{ color: cfg.color, borderColor: cfg.color, backgroundColor: cfg.bg }}
+                    >
+                      {cfg.label}
+                    </span>
+                  </span>
+                  <span className={styles.recentMeta}>
+                    {new Date(order.createdAt).toLocaleString('pt-PT', {
+                      day: '2-digit', month: '2-digit',
+                      hour: '2-digit', minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              )
+            })
+          )}
+        </div>
+      </div>
+
     </div>
   )
 }
@@ -169,6 +248,8 @@ const AdminDashboard = () => {
     if (location.pathname.startsWith('/admin/orders'))    return 'orders'
     if (location.pathname.startsWith('/admin/logistics')) return 'logistics'
     if (location.pathname.startsWith('/admin/routes'))    return 'routes'
+    if (location.pathname.startsWith('/admin/products'))  return 'products'
+    if (location.pathname.startsWith('/admin/users'))     return 'users'
     return 'dashboard'
   })()
 

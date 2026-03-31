@@ -4,9 +4,10 @@ const prisma = new PrismaClient()
 
 /* ── Containers ── */
 
-const getAllContainers = () =>
+const getAllContainers = ({ zone } = {}) =>
   prisma.container.findMany({
-    orderBy: { label: 'asc' },
+    where:   zone ? { zone } : undefined,
+    orderBy: [{ zone: 'asc' }, { subZone: 'asc' }, { label: 'asc' }],
     include: { product: true },
   })
 
@@ -25,11 +26,14 @@ const updateContainer = (id, data) =>
 
 /* ── Products ── */
 
-const getAllProducts = () =>
-  prisma.product.findMany({ orderBy: { name: 'asc' } })
+const getAllProducts = ({ includeInactive = false } = {}) =>
+  prisma.product.findMany({
+    where:   includeInactive ? undefined : { active: true },
+    orderBy: [{ type: 'asc' }, { name: 'asc' }],
+  })
 
 const createProduct = ({ name, type, pricePerBox }) =>
-  prisma.product.create({ data: { name, type, pricePerBox } })
+  prisma.product.create({ data: { name, type, pricePerBox, active: true } })
 
 const updateProduct = (id, data) =>
   prisma.product.update({ where: { id: Number(id) }, data })
@@ -37,18 +41,27 @@ const updateProduct = (id, data) =>
 const deleteProduct = async (id) => {
   const numId = Number(id)
 
-  const [inContainers, inOrders] = await Promise.all([
-    prisma.container.count({ where: { productId: numId } }),
-    prisma.orderItem.count({ where: { productId: numId } }),
+  const [inContainers, inActiveOrders] = await Promise.all([
+    prisma.container.count({ where: { productId: numId, quantity: { gt: 0 } } }),
+    prisma.orderItem.count({
+      where: {
+        productId: numId,
+        order: { status: { notIn: ['CANCELLED', 'DELIVERED'] } },
+      },
+    }),
   ])
 
-  if (inContainers > 0 || inOrders > 0) {
+  if (inContainers > 0 || inActiveOrders > 0) {
     const err = new Error('Produto em uso')
     err.statusCode = 409
     throw err
   }
 
-  return prisma.product.delete({ where: { id: numId } })
+  return prisma.$transaction(async (tx) => {
+    await tx.orderItem.deleteMany({ where: { productId: numId } })
+    await tx.container.updateMany({ where: { productId: numId }, data: { productId: null } })
+    return tx.product.delete({ where: { id: numId } })
+  })
 }
 
 module.exports = {

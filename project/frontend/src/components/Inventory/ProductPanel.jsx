@@ -145,7 +145,7 @@ const ProductPanel = () => {
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="Preço / cx (€)"
+                placeholder="Preço / cx ($)"
                 value={form.pricePerBox}
                 onChange={e => setForm(f => ({ ...f, pricePerBox: e.target.value }))}
               />
@@ -241,7 +241,7 @@ const ProductPanel = () => {
                           <span className={styles.typeBadge}>{p.type}</span>
                         </td>
                         <td className={styles.cellPrice}>
-                          {p.pricePerBox.toFixed(2)} €
+                          $ {p.pricePerBox.toFixed(2)}
                         </td>
                         <td className={styles.actions}>
                           <button

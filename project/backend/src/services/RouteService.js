@@ -3,9 +3,9 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 /* ────────────────────────────────────────
-   Coordenadas do depósito SAAB (Lisboa)
+   Coordenadas do depósito SAAB (Orlando)
 ──────────────────────────────────────── */
-const DEPOT = { lat: 38.7223, lon: -9.1393, address: 'Depósito SAAB — Lisboa' }
+const DEPOT = { lat: 28.5383, lon: -81.3792, address: 'Depósito SAAB — Orlando, FL' }
 
 /* ── Haversine: distância em km entre dois pontos ── */
 const haversine = (a, b) => {
@@ -63,7 +63,7 @@ const buildRoute = (orders, startMinutes = 6 * 60) => {
       }
 
       const score = travelMin + penalty
-      if (score < bestScore) { bestScore = bestIdx = i, bestScore = score, bestIdx = i }
+      if (score < bestScore) { bestScore = score; bestIdx = i }
     })
 
     const chosen     = unvisited.splice(bestIdx, 1)[0]

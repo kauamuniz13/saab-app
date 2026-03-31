@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { fetchContainers } from '../services/inventoryService'
 import { fetchClients, createOrder } from '../services/orderService'
+import { ZONE_CONFIG } from '../constants/zones'
 import ClientPanel from '../components/Orders/ClientPanel'
 import styles from './OrderEntry.module.css'
 
@@ -141,11 +142,19 @@ const OrderEntry = () => {
                   disabled={loading}
                 >
                   <option value="">Selecione um produto…</option>
-                  {availableContainers.map(c => (
-                    <option key={c.id} value={c.id}>
-                      [{c.label}] {c.product.name} — {c.quantity} cxs disponíveis
-                    </option>
-                  ))}
+                  {ZONE_CONFIG.map(zone => {
+                    const zoneContainers = availableContainers.filter(c => (c.zone || 'CONTAINERS') === zone.key)
+                    if (zoneContainers.length === 0) return null
+                    return (
+                      <optgroup key={zone.key} label={zone.label}>
+                        {zoneContainers.map(c => (
+                          <option key={c.id} value={c.id}>
+                            [{c.label}] {c.product.name} — {c.quantity} cxs disponíveis
+                          </option>
+                        ))}
+                      </optgroup>
+                    )
+                  })}
                 </select>
 
                 {selectedContainer && (

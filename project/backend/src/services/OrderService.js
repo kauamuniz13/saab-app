@@ -144,6 +144,72 @@ const cancelOrder = async (id) => {
   })
 }
 
+/* ── Separate (CONFIRMED → SEPARATING) ── */
+const separateOrder = async (id, userId) => {
+  const order = await prisma.order.findUnique({ where: { id: Number(id) } })
+
+  if (!order) {
+    throw Object.assign(new Error('Pedido não encontrado.'), { status: 404 })
+  }
+
+  if (order.status !== 'CONFIRMED') {
+    throw Object.assign(
+      new Error('Só é possível iniciar separação em pedidos com status CONFIRMED.'),
+      { status: 409 }
+    )
+  }
+
+  return prisma.order.update({
+    where:   { id: Number(id) },
+    data:    { status: 'SEPARATING', separatedById: Number(userId), separatedAt: new Date() },
+    include: INCLUDE_FULL,
+  })
+}
+
+/* ── Pack (SEPARATING → READY) ── */
+const packOrder = async (id, userId) => {
+  const order = await prisma.order.findUnique({ where: { id: Number(id) } })
+
+  if (!order) {
+    throw Object.assign(new Error('Pedido não encontrado.'), { status: 404 })
+  }
+
+  if (order.status !== 'SEPARATING') {
+    throw Object.assign(
+      new Error('Só é possível embalar pedidos com status SEPARATING.'),
+      { status: 409 }
+    )
+  }
+
+  return prisma.order.update({
+    where:   { id: Number(id) },
+    data:    { status: 'READY', packedById: Number(userId), packedAt: new Date() },
+    include: INCLUDE_FULL,
+  })
+}
+
+/* ── Load (READY → IN_TRANSIT) ── */
+const loadOrder = async (id) => {
+  const order = await prisma.order.findUnique({ where: { id: Number(id) } })
+
+  if (!order) {
+    throw Object.assign(new Error('Pedido não encontrado.'), { status: 404 })
+  }
+
+  if (order.status !== 'READY') {
+    throw Object.assign(
+      new Error('Só é possível carregar pedidos com status READY.'),
+      { status: 409 }
+    )
+  }
+
+  return prisma.order.update({
+    where:   { id: Number(id) },
+    data:    { status: 'IN_TRANSIT', loadedAt: new Date() },
+    include: INCLUDE_FULL,
+  })
+}
+
 module.exports = {
   createOrder,
   listOrders,
@@ -151,4 +217,7 @@ module.exports = {
   deliverOrder,
   confirmOrder,
   cancelOrder,
+  separateOrder,
+  packOrder,
+  loadOrder,
 }

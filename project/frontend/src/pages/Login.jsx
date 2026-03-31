@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext'
-import logoSaab from '../assets/logo-saab.svg'
+import logoSaab from '../assets/logo-saab.png'
 import styles from './Login.module.css'
 
 const ROLE_REDIRECT = {

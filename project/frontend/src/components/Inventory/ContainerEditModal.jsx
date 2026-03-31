@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { updateContainer } from '../../services/inventoryService'
+import { ZONE_LABELS, SUBZONE_LABELS } from '../../constants/zones'
 import styles from './ContainerEditModal.module.css'
 
 const getStatus = (quantity, capacity) => {
@@ -12,17 +13,24 @@ const ContainerEditModal = ({ container, products, onClose, onSaved }) => {
   const [productId, setProductId] = useState(
     container.productId != null ? String(container.productId) : ''
   )
+  const [capacity, setCapacity] = useState(container.capacity)
   const [quantity, setQuantity] = useState(container.quantity)
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState('')
 
-  const pct    = container.capacity > 0
-    ? Math.round((quantity / container.capacity) * 100)
+  const pct    = capacity > 0
+    ? Math.round((quantity / capacity) * 100)
     : 0
-  const status = getStatus(quantity, container.capacity)
+  const status = getStatus(quantity, capacity)
+
+  const handleCapacityChange = (e) => {
+    const v = Math.max(0, Math.min(9999, Number(e.target.value)))
+    setCapacity(v)
+    if (quantity > v) setQuantity(v)
+  }
 
   const handleQuantityChange = (e) => {
-    const v = Math.max(0, Math.min(container.capacity, Number(e.target.value)))
+    const v = Math.max(0, Math.min(capacity, Number(e.target.value)))
     setQuantity(v)
   }
 
@@ -31,6 +39,7 @@ const ContainerEditModal = ({ container, products, onClose, onSaved }) => {
     setError('')
     try {
       const updated = await updateContainer(container.id, {
+        capacity:  Number(capacity),
         quantity:  Number(quantity),
         productId: productId === '' ? null : Number(productId),
       })
@@ -51,6 +60,10 @@ const ContainerEditModal = ({ container, products, onClose, onSaved }) => {
           <div>
             <p className={styles.eyebrow}>Editar Contêiner</p>
             <h2 className={styles.title}>{container.label}</h2>
+            <p className={styles.zoneBadge}>
+              {ZONE_LABELS[container.zone] || container.zone}
+              {container.subZone ? ` / ${SUBZONE_LABELS[container.subZone]}` : ''}
+            </p>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Fechar">✕</button>
         </div>
@@ -76,14 +89,29 @@ const ContainerEditModal = ({ container, products, onClose, onSaved }) => {
 
           <div className={styles.field}>
             <label className={styles.label}>
-              Quantidade{' '}
-              <span className={styles.hint}>(máx. {container.capacity} cxs)</span>
+              Capacidade{' '}
+              <span className={styles.hint}>(máx. 9999 cxs)</span>
             </label>
             <input
               className={styles.input}
               type="number"
               min={0}
-              max={container.capacity}
+              max={9999}
+              value={capacity}
+              onChange={handleCapacityChange}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Quantidade{' '}
+              <span className={styles.hint}>(máx. {capacity} cxs)</span>
+            </label>
+            <input
+              className={styles.input}
+              type="number"
+              min={0}
+              max={capacity}
               value={quantity}
               onChange={handleQuantityChange}
             />

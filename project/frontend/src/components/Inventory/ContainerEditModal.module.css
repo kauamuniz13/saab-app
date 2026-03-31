@@ -51,6 +51,14 @@
   margin: 0;
 }
 
+.zoneBadge {
+  font-size: 0.6875rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0.15rem 0 0;
+}
+
 .closeBtn {
   background: none;
   border: none;

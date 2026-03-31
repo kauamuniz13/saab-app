@@ -9,23 +9,23 @@ import styles from './Logistics.module.css'
 ──────────────────────────────────────── */
 const CLIENT_GEO = {
   'frigorifico.norte@saab.com': {
-    address: 'Rua do Heroísmo 42, Porto',
-    lat: 41.149,
-    lon: -8.610,
+    address: '7600 Dr Phillips Blvd, Orlando, FL',
+    lat: 28.4488,
+    lon: -81.4940,
   },
   'distribuidora.sul@saab.com': {
-    address: 'Av. da República 88, Faro',
-    lat: 37.019,
-    lon: -7.930,
+    address: '5770 W Irlo Bronson Memorial Hwy, Kissimmee, FL',
+    lat: 28.3387,
+    lon: -81.4584,
   },
   'supermercado.abc@saab.com': {
-    address: 'Praça do Comércio, Lisboa',
-    lat: 38.707,
-    lon: -9.137,
+    address: '4200 Conroy Rd, Orlando, FL',
+    lat: 28.4835,
+    lon: -81.4310,
   },
 }
 
-const DEFAULT_GEO = { address: 'Lisboa, Portugal', lat: 38.716, lon: -9.142 }
+const DEFAULT_GEO = { address: 'Orlando, FL', lat: 28.5383, lon: -81.3792 }
 
 const getGeo = (email = '') => CLIENT_GEO[email] ?? DEFAULT_GEO
 

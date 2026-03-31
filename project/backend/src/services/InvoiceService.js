@@ -13,11 +13,11 @@ const COLOR = {
 }
 
 const fmt = (n) =>
-  Number(n).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
+  Number(n).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 
 const fmtDate = (d) =>
-  new Date(d).toLocaleString('pt-PT', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
+  new Date(d).toLocaleString('en-US', {
+    month: '2-digit', day: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
 
@@ -183,7 +183,7 @@ const generateInvoice = (order, stream) => {
 
   doc.font('Helvetica').fontSize(8).fillColor(COLOR.midGray)
      .text(
-       'SAAB Gestão Logística  ·  saab.pt  ·  Documento gerado automaticamente — não requer assinatura.',
+       'SAAB Logistics  ·  Orlando, FL  ·  Auto-generated document — no signature required.',
        PL, footerY + 14,
        { width: W - PL * 2, align: 'center' }
      )
