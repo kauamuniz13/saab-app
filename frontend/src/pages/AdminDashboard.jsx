@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import logoSaab from '../assets/logo-saab.png'
+import logoSaab from '../assets/Logo-saab-S.png'
+import ThemeToggle from '../components/ThemeToggle'
 import styles from './AdminDashboard.module.css'
 import { fetchOrders } from '../services/orderService'
 
@@ -79,7 +80,7 @@ const IconLogout = () => (
 )
 
 const NAV_ITEMS = [
-  { key: 'inventory', label: 'Inventário',   Icon: IconInventory, path: '/admin/inventory'  },
+  { key: 'inventory', label: 'Estoque',       Icon: IconInventory, path: '/admin/inventory'  },
   { key: 'products',  label: 'Produtos',      Icon: IconProducts,  path: '/admin/products'   },
   { key: 'orders',    label: 'Pedidos',       Icon: IconOrders,    path: '/admin/orders/new' },
   { key: 'logistics', label: 'Logística',     Icon: IconLogistics, path: '/admin/logistics'  },
@@ -88,7 +89,7 @@ const NAV_ITEMS = [
 ]
 
 const PAGE_TITLES = {
-  inventory: 'Inventário',
+  inventory: 'Estoque',
   products:  'Produtos',
   orders:    'Pedidos',
   logistics: 'Logística',
@@ -151,7 +152,7 @@ export const AdminHome = () => {
         <p className={styles.welcomeEyebrow}>Painel de Controlo</p>
         <h1 className={styles.welcomeTitle}>Bem-vindo ao Sistema de Gestão SAAB</h1>
         <p className={styles.welcomeText}>
-          Aceda ao inventário de contêineres, gira pedidos de clientes
+          Acesse o estoque de contêineres, gerencie pedidos de clientes
           e acompanhe as rotas de entrega em tempo real.
         </p>
       </div>
@@ -291,6 +292,7 @@ const AdminDashboard = () => {
         <header className={styles.topbar}>
           <h2 className={styles.topbarTitle}>{PAGE_TITLES[activeKey]}</h2>
           <div className={styles.topbarUser}>
+            <ThemeToggle />
             <span>{user?.email}</span>
             <div className={styles.topbarAvatar}>{initials}</div>
           </div>

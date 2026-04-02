@@ -19,13 +19,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.22em;
-  color: #8b0000;
+  color: var(--red-base);
   margin: 0 0 0.25rem;
 }
 
 .title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #f0f0f0;
+  color: var(--text-primary);
   margin: 0;
 }

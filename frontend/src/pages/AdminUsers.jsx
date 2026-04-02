@@ -31,14 +31,22 @@ const UserModal = ({ initial, onClose, onSaved }) => {
   const [email,    setEmail]    = useState(initial?.email    ?? '')
   const [password, setPassword] = useState('')
   const [role,     setRole]     = useState(initial?.role     ?? 'CLIENTE')
+  const [address,  setAddress]  = useState(initial?.address  ?? '')
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState('')
+
+  const isClient = role === 'CLIENTE'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    const data = { email, role }
+    if (isClient && !address.trim()) {
+      setError('Endereço é obrigatório para clientes.')
+      return
+    }
+
+    const data = { email, role, address: isClient ? address : '' }
     if (password) data.password = password
     if (!isEdit)  {
       if (!password) { setError('Password obrigatória.'); return }
@@ -118,6 +126,22 @@ const UserModal = ({ initial, onClose, onSaved }) => {
             </select>
           </div>
 
+          {isClient && (
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="address">
+                Endereço <span className={styles.required}>*</span>
+              </label>
+              <input
+                id="address"
+                type="text"
+                className={styles.input}
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+                placeholder="Ex: 4200 Conroy Rd, Orlando, FL"
+              />
+            </div>
+          )}
+
           {error && <p className={styles.errorMsg}>{error}</p>}
 
           <div className={styles.formActions}>
@@ -171,6 +195,7 @@ const AdminUsers = () => {
           <span>ID</span>
           <span>Email</span>
           <span>Perfil</span>
+          <span>Endereço</span>
           <span>Criado em</span>
           <span />
         </div>
@@ -194,6 +219,7 @@ const AdminUsers = () => {
                     {cfg.label}
                   </span>
                 </span>
+                <span className={styles.userAddress}>{user.address || '—'}</span>
                 <span className={styles.meta}>
                   {new Date(user.createdAt).toLocaleDateString('pt-PT', {
                     day: '2-digit', month: '2-digit', year: 'numeric',

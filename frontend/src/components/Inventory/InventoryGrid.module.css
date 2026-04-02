@@ -14,8 +14,8 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: #1e1e1e;
-  border: 1px solid #2a2a2a;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-base);
   border-radius: 6px;
   padding: 0 1rem;
 }
@@ -23,7 +23,7 @@
 .searchIcon {
   width: 1rem;
   height: 1rem;
-  color: #555;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
@@ -34,16 +34,16 @@
   outline: none;
   padding: 0.75rem 0;
   font-size: 0.875rem;
-  color: #f0f0f0;
+  color: var(--text-primary);
 }
 
 .searchInput::placeholder {
-  color: #505050;
+  color: var(--text-muted);
 }
 
 .searchCount {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
@@ -60,12 +60,12 @@
   transition: background-color 0.15s;
 }
 
-.clearBtn:hover { background-color: #333; }
+.clearBtn:hover { background-color: var(--bg-hover); }
 
 .clearIcon {
   width: 1rem;
   height: 1rem;
-  color: #888;
+  color: var(--text-secondary);
 }
 
 /* ── Grid ── */
@@ -110,8 +110,8 @@
 
 /* ── Card ── */
 .card {
-  background-color: #1e1e1e;
-  border: 1px solid #2a2a2a;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-base);
   border-radius: 6px;
   padding: 1rem;
   display: flex;
@@ -121,7 +121,7 @@
   cursor: pointer;
 }
 
-.card:hover { background-color: #222; }
+.card:hover { background-color: var(--bg-hover); }
 
 .card.highlighted {
   border-color: #1a6bb5;
@@ -140,41 +140,14 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #888;
+  color: var(--text-secondary);
 }
-
-/* ── Status badge ── */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
-}
-
-.badge.empty   { background-color: #0d2b0d; color: #4ade80; }
-.badge.partial { background-color: #2b1f0a; color: #fbbf24; }
-.badge.full    { background-color: #2b0a0a; color: #f87171; }
-
-.badgeDot {
-  width: 0.4rem;
-  height: 0.4rem;
-  border-radius: 50%;
-}
-
-.badge.empty   .badgeDot { background-color: #4ade80; }
-.badge.partial .badgeDot { background-color: #fbbf24; }
-.badge.full    .badgeDot { background-color: #f87171; }
 
 /* ── Product info ── */
 .productName {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -182,50 +155,26 @@
 
 .productType {
   font-size: 0.6875rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .emptySlot {
   font-size: 0.8125rem;
-  color: #444;
+  color: var(--text-muted);
   font-style: italic;
 }
 
-/* ── Progress bar ── */
-.progressWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.progressTrack {
-  width: 100%;
-  height: 5px;
-  background-color: #2a2a2a;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.4s ease;
-}
-
-.progressFill.empty   { background-color: #4ade80; }
-.progressFill.partial { background-color: #fbbf24; }
-.progressFill.full    { background-color: #f87171; }
-
-.progressLabel {
-  font-size: 0.625rem;
-  color: #555;
+/* ── Quantity label ── */
+.quantityLabel {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
   text-align: right;
 }
 
 /* ── Zone section ── */
 .zoneSection {
-  background-color: #1e1e1e;
-  border: 1px solid #2a2a2a;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-base);
   border-radius: 6px;
 }
 
@@ -244,7 +193,7 @@
 }
 
 .zoneToggle:hover {
-  background-color: #252525;
+  background-color: var(--bg-hover);
 }
 
 .zoneToggleLeft {
@@ -256,21 +205,21 @@
 .zoneName {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #f0f0f0;
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 .zoneStats {
   font-size: 0.6875rem;
-  color: #888;
+  color: var(--text-secondary);
   letter-spacing: 0.02em;
 }
 
 .chevron {
   width: 1.125rem;
   height: 1.125rem;
-  color: #555;
+  color: var(--text-muted);
   flex-shrink: 0;
   transition: transform 0.2s ease;
   transform: rotate(-90deg);
@@ -305,14 +254,14 @@
 .subZoneName {
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #ccc;
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .subZoneStats {
   font-size: 0.6875rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* ── Search results ── */
@@ -348,7 +297,7 @@
 .stateBox {
   padding: 3rem 1rem;
   text-align: center;
-  color: #555;
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 

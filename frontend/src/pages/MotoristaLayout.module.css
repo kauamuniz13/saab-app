@@ -6,7 +6,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #1a1a1a;
+  background: var(--bg-page);
 }
 
 .topbar {
@@ -14,30 +14,28 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.25rem;
-  background: #1e1e1e;
-  border-bottom: 1px solid #2a2a2a;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-base);
   flex-shrink: 0;
   gap: 1rem;
 }
 
 .brand {
   display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.brandEyebrow {
-  font-size: 0.5625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.25em;
-  color: #8b0000;
+.brandLogo {
+  height: 2rem;
+  width: auto;
+  object-fit: contain;
 }
 
 .brandTitle {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #f0f0f0;
+  color: var(--text-primary);
 }
 
 .topbarRight {
@@ -48,7 +46,7 @@
 
 .userEmail {
   font-size: 0.75rem;
-  color: #555;
+  color: var(--text-secondary);
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -57,19 +55,19 @@
 
 .logoutBtn {
   background: none;
-  border: 1px solid #3a3a3a;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
   padding: 0.4rem 0.875rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #888;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
 
 .logoutBtn:hover {
-  border-color: #555;
-  color: #ccc;
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 .content {

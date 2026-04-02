@@ -73,9 +73,9 @@ const IconCheck = () => (
   </svg>
 )
 
-/* ── Google Maps navigation URL ── */
-const mapsUrl = (lat, lon) =>
-  `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`
+/* ── Maps URL — opens Google Maps or native app ── */
+const mapsUrl = (address, lat, lon) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}&query_place_id=&center=${lat},${lon}`
 
 /* ── Google Maps full route URL ── */
 const buildGoogleMapsUrl = (stops, depot) => {
@@ -157,13 +157,13 @@ const StopCard = ({ stop, isLast, isDelivered, onDeliver }) => {
           </div>
           <div className={styles.stopActions}>
             <a
-              href={mapsUrl(stop.lat, stop.lon)}
+              href={mapsUrl(stop.address, stop.lat, stop.lon)}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.navBtn}
             >
               <IconNav />
-              Navegar
+              Abrir no Maps
             </a>
             {!isDelivered ? (
               <button className={styles.deliverBtn} onClick={onDeliver}>

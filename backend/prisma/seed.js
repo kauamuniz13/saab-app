@@ -344,6 +344,9 @@ const CLIENTS = [
  * ─────────────────────────────────────────────────────────────── */
 async function main() {
   // ── Utilizadores ─────────────────────────────────────────────
+  // Mapeia email → dados de geo para clientes
+  const clientGeoMap = Object.fromEntries(CLIENTS.map(c => [c.email, c]))
+
   const users = [
     { email: 'admin@saab.com',      password: '123456',       role: 'ADMIN'     },
     { email: 'expedicao@saab.com',   password: 'expedicao123', role: 'EXPEDICAO' },
@@ -354,12 +357,27 @@ async function main() {
   ]
 
   for (const u of users) {
+    const geo = clientGeoMap[u.email]
     const exists = await prisma.user.findUnique({ where: { email: u.email } })
     if (!exists) {
       const hashed = await bcrypt.hash(u.password, 12)
-      await prisma.user.create({ data: { email: u.email, password: hashed, role: u.role } })
+      await prisma.user.create({
+        data: {
+          email: u.email, password: hashed, role: u.role,
+          address: geo?.address ?? '',
+          lat:     geo?.lat ?? null,
+          lon:     geo?.lon ?? null,
+        },
+      })
       console.log(`Utilizador criado: ${u.email}`)
     } else {
+      // Actualiza endereço em utilizadores existentes sem endereço
+      if (geo && !exists.address) {
+        await prisma.user.update({
+          where: { id: exists.id },
+          data: { address: geo.address, lat: geo.lat, lon: geo.lon },
+        })
+      }
       console.log(`Utilizador já existe: ${u.email}`)
     }
   }

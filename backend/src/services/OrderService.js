@@ -7,6 +7,9 @@ const INCLUDE_FULL = {
   items:  { include: { product: true, container: true } },
 }
 
+/* ── Depot fallback (Orlando, FL) ── */
+const DEFAULT_GEO = { address: 'Orlando, FL', lat: 28.5383, lon: -81.3792 }
+
 /* ── Create ── */
 const createOrder = async ({ clientId, items }) => {
   return prisma.$transaction(async (tx) => {
@@ -50,12 +53,25 @@ const createOrder = async ({ clientId, items }) => {
       })
     }
 
+    // Resolve endereço/coordenadas do cliente a partir do cadastro
+    const client = await tx.user.findUnique({
+      where:  { id: clientId },
+      select: { address: true, lat: true, lon: true },
+    })
+
+    const address = client?.address || DEFAULT_GEO.address
+    const lat     = client?.lat     ?? DEFAULT_GEO.lat
+    const lon     = client?.lon     ?? DEFAULT_GEO.lon
+
     return tx.order.create({
       data: {
         clientId,
         status:     'PENDING',
         totalBoxes,
         weightKg:   totalWeight,
+        address,
+        lat,
+        lon,
         items:      { create: itemsToCreate },
       },
       include: INCLUDE_FULL,

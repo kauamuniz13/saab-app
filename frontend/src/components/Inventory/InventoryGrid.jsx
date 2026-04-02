@@ -1,18 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { fetchContainers, fetchProducts } from '../../services/inventoryService'
-import { ZONE_CONFIG, SUBZONE_LABELS } from '../../constants/zones'
+import { ZONE_CONFIG, SUBZONE_LABELS, expandLabel } from '../../constants/zones'
 import ContainerEditModal from './ContainerEditModal'
 import styles from './InventoryGrid.module.css'
 
-/* ── Helpers ── */
-const getStatus = (quantity, capacity) => {
-  if (quantity === 0)       return 'empty'
-  if (quantity >= capacity) return 'full'
-  return 'partial'
-}
-
-const STATUS_LABEL = { empty: 'Vazio', partial: 'Parcial', full: 'Cheio' }
-
+/* ── Icons ── */
 const SearchIcon = () => (
   <svg className={styles.searchIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
@@ -35,19 +27,9 @@ const ChevronIcon = ({ open }) => (
   </svg>
 )
 
-/* ── Zone stats helper ── */
-const zoneStats = (containers) => {
-  const total = containers.reduce((s, c) => s + c.capacity, 0)
-  const used  = containers.reduce((s, c) => s + c.quantity, 0)
-  const pct   = total > 0 ? Math.round((used / total) * 100) : 0
-  return { slots: containers.length, used, total, pct }
-}
-
 /* ── ContainerCard ── */
 const ContainerCard = ({ container, highlighted, onClick }) => {
-  const { label, capacity, quantity, product } = container
-  const status = getStatus(quantity, capacity)
-  const pct    = capacity > 0 ? Math.round((quantity / capacity) * 100) : 0
+  const { label, quantity, product } = container
 
   return (
     <div
@@ -59,11 +41,7 @@ const ContainerCard = ({ container, highlighted, onClick }) => {
       title="Clique para editar"
     >
       <div className={styles.cardHead}>
-        <span className={styles.cardLabel}>{label}</span>
-        <span className={`${styles.badge} ${styles[status]}`}>
-          <span className={styles.badgeDot} />
-          {STATUS_LABEL[status]}
-        </span>
+        <span className={styles.cardLabel}>{expandLabel(label)}</span>
       </div>
 
       {product ? (
@@ -75,15 +53,7 @@ const ContainerCard = ({ container, highlighted, onClick }) => {
         <p className={styles.emptySlot}>Sem produto</p>
       )}
 
-      <div className={styles.progressWrapper}>
-        <div className={styles.progressTrack}>
-          <div
-            className={`${styles.progressFill} ${styles[status]}`}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <span className={styles.progressLabel}>{quantity} / {capacity} cxs</span>
-      </div>
+      <span className={styles.quantityLabel}>{quantity} cxs</span>
     </div>
   )
 }
@@ -105,7 +75,6 @@ const ContainerGrid = ({ containers, isHighlighted, onSelect }) => (
 /* ── ZoneSection — collapsible zone panel ── */
 const ZoneSection = ({ zone, containers, isHighlighted, onSelect, defaultOpen }) => {
   const [open, setOpen] = useState(defaultOpen)
-  const stats = zoneStats(containers)
 
   return (
     <div className={styles.zoneSection}>
@@ -113,7 +82,7 @@ const ZoneSection = ({ zone, containers, isHighlighted, onSelect, defaultOpen })
         <div className={styles.zoneToggleLeft}>
           <span className={styles.zoneName}>{zone.label}</span>
           <span className={styles.zoneStats}>
-            {stats.slots} slots — {stats.used} / {stats.total} cxs ({stats.pct}%)
+            {containers.length} slots
           </span>
         </div>
         <ChevronIcon open={open} />
@@ -132,10 +101,71 @@ const ZoneSection = ({ zone, containers, isHighlighted, onSelect, defaultOpen })
   )
 }
 
+/* ── WarehouseZoneSection — containers grouped by prefix (31, 32, 33, 36) ── */
+const WAREHOUSE_ORDER = ['CT36', 'CT33', 'CT32', 'CT31']
+const WAREHOUSE_LABELS = {
+  CT36: 'Container 36',
+  CT33: 'Container 33',
+  CT32: 'Container 32',
+  CT31: 'Container 31',
+}
+
+const WarehouseZoneSection = ({ containers, isHighlighted, onSelect, defaultOpen }) => {
+  const [open, setOpen] = useState(defaultOpen)
+
+  const grouped = useMemo(() => {
+    const map = {}
+    for (const c of containers) {
+      const match = c.label.match(/^([A-Z]+\d*)/)
+      const prefix = match ? match[1] : 'OTHER'
+      if (!map[prefix]) map[prefix] = []
+      map[prefix].push(c)
+    }
+    return map
+  }, [containers])
+
+  return (
+    <div className={styles.zoneSection}>
+      <button className={styles.zoneToggle} onClick={() => setOpen(o => !o)}>
+        <div className={styles.zoneToggleLeft}>
+          <span className={styles.zoneName}>Warehouse</span>
+          <span className={styles.zoneStats}>
+            {containers.length} slots
+          </span>
+        </div>
+        <ChevronIcon open={open} />
+      </button>
+
+      {open && (
+        <div className={styles.zoneBody}>
+          {WAREHOUSE_ORDER.map(prefix => {
+            const sub = grouped[prefix]
+            if (!sub?.length) return null
+            return (
+              <div key={prefix} className={styles.subZoneBlock}>
+                <div className={styles.subZoneHeader}>
+                  <span className={styles.subZoneName}>{WAREHOUSE_LABELS[prefix]}</span>
+                  <span className={styles.subZoneStats}>
+                    {sub.length} slots
+                  </span>
+                </div>
+                <ContainerGrid
+                  containers={sub}
+                  isHighlighted={isHighlighted}
+                  onSelect={onSelect}
+                />
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── SecosZoneSection — zone with sub-division headers ── */
 const SecosZoneSection = ({ containers, isHighlighted, onSelect, defaultOpen }) => {
   const [open, setOpen] = useState(defaultOpen)
-  const stats = zoneStats(containers)
 
   const grouped = useMemo(() => {
     const map = {}
@@ -155,7 +185,7 @@ const SecosZoneSection = ({ containers, isHighlighted, onSelect, defaultOpen }) 
         <div className={styles.zoneToggleLeft}>
           <span className={styles.zoneName}>Secos</span>
           <span className={styles.zoneStats}>
-            {stats.slots} slots — {stats.used} / {stats.total} cxs ({stats.pct}%)
+            {containers.length} slots
           </span>
         </div>
         <ChevronIcon open={open} />
@@ -166,13 +196,12 @@ const SecosZoneSection = ({ containers, isHighlighted, onSelect, defaultOpen }) 
           {subZoneOrder.map(sub => {
             const subContainers = grouped[sub]
             if (!subContainers?.length) return null
-            const subStats = zoneStats(subContainers)
             return (
               <div key={sub} className={styles.subZoneBlock}>
                 <div className={styles.subZoneHeader}>
                   <span className={styles.subZoneName}>{SUBZONE_LABELS[sub]}</span>
                   <span className={styles.subZoneStats}>
-                    {subStats.slots} slots — {subStats.used} / {subStats.total} cxs
+                    {subContainers.length} slots
                   </span>
                 </div>
                 <ContainerGrid
@@ -223,18 +252,18 @@ const InventoryGrid = () => {
     isSearching ? containers.filter(matchesQuery) : []
   , [isSearching, containers, matchesQuery])
 
-  /* Group containers by zone */
+  /* Group containers by zone — merge CAMARA_FRIA_FORA into CAMARA_FRIA */
   const grouped = useMemo(() => {
     const map = {}
     for (const c of containers) {
-      const key = c.zone || 'CONTAINERS'
+      let key = c.zone || 'CONTAINERS'
+      if (key === 'CAMARA_FRIA_FORA') key = 'CAMARA_FRIA'
       if (!map[key]) map[key] = []
       map[key].push(c)
     }
     return map
   }, [containers])
 
-  /* After saving, replace the updated container in-place (no full reload) */
   const handleSaved = (updated) => {
     setContainers(prev => prev.map(c => c.id === updated.id ? updated : c))
     setSelectedContainer(null)
@@ -301,6 +330,18 @@ const InventoryGrid = () => {
         if (zone.key === 'SECOS') {
           return (
             <SecosZoneSection
+              key={zone.key}
+              containers={zoneContainers}
+              isHighlighted={() => false}
+              onSelect={setSelectedContainer}
+              defaultOpen={true}
+            />
+          )
+        }
+
+        if (zone.key === 'CONTAINERS') {
+          return (
+            <WarehouseZoneSection
               key={zone.key}
               containers={zoneContainers}
               isHighlighted={() => false}

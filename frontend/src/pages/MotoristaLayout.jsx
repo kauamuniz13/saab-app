@@ -1,5 +1,7 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import logoSaab from '../assets/Logo-saab-S.png'
+import ThemeToggle from '../components/ThemeToggle'
 import styles from './MotoristaLayout.module.css'
 
 const MotoristaLayout = () => {
@@ -10,10 +12,11 @@ const MotoristaLayout = () => {
     <div className={styles.shell}>
       <header className={styles.topbar}>
         <div className={styles.brand}>
-          <span className={styles.brandEyebrow}>SAAB</span>
+          <img src={logoSaab} alt="SAAB" className={styles.brandLogo} />
           <span className={styles.brandTitle}>Rota de Entrega</span>
         </div>
         <div className={styles.topbarRight}>
+          <ThemeToggle />
           <span className={styles.userEmail}>{user?.email}</span>
           <button
             className={styles.logoutBtn}

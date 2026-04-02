@@ -29,68 +29,44 @@ const toMinutes = (hhmm = '08:00') => {
 const AVG_SPEED_KMH = 40
 
 /**
- * Nearest-Neighbour com penalidade de janela de entrega.
- *
- * Pontuação de cada candidato a partir de `currentPos` e `currentMinutes`:
- *   score = travelMin + windowPenalty
- *   windowPenalty:
- *     - Se chegar antes da janela → espera até abertura
- *     - Se chegar depois do fecho → penalidade alta (500 min)
+ * Ordena pedidos por janela de entrega (deliveryWindowStart).
+ * Calcula distância, tempo de viagem e ETA sequencialmente.
  */
 const buildRoute = (orders, startMinutes = 6 * 60) => {
-  const unvisited = [...orders]
-  const route     = []
-  let   pos       = DEPOT
-  let   minutes   = startMinutes // hora de saída padrão: 06:00
+  const sorted = [...orders].sort((a, b) =>
+    toMinutes(a.deliveryWindowStart) - toMinutes(b.deliveryWindowStart)
+  )
 
-  while (unvisited.length > 0) {
-    let bestIdx   = -1
-    let bestScore = Infinity
+  const route   = []
+  let   pos     = DEPOT
+  let   minutes = startMinutes
 
-    unvisited.forEach((order, i) => {
-      const dist      = haversine(pos, { lat: order.lat, lon: order.lon })
-      const travelMin = (dist / AVG_SPEED_KMH) * 60
-      const arrivalMin = minutes + travelMin
-
-      const windowStart = toMinutes(order.deliveryWindowStart)
-      const windowEnd   = toMinutes(order.deliveryWindowEnd)
-
-      let penalty = 0
-      if (arrivalMin < windowStart) {
-        penalty = windowStart - arrivalMin   // espera
-      } else if (arrivalMin > windowEnd) {
-        penalty = 500                        // fora da janela — penalidade alta
-      }
-
-      const score = travelMin + penalty
-      if (score < bestScore) { bestScore = score; bestIdx = i }
-    })
-
-    const chosen     = unvisited.splice(bestIdx, 1)[0]
-    const dist       = haversine(pos, { lat: chosen.lat, lon: chosen.lon })
+  for (const order of sorted) {
+    const dist       = haversine(pos, { lat: order.lat, lon: order.lon })
     const travelMin  = (dist / AVG_SPEED_KMH) * 60
     const arrivalMin = minutes + travelMin
-    const waitMin    = Math.max(0, toMinutes(chosen.deliveryWindowStart) - arrivalMin)
+    const waitMin    = Math.max(0, toMinutes(order.deliveryWindowStart) - arrivalMin)
 
     route.push({
       stopNumber:    route.length + 1,
-      orderId:       chosen.id,
-      clientEmail:   chosen.client?.email,
-      address:       chosen.address,
-      lat:           chosen.lat,
-      lon:           chosen.lon,
-      totalBoxes:    chosen.totalBoxes,
+      orderId:       order.id,
+      clientEmail:   order.client?.email,
+      address:       order.address,
+      lat:           order.lat,
+      lon:           order.lon,
+      totalBoxes:    order.totalBoxes,
+      status:        order.status,
       distanceKm:    Math.round(dist * 10) / 10,
       travelMinutes: Math.round(travelMin),
       waitMinutes:   Math.round(waitMin),
       etaMinutes:    Math.round(arrivalMin + waitMin),
-      deliveryWindowStart: chosen.deliveryWindowStart,
-      deliveryWindowEnd:   chosen.deliveryWindowEnd,
-      items:         chosen.items,
+      deliveryWindowStart: order.deliveryWindowStart,
+      deliveryWindowEnd:   order.deliveryWindowEnd,
+      items:         order.items,
     })
 
-    minutes = arrivalMin + waitMin + 15 // +15 min de serviço por paragem
-    pos     = { lat: chosen.lat, lon: chosen.lon }
+    minutes = arrivalMin + waitMin + 15
+    pos     = { lat: order.lat, lon: order.lon }
   }
 
   return { depot: DEPOT, departureTime: '06:00', stops: route }
@@ -104,18 +80,15 @@ const formatETA = (minutes) => {
 }
 
 /**
- * Devolve a rota diária optimizada com pedidos PENDING do dia.
+ * Devolve a rota diária com pedidos prontos para entrega
+ * (READY, IN_TRANSIT) ou pendentes de processamento (PENDING, CONFIRMED).
  */
 const getDailyRoute = async () => {
-  const startOfDay = new Date()
-  startOfDay.setHours(0, 0, 0, 0)
-
   const orders = await prisma.order.findMany({
     where: {
-      status:    { in: ['PENDING', 'CONFIRMED'] },
-      createdAt: { gte: startOfDay },
-      lat:       { not: null },
-      lon:       { not: null },
+      status: { in: ['PENDING', 'CONFIRMED', 'SEPARATING', 'READY', 'IN_TRANSIT'] },
+      lat:    { not: null },
+      lon:    { not: null },
     },
     include: {
       client: { select: { id: true, email: true } },
@@ -124,7 +97,7 @@ const getDailyRoute = async () => {
   })
 
   if (orders.length === 0) {
-    return { depot: DEPOT, departureTime: '06:00', stops: [], message: 'Sem pedidos PENDING para hoje.' }
+    return { depot: DEPOT, departureTime: '06:00', stops: [], message: 'Sem pedidos para entrega.' }
   }
 
   const route = buildRoute(orders)

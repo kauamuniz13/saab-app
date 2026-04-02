@@ -1,5 +1,7 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import logoSaab from '../assets/Logo-saab-S.png'
+import ThemeToggle from '../components/ThemeToggle'
 import styles from './ExpedicaoLayout.module.css'
 
 /* ── Icons ── */
@@ -86,8 +88,8 @@ const ExpedicaoLayout = () => {
       {/* ── Sidebar ── */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <p className={styles.sidebarEyebrow}>SAAB</p>
-          <p className={styles.sidebarTitle}>Expedição</p>
+          <img src={logoSaab} alt="SAAB" className={styles.sidebarLogo} />
+          <p className={styles.sidebarSubtitle}>Expedição</p>
         </div>
 
         <nav className={styles.nav}>
@@ -117,6 +119,7 @@ const ExpedicaoLayout = () => {
         <header className={styles.topbar}>
           <h2 className={styles.topbarTitle}>{PAGE_TITLES[activeKey]}</h2>
           <div className={styles.topbarUser}>
+            <ThemeToggle />
             <span>{user?.email}</span>
             <div className={styles.topbarAvatar}>{initials}</div>
           </div>

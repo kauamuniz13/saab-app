@@ -1,3 +1,18 @@
+# ── Stage 1: Build do Frontend ──
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /frontend
+
+COPY frontend/package*.json ./
+RUN npm ci
+
+COPY frontend/ .
+
+# API relativa (servido pelo mesmo servidor)
+ENV VITE_API_URL=/
+RUN npm run build
+
+# ── Stage 2: Backend + Frontend estático ──
 FROM node:20-alpine
 
 RUN apk add --no-cache openssl
@@ -5,15 +20,18 @@ RUN apk add --no-cache openssl
 WORKDIR /app
 
 # Dependências primeiro (cache layer)
-COPY package*.json ./
+COPY backend/package*.json ./
 RUN npm ci --omit=dev
 
 # Schema Prisma e geração do client
-COPY prisma ./prisma
+COPY backend/prisma ./prisma
 RUN npx prisma generate
 
-# Código fonte
-COPY . .
+# Código fonte backend
+COPY backend/ .
+
+# Copiar build do frontend para public/
+COPY --from=frontend-build /frontend/dist ./public
 
 EXPOSE 3000
 

@@ -51,6 +51,48 @@ const IconCheck = () => (
   </svg>
 )
 
+/* ── OrderCard (mobile) ── */
+const OrderCard = ({ order, status, products, canSign, onSign }) => (
+  <div className={styles.orderCard}>
+    <div className={styles.cardRow}>
+      <span className={styles.orderId}>#{order.id}</span>
+      <span className={`${styles.badge} ${styles[STATUS_MOD[status]]}`}>
+        <span className={styles.badgeDot} />
+        {STATUS_LABEL[status] ?? status}
+      </span>
+    </div>
+    <p className={styles.cardProducts}>{products}</p>
+    <div className={styles.cardRow}>
+      <span className={styles.cardMeta}>
+        {new Date(order.createdAt).toLocaleDateString('pt-PT')}
+      </span>
+      <span className={styles.cardMeta}>
+        {order.totalBoxes} cxs
+        {order.weightKg ? ` · ${Number(order.weightKg).toFixed(1)} kg` : ''}
+      </span>
+    </div>
+    <div className={styles.cardRow}>
+      {order.signature ? (
+        <span className={styles.signedBadge}><IconCheck /> Assinado</span>
+      ) : (
+        <span className={styles.invoiceNA}>Assinatura pendente</span>
+      )}
+    </div>
+    <div className={styles.actionsRow}>
+      {canSign && (
+        <button className={styles.signBtn} onClick={onSign}>
+          <IconSign /> Assinar
+        </button>
+      )}
+      {order.status !== 'PENDING' && order.status !== 'CANCELLED' && (
+        <button className={styles.invoiceBtn} onClick={() => openInvoice(order.id)}>
+          <IconPdf /> Fatura
+        </button>
+      )}
+    </div>
+  </div>
+)
+
 /* ── ClientOrders ── */
 const ClientOrders = () => {
   const [orders,    setOrders]    = useState([])
@@ -73,6 +115,12 @@ const ClientOrders = () => {
   const canSign = (order) =>
     !order.signature && order.status !== 'PENDING' && order.status !== 'CANCELLED'
 
+  const getProducts = (order) =>
+    order.items
+      ?.map(i => i.product?.name ?? '—')
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .join(', ') ?? '—'
+
   return (
     <div className={styles.page}>
 
@@ -81,98 +129,106 @@ const ClientOrders = () => {
         <h1 className={styles.title}>Histórico de Pedidos</h1>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nº Pedido</th>
-                <th>Data</th>
-                <th>Produto(s)</th>
-                <th>Caixas</th>
-                <th>Peso</th>
-                <th>Status</th>
-                <th>Assinatura</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr className={styles.stateRow}>
-                  <td colSpan={8}>A carregar pedidos…</td>
+      {/* Loading / Error */}
+      {loading && <p className={styles.stateBox}>A carregar pedidos…</p>}
+      {!loading && error && <p className={`${styles.stateBox} ${styles.errorState}`}>{error}</p>}
+      {!loading && !error && orders.length === 0 && (
+        <p className={styles.stateBox}>Nenhum pedido registado.</p>
+      )}
+
+      {/* Desktop table */}
+      {!loading && !error && orders.length > 0 && (
+        <div className={styles.card}>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Nº Pedido</th>
+                  <th>Data</th>
+                  <th>Produto(s)</th>
+                  <th>Caixas</th>
+                  <th>Peso</th>
+                  <th>Status</th>
+                  <th>Assinatura</th>
+                  <th>Ações</th>
                 </tr>
-              )}
+              </thead>
+              <tbody>
+                {orders.map(order => {
+                  const status = order.status ?? 'PENDING'
+                  const products = getProducts(order)
 
-              {!loading && error && (
-                <tr className={`${styles.stateRow} ${styles.errorRow}`}>
-                  <td colSpan={8}>{error}</td>
-                </tr>
-              )}
-
-              {!loading && !error && orders.length === 0 && (
-                <tr className={styles.stateRow}>
-                  <td colSpan={8}>Nenhum pedido registado.</td>
-                </tr>
-              )}
-
-              {!loading && !error && orders.map(order => {
-                const status = order.status ?? 'PENDING'
-                const products = order.items
-                  ?.map(i => i.product?.name ?? '—')
-                  .filter((v, i, a) => a.indexOf(v) === i)
-                  .join(', ') ?? '—'
-
-                return (
-                  <tr key={order.id}>
-                    <td className={styles.orderId}>#{order.id}</td>
-                    <td>{new Date(order.createdAt).toLocaleDateString('pt-PT')}</td>
-                    <td>{products}</td>
-                    <td>{order.totalBoxes}</td>
-                    <td>{order.weightKg ? `${Number(order.weightKg).toFixed(1)} kg` : '—'}</td>
-                    <td>
-                      <span className={`${styles.badge} ${styles[STATUS_MOD[status]]}`}>
-                        <span className={styles.badgeDot} />
-                        {STATUS_LABEL[status] ?? status}
-                      </span>
-                    </td>
-                    <td>
-                      {order.signature ? (
-                        <span className={styles.signedBadge}>
-                          <IconCheck /> Assinado
+                  return (
+                    <tr key={order.id}>
+                      <td className={styles.orderId}>#{order.id}</td>
+                      <td>{new Date(order.createdAt).toLocaleDateString('pt-PT')}</td>
+                      <td>{products}</td>
+                      <td>{order.totalBoxes}</td>
+                      <td>{order.weightKg ? `${Number(order.weightKg).toFixed(1)} kg` : '—'}</td>
+                      <td>
+                        <span className={`${styles.badge} ${styles[STATUS_MOD[status]]}`}>
+                          <span className={styles.badgeDot} />
+                          {STATUS_LABEL[status] ?? status}
                         </span>
-                      ) : (
-                        <span className={styles.invoiceNA}>Pendente</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className={styles.actionsRow}>
-                        {canSign(order) && (
-                          <button
-                            className={styles.signBtn}
-                            onClick={() => setSignModal(order)}
-                          >
-                            <IconSign />
-                            Assinar
-                          </button>
+                      </td>
+                      <td>
+                        {order.signature ? (
+                          <span className={styles.signedBadge}>
+                            <IconCheck /> Assinado
+                          </span>
+                        ) : (
+                          <span className={styles.invoiceNA}>Pendente</span>
                         )}
-                        {order.status !== 'PENDING' && order.status !== 'CANCELLED' && (
-                          <button
-                            className={styles.invoiceBtn}
-                            onClick={() => openInvoice(order.id)}
-                          >
-                            <IconPdf />
-                            Fatura
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td>
+                        <div className={styles.actionsRow}>
+                          {canSign(order) && (
+                            <button
+                              className={styles.signBtn}
+                              onClick={() => setSignModal(order)}
+                            >
+                              <IconSign />
+                              Assinar
+                            </button>
+                          )}
+                          {order.status !== 'PENDING' && order.status !== 'CANCELLED' && (
+                            <button
+                              className={styles.invoiceBtn}
+                              onClick={() => openInvoice(order.id)}
+                            >
+                              <IconPdf />
+                              Fatura
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Mobile cards */}
+      {!loading && !error && orders.length > 0 && (
+        <div className={styles.mobileCards}>
+          {orders.map(order => {
+            const status = order.status ?? 'PENDING'
+            return (
+              <OrderCard
+                key={order.id}
+                order={order}
+                status={status}
+                products={getProducts(order)}
+                canSign={canSign(order)}
+                onSign={() => setSignModal(order)}
+              />
+            )
+          })}
+        </div>
+      )}
 
       {signModal && (
         <SignatureModal

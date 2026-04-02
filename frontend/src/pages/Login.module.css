@@ -1,172 +1,134 @@
 /* ─────────────────────────────────────────
-   Login.module.css — SAAB Gestão Logística
-   Mobile-first / Corporate industrial theme
+   Login.module.css — SAAB
+   Clean, spacious, Walmart-inspired layout
 ───────────────────────────────────────── */
 
 .page {
   min-height: 100svh;
-  background-color: #1a1a1a;
+  background-color: var(--bg-page);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: 1.5rem;
 }
 
 /* ── Wrapper ── */
 .wrapper {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2.5rem;
 }
 
-/* ── Logo ── */
-.logo {
-  height: 2.25rem;
-  width: auto;
-  max-width: 160px;
-  object-fit: contain;
-  opacity: 0.9;
-}
-
-/* ── Card ── */
-.card {
-  width: 100%;
-  background-color: #1e1e1e;
-  border: 1px solid #333;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
-}
-
-/* ── Card header ── */
-.cardHeader {
-  background-color: #3d0000;
-  border-bottom: 2px solid #8b0000;
-  padding: 1.25rem 2rem;
-}
-
-.cardHeaderEyebrow {
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.25em;
-  color: #f4a0a0;
-  margin: 0 0 0.3rem;
-}
-
-.cardHeaderTitle {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  letter-spacing: 0.01em;
-  line-height: 1.1;
-}
-
-/* ── Card body ── */
-.cardBody {
-  padding: 1.75rem 2rem;
+/* ── Brand ── */
+.brand {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.subtitle {
-  font-size: 0.8125rem;
-  color: #666;
-  margin: 0 0 1.5rem;
+.logo {
+  height: 5rem;
+  width: auto;
+  object-fit: contain;
+}
+
+.brandName {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: 0.08em;
+}
+
+.brandSub {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 /* ── Form ── */
 .form {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-elevated);
 }
 
 /* ── Field ── */
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.5rem;
 }
 
 .label {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #888;
-}
-
-.inputWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.inputIcon {
-  position: absolute;
-  left: 0.75rem;
-  display: flex;
-  align-items: center;
-  pointer-events: none;
-  color: #555;
-}
-
-.inputIcon svg {
-  width: 1rem;
-  height: 1rem;
+  color: var(--text-secondary);
 }
 
 .input {
   width: 100%;
-  background-color: #2a2a2a;
-  border: 1px solid #3a3a3a;
-  border-radius: 4px;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  font-size: 0.875rem;
-  color: #f0f0f0;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  color: var(--text-primary);
   outline: none;
   transition: border-color 0.18s, box-shadow 0.18s;
 }
 
 .input::placeholder {
-  color: #505050;
+  color: var(--text-muted);
 }
 
 .input:focus {
-  border-color: #8b0000;
-  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.22);
+  border-color: var(--red-base);
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.15);
 }
 
-/* ── Error banner ── */
+/* ── Error ── */
 .error {
-  background-color: #140a0a;
-  border: 1px solid rgba(180, 50, 50, 0.5);
-  border-radius: 4px;
-  padding: 0.625rem 0.875rem;
-  font-size: 0.8rem;
-  color: #f87171;
+  background-color: #fef2f2;
+  border: 1px solid rgba(220, 50, 50, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #dc2626;
   line-height: 1.45;
   margin: 0;
 }
 
-/* ── Submit button ── */
+[data-theme="dark"] .error {
+  background-color: #140a0a;
+  border-color: rgba(180, 50, 50, 0.5);
+  color: #f87171;
+}
+
+/* ── Button ── */
 .button {
-  margin-top: 0.25rem;
   width: 100%;
-  background-color: #8b0000;
+  background-color: var(--red-base);
   border: none;
-  border-radius: 4px;
-  padding: 0.8125rem 1rem;
-  font-size: 0.875rem;
+  border-radius: 8px;
+  padding: 0.9375rem 1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #ffffff;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   cursor: pointer;
   transition: background-color 0.18s;
@@ -174,18 +136,19 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .button:hover:not(:disabled) {
-  background-color: #720000;
+  background-color: var(--red-hover);
 }
 
 .button:active:not(:disabled) {
-  background-color: #5a0000;
+  background-color: var(--red-active);
 }
 
 .button:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -195,8 +158,8 @@
 }
 
 .spinner {
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
   animation: spin 0.8s linear infinite;
   flex-shrink: 0;
 }
@@ -204,21 +167,21 @@
 /* ── Footer ── */
 .footer {
   font-size: 0.75rem;
-  color: #3a3a3a;
+  color: var(--text-muted);
   text-align: center;
 }
 
-/* ── Responsive: tablet / desktop ── */
+/* ── Responsive ── */
 @media (min-width: 480px) {
-  .cardHeader {
-    padding: 1.5rem 2.5rem;
+  .form {
+    padding: 2.5rem;
   }
 
-  .cardBody {
-    padding: 2rem 2.5rem;
+  .logo {
+    height: 6rem;
   }
 
-  .cardHeaderTitle {
-    font-size: 1.6rem;
+  .brandName {
+    font-size: 2rem;
   }
 }

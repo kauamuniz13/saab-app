@@ -1,5 +1,7 @@
 import { Outlet, useNavigate, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import logoSaab from '../assets/Logo-saab-S.png'
+import ThemeToggle from '../components/ThemeToggle'
 import styles from './ClienteLayout.module.css'
 
 const ClienteLayout = () => {
@@ -11,7 +13,7 @@ const ClienteLayout = () => {
       <header className={styles.topbar}>
         <div className={styles.topbarLeft}>
           <div className={styles.brand}>
-            <span className={styles.brandEyebrow}>SAAB</span>
+            <img src={logoSaab} alt="SAAB" className={styles.brandLogo} />
             <span className={styles.brandTitle}>Portal do Cliente</span>
           </div>
           <nav className={styles.nav}>
@@ -35,6 +37,7 @@ const ClienteLayout = () => {
           </nav>
         </div>
         <div className={styles.topbarRight}>
+          <ThemeToggle />
           <span className={styles.userEmail}>{user?.email}</span>
           <button
             className={styles.logoutBtn}

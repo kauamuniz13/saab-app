@@ -12,14 +12,10 @@ const listUsers = async (_req, res) => {
 
 /* ── Create ── */
 const createUser = async (req, res) => {
-  const { email, password, role } = req.body
-
-  if (!email || !password || !role) {
-    return res.status(400).json({ message: 'Campos obrigatórios: email, password, role.' })
-  }
+  const { email, password, role, address, lat, lon } = req.body
 
   try {
-    const user = await UserService.createUser({ email, password, role })
+    const user = await UserService.createUser({ email, password, role, address, lat, lon })
     return res.status(201).json(user)
   } catch (err) {
     return res.status(err.status || 500).json({ message: err.message })
@@ -28,14 +24,10 @@ const createUser = async (req, res) => {
 
 /* ── Update ── */
 const updateUser = async (req, res) => {
-  const { email, password, role } = req.body
-
-  if (!email && !password && !role) {
-    return res.status(400).json({ message: 'Nenhum campo enviado para actualização.' })
-  }
+  const { email, password, role, address, lat, lon } = req.body
 
   try {
-    const user = await UserService.updateUser(req.params.id, { email, password, role })
+    const user = await UserService.updateUser(req.params.id, { email, password, role, address, lat, lon })
     return res.json(user)
   } catch (err) {
     return res.status(err.status || 500).json({ message: err.message })

@@ -4,7 +4,6 @@ import styles from './Logistics.module.css'
 
 /* ────────────────────────────────────────
    Mock de endereços e coordenadas
-   (a substituir quando o schema tiver address)
 ──────────────────────────────────────── */
 const CLIENT_GEO = {
   'frigorifico.norte@saab.com': {
@@ -141,6 +140,62 @@ const RouteModal = ({ order, onClose }) => {
   )
 }
 
+/* ── Mobile order card ── */
+const OrderMobileCard = ({ order, geo, onMap, onInvoice, onConfirm, onCancel, onDeliver }) => {
+  const status = order.status ?? 'PENDING'
+  const email  = order.client?.email ?? '—'
+  const weight = order.weightKg && order.weightKg > 0
+    ? `${Number(order.weightKg).toFixed(1)} kg`
+    : null
+
+  return (
+    <div className={styles.mobileCard}>
+      <div className={styles.mobileCardTop}>
+        <span className={styles.mobileOrderId}>#{order.id}</span>
+        <span className={`${styles.badge} ${styles[status]}`}>
+          <span className={styles.badgeDot} />
+          {STATUS_LABEL[status] ?? status}
+        </span>
+      </div>
+      <p className={styles.mobileClient}>{email}</p>
+      <p className={styles.mobileAddress}>{geo.address}</p>
+      <div className={styles.mobileStats}>
+        <span>{order.totalBoxes} cxs</span>
+        {weight && <span>{weight}</span>}
+        <span>{new Date(order.createdAt).toLocaleDateString('pt-PT')}</span>
+      </div>
+      {order.signature && (
+        <img src={order.signature} alt="Assinatura" className={styles.sigImg} />
+      )}
+      <div className={styles.mobileActions}>
+        <button className={styles.routeBtn} onClick={onMap}>
+          <IconMap /> Rota
+        </button>
+        {order.status !== 'PENDING' && (
+          <button className={`${styles.routeBtn} ${styles.invoiceBtn}`} onClick={onInvoice}>
+            <IconPdf /> Invoice
+          </button>
+        )}
+        {order.status === 'PENDING' && (
+          <button className={`${styles.routeBtn} ${styles.confirmBtn}`} onClick={onConfirm}>
+            Confirmar
+          </button>
+        )}
+        {(order.status === 'PENDING' || order.status === 'CONFIRMED') && (
+          <button className={`${styles.routeBtn} ${styles.cancelBtn}`} onClick={onCancel}>
+            Cancelar
+          </button>
+        )}
+        {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
+          <button className={`${styles.routeBtn} ${styles.signBtn}`} onClick={onDeliver}>
+            <IconSign /> Entregar
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ── Logistics ── */
 const Logistics = () => {
   const [orders,    setOrders]    = useState([])
@@ -175,7 +230,6 @@ const Logistics = () => {
       .finally(() => setLoading(false))
   }, [])
 
-  /* ── KPIs ── */
   const kpis = useMemo(() => ({
     total:    orders.length,
     pending:  orders.filter(o => o.status === 'PENDING').length,
@@ -183,7 +237,6 @@ const Logistics = () => {
     delivered:orders.filter(o => o.status === 'DELIVERED').length,
   }), [orders])
 
-  /* ── Filtered list ── */
   const visible = useMemo(
     () => filter === 'ALL' ? orders : orders.filter(o => o.status === filter),
     [orders, filter]
@@ -197,7 +250,7 @@ const Logistics = () => {
         <h1 className={styles.title}>Logística</h1>
       </div>
 
-      {/* ── KPI Cards ── */}
+      {/* KPI Cards */}
       <div className={styles.kpiGrid}>
         <div className={`${styles.kpiCard} ${styles.kpiTotal}`}>
           <p className={styles.kpiLabel}>Total de Pedidos</p>
@@ -219,7 +272,7 @@ const Logistics = () => {
 
       <div className={styles.card}>
 
-        {/* ── Filter bar ── */}
+        {/* Filter bar */}
         <div className={styles.filterBar}>
           {FILTERS.map(f => (
             <button
@@ -235,6 +288,7 @@ const Logistics = () => {
           </span>
         </div>
 
+        {/* Desktop table */}
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
@@ -358,6 +412,33 @@ const Logistics = () => {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className={styles.mobileList}>
+          {loading && <p className={styles.stateMsg}>A carregar pedidos…</p>}
+          {!loading && error && <p className={`${styles.stateMsg} ${styles.error}`}>{error}</p>}
+          {!loading && !error && visible.length === 0 && (
+            <p className={styles.stateMsg}>
+              {orders.length === 0 ? 'Nenhum pedido registado.' : 'Nenhum pedido com este filtro.'}
+            </p>
+          )}
+          {!loading && !error && visible.map(order => {
+            const email = order.client?.email ?? '—'
+            const geo   = getGeo(email)
+            return (
+              <OrderMobileCard
+                key={order.id}
+                order={order}
+                geo={geo}
+                onMap={() => setActiveMap(order)}
+                onInvoice={() => openInvoice(order.id)}
+                onConfirm={() => handleStatusChange(order.id, 'CONFIRMED')}
+                onCancel={() => handleStatusChange(order.id, 'CANCELLED')}
+                onDeliver={() => handleDeliver(order.id)}
+              />
+            )
+          })}
         </div>
       </div>
 

@@ -27,6 +27,37 @@ const summariseItems = (items = []) => {
   return `${names[0]}, ${names[1]} +${names.length - 2}`
 }
 
+/* ── Mobile order card ── */
+const OrderMobileCard = ({ order, onProcess }) => {
+  const cfg = STATUS_CONFIG[order.status]
+  return (
+    <div className={styles.mobileCard}>
+      <div className={styles.mobileCardTop}>
+        <span className={styles.orderId}>
+          #{String(order.id).padStart(4, '0')}
+        </span>
+        <span
+          className={styles.badge}
+          style={{ color: cfg.color, borderColor: cfg.color, backgroundColor: cfg.bg }}
+        >
+          {cfg.label}
+        </span>
+      </div>
+      <p className={styles.mobileClient}>{order.client?.email ?? '—'}</p>
+      <p className={styles.mobileProducts}>{summariseItems(order.items)}</p>
+      <div className={styles.mobileCardBottom}>
+        <span className={styles.mobileNum}>
+          {order.totalBoxes} cxs
+          {order.weightKg > 0 ? ` · ${order.weightKg} kg` : ''}
+        </span>
+        <button className={styles.btnProcess} onClick={onProcess}>
+          Ver / Processar
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const ExpedicaoOrders = () => {
   const [orders,  setOrders]  = useState([])
   const [loading, setLoading] = useState(true)
@@ -66,6 +97,7 @@ const ExpedicaoOrders = () => {
         </div>
       </div>
 
+      {/* Desktop table */}
       <div className={styles.tableWrap}>
         <div className={styles.tableHeader}>
           <span>Pedido</span>
@@ -120,6 +152,23 @@ const ExpedicaoOrders = () => {
               </div>
             )
           })
+        )}
+      </div>
+
+      {/* Mobile cards */}
+      <div className={styles.mobileList}>
+        {loading ? (
+          <p className={styles.empty}>A carregar...</p>
+        ) : visible.length === 0 ? (
+          <p className={styles.empty}>Nenhum pedido neste estado.</p>
+        ) : (
+          visible.map(order => (
+            <OrderMobileCard
+              key={order.id}
+              order={order}
+              onProcess={() => navigate(`/expedicao/orders/${order.id}`)}
+            />
+          ))
         )}
       </div>
 

@@ -7,7 +7,7 @@ const Inventory = () => (
     <div className={styles.header}>
       <div>
         <p className={styles.eyebrow}>Módulo A</p>
-        <h1 className={styles.title}>Gestão de Inventário</h1>
+        <h1 className={styles.title}>Estoque</h1>
       </div>
     </div>
     <InventoryGrid />
