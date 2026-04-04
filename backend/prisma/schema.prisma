@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Valores válidos: "ADMIN" | "EXPEDICAO" | "MOTORISTA" | "CLIENTE" | "VENDEDOR"
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("CLIENTE")
+  address   String   @default("")
+  lat       Float?
+  lon       Float?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id         Int         @id @default(autoincrement())
+  name       String
+  type       String      // categoria livre: "Bovino", "Bebidas", "Acessórios", etc.
+  active     Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  containers Container[]
+  orderItems OrderItem[] @relation("OrderItemProduct")
+}
+
+enum ContainerZone {
+  CAMARA_FRIA
+  CONTAINER_31
+  CONTAINER_32
+  CONTAINER_33
+  CONTAINER_36
+  BEBIDAS
+  SECOS
+}
+
+model Container {
+  id         Int              @id @default(autoincrement())
+  label      String           @unique // ex: "CF-01", "SN-02"
+  zone       ContainerZone    @default(SECOS)
+  capacity   Int
+  quantity   Int              @default(0)
+  unit       String           @default("caixas")
+  productId  Int?
+  product    Product?         @relation(fields: [productId], references: [id])
+  orderItems OrderItem[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+// Valores válidos: "PENDING" | "CONFIRMED" | "SEPARATING" | "READY" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED"
+model Order {
+  id                  Int         @id @default(autoincrement())
+  clientId            Int
+  client              User        @relation(fields: [clientId], references: [id])
+  status              String      @default("PENDING")
+  totalBoxes          Int
+  // Entrega
+  address             String      @default("")
+  lat                 Float?
+  lon                 Float?
+  deliveryWindowStart String      @default("08:00") // "HH:MM"
+  deliveryWindowEnd   String      @default("18:00") // "HH:MM"
+  // Peso
+  weightLb            Float       @default(0)
+  deliveredAt         DateTime?
+  deliveredById       Int?
+  // Expedição
+  separatedById       Int?
+  separatedAt         DateTime?
+  packedById          Int?
+  packedAt            DateTime?
+  // Motorista
+  loadedAt            DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  items               OrderItem[]
+}
+
+model OrderItem {
+  id          Int         @id @default(autoincrement())
+  orderId     Int
+  order       Order       @relation(fields: [orderId], references: [id])
+  containerId Int
+  container   Container   @relation(fields: [containerId], references: [id])
+  productId   Int
+  product     Product     @relation("OrderItemProduct", fields: [productId], references: [id])
+  quantity    Int
+  priceType   String      @default("PER_LB")  // "PER_LB" | "PER_BOX"
+  pricePerLb  Float?                           // preenchido pelo vendedor se PER_LB
+  pricePerBox Float?                           // preenchido pelo vendedor se PER_BOX
+  weightLb    Float       @default(0)          // soma das boxWeights (calculado ao embalar)
+  boxWeights  BoxWeight[]
+}
+
+model BoxWeight {
+  id          Int       @id @default(autoincrement())
+  orderItemId Int
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  boxNumber   Int
+  weightLb    Float
+}

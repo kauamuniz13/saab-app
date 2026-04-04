@@ -1,0 +1,192 @@
+/* ──────────────────────────────────
+   ClientPanel.module.css — SAAB
+─────────────────────────────────── */
+
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* ── Toggle ── */
+.toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-base);
+  cursor: pointer;
+  text-align: left;
+  gap: 1rem;
+  transition: background-color 0.15s;
+}
+.toggle:hover { background-color: var(--bg-hover); }
+
+.toggleLeft  { display: flex; flex-direction: column; gap: 0.1rem; }
+
+.eyebrow {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--red-base);
+}
+
+.toggleTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.chevron { font-size: 1rem; color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+.chevronOpen { transform: rotate(180deg); }
+
+/* ── Body ── */
+.body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sectionLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+
+/* ── Form ── */
+.addForm { display: flex; flex-direction: column; gap: 0; }
+
+.addRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 120px auto;
+  gap: 0.625rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .addRow { grid-template-columns: 1fr; }
+}
+
+.input,
+.select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--red-base);
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.22);
+}
+
+.input::placeholder { color: var(--text-muted); }
+.select option { background: var(--bg-surface); }
+
+.addBtn {
+  background: var(--red-base);
+  border: none;
+  border-radius: 4px;
+  padding: 0.55rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-on-red);
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background-color 0.18s;
+}
+.addBtn:hover:not(:disabled) { background: var(--red-hover); }
+.addBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.errMsg {
+  font-size: 0.8125rem;
+  color: var(--status-error);
+  margin: 0.375rem 0 0;
+}
+
+.successMsg {
+  font-size: 0.8125rem;
+  color: var(--status-ok);
+  margin: 0.375rem 0 0;
+}
+
+/* ── Table ── */
+.tableWrap {
+  border: 1px solid var(--border-base);
+  border-radius: 6px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.table thead { background: var(--bg-hover); }
+
+.table th {
+  padding: 0.625rem 1rem;
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-base);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-base);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:hover          { background: var(--bg-hover); }
+
+.cellEmail { font-weight: 500; color: var(--text-primary); }
+.cellDate  { color: var(--text-secondary); font-size: 0.75rem; }
+
+/* ── Role badge ── */
+.roleBadge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.roleBadge.CLIENTE   { background: var(--status-info-bg); color: var(--status-info); }
+.roleBadge.MOTORISTA { background: var(--status-warn-bg); color: var(--status-warn); }
+.roleBadge.ADMIN     { background: var(--status-error-bg); color: var(--status-error); }
+
+.stateMsg {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}

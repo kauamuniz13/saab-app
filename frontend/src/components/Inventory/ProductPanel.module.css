@@ -1,0 +1,284 @@
+/* ─────────────────────────────────────
+   ProductPanel.module.css — SAAB
+───────────────────────────────────── */
+
+/* ── Panel shell ── */
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* ── Toggle header ── */
+.toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-base);
+  cursor: pointer;
+  text-align: left;
+  gap: 1rem;
+  transition: background-color 0.15s;
+}
+
+.toggle:hover { background-color: var(--bg-hover); }
+
+.toggleLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.eyebrow {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--red-base);
+}
+
+.toggleTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.chevron {
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.chevronOpen { transform: rotate(180deg); }
+
+/* ── Panel body ── */
+.body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Section label ── */
+.sectionLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+
+/* ── Add form ── */
+.addForm { display: flex; flex-direction: column; gap: 0; }
+
+.addRow {
+  display: grid;
+  grid-template-columns: 1fr 140px 140px auto;
+  gap: 0.625rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .addRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Inputs / selects shared ── */
+.input,
+.select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--red-base);
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.22);
+}
+
+.input::placeholder { color: var(--text-muted); }
+.select option { background: var(--bg-surface); }
+
+/* ── Add button ── */
+.addBtn {
+  background: var(--red-base);
+  border: none;
+  border-radius: 4px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-on-red);
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background-color 0.18s;
+}
+.addBtn:hover:not(:disabled) { background: var(--red-hover); }
+.addBtn:active:not(:disabled) { background: var(--red-active); }
+.addBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Error banner ── */
+.errorBanner {
+  background: var(--status-error-bg);
+  border: 1px solid var(--red-light);
+  border-radius: 4px;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--status-error);
+}
+
+.errMsg {
+  font-size: 0.8125rem;
+  color: var(--status-error);
+  margin: 0.375rem 0 0;
+}
+
+/* ── Table ── */
+.tableWrap {
+  border: 1px solid var(--border-base);
+  border-radius: 6px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.table thead {
+  background: var(--bg-hover);
+}
+
+.table th {
+  padding: 0.625rem 1rem;
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-base);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-base);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:hover          { background: var(--bg-hover); }
+
+.editRow          { background: var(--bg-page) !important; }
+.editRow:hover    { background: var(--bg-page) !important; }
+.editRow td       { padding: 0.5rem 0.75rem; }
+
+.cellName  { font-weight: 600; color: var(--text-primary); }
+.cellPrice { font-family: monospace; color: var(--text-primary); }
+
+/* ── Type badge ── */
+.typeBadge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-base);
+}
+
+/* ── Row actions ── */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.editBtn {
+  background: none;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.editBtn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+.deleteBtn {
+  background: none;
+  border: 1px solid var(--red-light);
+  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--red-base);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.deleteBtn:hover { background: var(--red-light); color: var(--red-base); }
+
+.saveBtn {
+  background: var(--red-base);
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-on-red);
+  cursor: pointer;
+  transition: background-color 0.18s;
+}
+.saveBtn:hover:not(:disabled) { background: var(--red-hover); }
+.saveBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.cancelBtn {
+  background: none;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.cancelBtn:hover:not(:disabled) { border-color: var(--text-muted); color: var(--text-secondary); }
+.cancelBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.inlineErr {
+  font-size: 0.75rem;
+  color: var(--status-error);
+}
+
+/* ── Empty / loading states ── */
+.stateMsg {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}

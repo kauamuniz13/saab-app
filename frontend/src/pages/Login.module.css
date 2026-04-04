@@ -1,0 +1,181 @@
+/* ─────────────────────────────────────────
+   Login.module.css — SAAB
+   Clean, spacious, Walmart-inspired layout
+───────────────────────────────────────── */
+
+.page {
+  min-height: 100svh;
+  background-color: var(--bg-page);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+/* ── Wrapper ── */
+.wrapper {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+/* ── Brand ── */
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo {
+  height: 5rem;
+  width: auto;
+  object-fit: contain;
+}
+
+.brandName {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: 0.08em;
+}
+
+.brandSub {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ── Form ── */
+.form {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-base);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-elevated);
+}
+
+/* ── Field ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.input {
+  width: 100%;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus {
+  border-color: var(--red-base);
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.15);
+}
+
+/* ── Error ── */
+.error {
+  background-color: var(--status-error-bg);
+  border: 1px solid rgba(220, 50, 50, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--status-error);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ── Button ── */
+.button {
+  width: 100%;
+  background-color: var(--red-base);
+  border: none;
+  border-radius: 8px;
+  padding: 0.9375rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-on-red);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.button:hover:not(:disabled) {
+  background-color: var(--red-hover);
+}
+
+.button:active:not(:disabled) {
+  background-color: var(--red-active);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Spinner ── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 1.125rem;
+  height: 1.125rem;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Footer ── */
+.footer {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Responsive ── */
+@media (min-width: 480px) {
+  .form {
+    padding: 2.5rem;
+  }
+
+  .logo {
+    height: 6rem;
+  }
+
+  .brandName {
+    font-size: 2rem;
+  }
+}
