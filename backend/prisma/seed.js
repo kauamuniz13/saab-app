@@ -56,8 +56,6 @@ async function main() {
       address: c.address,
       lat: c.lat,
       lon: c.lon,
-      deliveryWindowStart: c.deliveryWindowStart,
-      deliveryWindowEnd: c.deliveryWindowEnd,
     })),
   ]
 
@@ -73,8 +71,6 @@ async function main() {
           address: u.address ?? '',
           lat: u.lat ?? null,
           lon: u.lon ?? null,
-          deliveryWindowStart: u.deliveryWindowStart ?? '08:00',
-          deliveryWindowEnd: u.deliveryWindowEnd ?? '18:00',
         },
       })
       console.log(`Created user: ${u.email}`)

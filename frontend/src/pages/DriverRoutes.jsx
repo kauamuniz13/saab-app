@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchDailyRoute } from '../services/routeService'
-import styles from './DriverRoutes.module.css'
 
 /* ── Icons ── */
 const IconDepot = () => (
@@ -15,7 +14,7 @@ const IconDepot = () => (
 )
 
 const IconRefresh = ({ spinning }) => (
-  <svg className={spinning ? styles.spinning : ''} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={spinning ? 'animate-spin' : ''} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992
          m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7
@@ -108,20 +107,22 @@ const RouteMap = ({ stops, depot }) => {
     `?bbox=${bbox}&layer=mapnik&marker=${depot.lat},${depot.lon}`
 
   return (
-    <div className={styles.mapCard}>
-      <div className={styles.mapHeader}>
-        <p className={styles.mapLabel}>Mapa da Rota — {stops.length} paragens</p>
+    <div className="bg-surface border border-border rounded-md overflow-hidden shadow-card">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+        <p className="text-[0.6875rem] font-bold uppercase tracking-wider text-muted m-0">
+          Mapa da Rota — {stops.length} paragens
+        </p>
         <a
           href={buildGoogleMapsUrl(stops, depot)}
           target="_blank"
           rel="noopener noreferrer"
-          className={styles.mapOpenBtn}
+          className="text-xs font-semibold text-info no-underline border border-border-input rounded bg-input px-3 py-1 transition-colors hover:border-info hover:text-info"
         >
           Abrir no Google Maps
         </a>
       </div>
       <iframe
-        className={styles.mapFrame}
+        className="w-full h-80 border-none block"
         src={src}
         title="Mapa da rota de entrega"
         loading="lazy"
@@ -138,40 +139,50 @@ const StopCard = ({ stop, isLast, isDelivered, onDeliver }) => {
     .join(' · ') ?? ''
 
   return (
-    <div className={`${styles.stop} ${isDelivered ? styles.stopDone : ''}`}>
+    <div className={`flex gap-0 border-b border-border last:border-b-0 transition-colors ${isDelivered ? 'opacity-55' : 'hover:bg-hover'}`}>
 
       {/* Number column */}
-      <div className={styles.stopNumber}>
-        <div className={`${styles.stopBadge} ${isDelivered ? styles.done : ''}`}>
+      <div className="w-14 shrink-0 flex flex-col items-center justify-start pt-[1.125rem] pb-[1.125rem] bg-hover border-r border-border gap-2">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[0.8125rem] font-extrabold text-on-red transition-colors ${isDelivered ? 'bg-ok' : 'bg-red'}`}>
           {stop.stopNumber}
         </div>
-        {!isLast && <div className={styles.stopConnector} />}
+        {!isLast && (
+          <div
+            className="w-0.5 flex-1 min-h-[24px]"
+            style={{
+              background: 'repeating-linear-gradient(to bottom, var(--border-input) 0px, var(--border-input) 4px, transparent 4px, transparent 8px)'
+            }}
+          />
+        )}
       </div>
 
       {/* Content */}
-      <div className={styles.stopContent}>
-        <div className={styles.stopHeader}>
+      <div className="flex-1 px-5 py-4 flex flex-col gap-2.5">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <p className={styles.stopClient}>{stop.clientEmail}</p>
-            <p className={styles.stopAddress}>{stop.address}</p>
+            <p className="text-sm font-semibold text-primary m-0">{stop.clientEmail}</p>
+            <p className="text-[0.8rem] text-secondary mt-0.5 m-0">{stop.address}</p>
           </div>
-          <div className={styles.stopActions}>
+          <div className="flex gap-2 flex-wrap shrink-0 items-start">
             <a
               href={mapsUrl(stop.address, stop.lat, stop.lon)}
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.navBtn}
+              className="inline-flex items-center gap-2 bg-input border border-border-input rounded px-4 py-2.5 text-[0.8rem] font-bold text-info cursor-pointer no-underline whitespace-nowrap transition-colors shrink-0 self-start hover:bg-hover hover:border-info hover:text-info [&_svg]:w-4 [&_svg]:h-4"
             >
               <IconNav />
               Abrir no Maps
             </a>
             {!isDelivered ? (
-              <button className={styles.deliverBtn} onClick={onDeliver}>
+              <button
+                className="inline-flex items-center gap-2 bg-input border border-ok rounded px-4 py-2.5 text-[0.8rem] font-bold text-ok cursor-pointer whitespace-nowrap transition-colors shrink-0 self-start hover:bg-hover hover:border-ok hover:text-ok [&_svg]:w-4 [&_svg]:h-4"
+                onClick={onDeliver}
+              >
                 <IconSign />
                 Entregar
               </button>
             ) : (
-              <span className={styles.deliveredBadge}>
+              <span className="inline-flex items-center gap-1.5 text-[0.8rem] font-bold text-ok py-2.5 shrink-0 self-start [&_svg]:w-4 [&_svg]:h-4">
                 <IconCheck />
                 Entregue
               </span>
@@ -179,27 +190,27 @@ const StopCard = ({ stop, isLast, isDelivered, onDeliver }) => {
           </div>
         </div>
 
-        <div className={styles.tags}>
-          <span className={`${styles.tag} ${styles.window}`}>
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold px-2 py-0.5 rounded bg-input text-info [&_svg]:w-3 [&_svg]:h-3">
             <IconClock />
             Janela: {stop.deliveryWindowStart} – {stop.deliveryWindowEnd}
           </span>
-          <span className={`${styles.tag} ${styles.eta}`}>
+          <span className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold px-2 py-0.5 rounded bg-input text-warn [&_svg]:w-3 [&_svg]:h-3">
             <IconClock />
             ETA: {stop.eta}
             {stop.waitMinutes > 0 && ` (+${stop.waitMinutes}min espera)`}
           </span>
-          <span className={`${styles.tag} ${styles.dist}`}>
+          <span className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold px-2 py-0.5 rounded bg-input text-ok [&_svg]:w-3 [&_svg]:h-3">
             <IconPin />
             {stop.distanceKm} km · {stop.travelMinutes} min
           </span>
-          <span className={`${styles.tag} ${styles.boxes}`}>
+          <span className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold px-2 py-0.5 rounded bg-input text-error [&_svg]:w-3 [&_svg]:h-3">
             <IconBox />
             {stop.totalBoxes} cxs
           </span>
         </div>
 
-        {products && <p className={styles.products}>{products}</p>}
+        {products && <p className="text-xs text-muted m-0">{products}</p>}
       </div>
 
     </div>
@@ -229,45 +240,57 @@ const DriverRoutes = () => {
   const lastEta   = route?.stops.at(-1)?.eta ?? '—'
 
   return (
-    <div className={styles.page}>
+    <div className="p-6 flex flex-col gap-6">
 
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h1 className={styles.title}>Rota de Entrega — {new Date().toLocaleDateString('pt-PT')}</h1>
+      <div className="flex items-end justify-between flex-wrap gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-bold text-primary m-0">Rota de Entrega — {new Date().toLocaleDateString('pt-PT')}</h1>
         </div>
-        <button className={styles.refreshBtn} onClick={load} disabled={loading}>
+        <button
+          className="inline-flex items-center gap-2 bg-transparent border border-border-input rounded px-4 py-2.5 text-[0.8125rem] font-semibold text-secondary cursor-pointer transition-colors hover:border-muted hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed [&_svg]:w-4 [&_svg]:h-4"
+          onClick={load}
+          disabled={loading}
+        >
           <IconRefresh spinning={loading} />
           {loading ? 'A calcular…' : 'Recalcular'}
         </button>
       </div>
 
-      {loading && <div className={styles.stateBox}>A calcular rota optimizada…</div>}
+      {loading && (
+        <div className="bg-surface border border-border rounded-md py-12 px-4 text-center text-muted text-sm">
+          A calcular rota optimizada…
+        </div>
+      )}
 
-      {!loading && error && <div className={`${styles.stateBox} ${styles.error}`}>{error}</div>}
+      {!loading && error && (
+        <div className="bg-surface border border-border rounded-md py-12 px-4 text-center text-error text-sm">
+          {error}
+        </div>
+      )}
 
       {!loading && !error && route && (
         <>
           {/* Summary */}
-          <div className={styles.summary}>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Paragens</span>
-              <span className={styles.summaryValue}>{route.stops.length}</span>
+          <div className="flex flex-wrap gap-4 bg-surface border border-border rounded-md px-5 py-4 shadow-card">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[0.625rem] font-bold uppercase tracking-wider text-muted">Paragens</span>
+              <span className="text-base font-bold text-primary">{route.stops.length}</span>
             </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Distância total</span>
-              <span className={styles.summaryValue}>{totalKm} km</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[0.625rem] font-bold uppercase tracking-wider text-muted">Distância total</span>
+              <span className="text-base font-bold text-primary">{totalKm} km</span>
             </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Total caixas</span>
-              <span className={styles.summaryValue}>{totalBoxes}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[0.625rem] font-bold uppercase tracking-wider text-muted">Total caixas</span>
+              <span className="text-base font-bold text-primary">{totalBoxes}</span>
             </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Saída</span>
-              <span className={styles.summaryValue}>{route.departureTime}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[0.625rem] font-bold uppercase tracking-wider text-muted">Saída</span>
+              <span className="text-base font-bold text-primary">{route.departureTime}</span>
             </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Última entrega (ETA)</span>
-              <span className={styles.summaryValue}>{lastEta}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[0.625rem] font-bold uppercase tracking-wider text-muted">Última entrega (ETA)</span>
+              <span className="text-base font-bold text-primary">{lastEta}</span>
             </div>
           </div>
 
@@ -275,22 +298,24 @@ const DriverRoutes = () => {
           <RouteMap stops={route.stops} depot={route.depot} />
 
           {/* Depot */}
-          <div className={styles.depotCard}>
-            <div className={styles.depotIcon}><IconDepot /></div>
-            <div className={styles.depotInfo}>
-              <p className={styles.depotLabel}>Ponto de Partida</p>
-              <p className={styles.depotAddress}>{route.depot.address}</p>
+          <div className="flex items-center gap-4 bg-surface border border-border border-l-4 border-l-info rounded-md px-5 py-3.5 shadow-card">
+            <div className="w-9 h-9 rounded-full bg-input border-2 border-border-input flex items-center justify-center shrink-0 text-info [&_svg]:w-4 [&_svg]:h-4">
+              <IconDepot />
             </div>
-            <span className={styles.depotTime}>{route.departureTime}</span>
+            <div className="flex-1">
+              <p className="text-[0.6875rem] font-bold uppercase tracking-wider text-info m-0 mb-0.5">Ponto de Partida</p>
+              <p className="text-sm text-primary m-0">{route.depot.address}</p>
+            </div>
+            <span className="text-[0.8125rem] font-bold text-info whitespace-nowrap">{route.departureTime}</span>
           </div>
 
           {/* Stops */}
           {route.stops.length === 0 ? (
-            <div className={styles.stateBox}>
+            <div className="bg-surface border border-border rounded-md py-12 px-4 text-center text-muted text-sm">
               {route.message ?? 'Sem paragens para hoje.'}
             </div>
           ) : (
-            <div className={styles.routeList}>
+            <div className="flex flex-col bg-surface border border-border rounded-md overflow-hidden shadow-card">
               {route.stops.map((stop, i) => (
                 <StopCard
                   key={stop.orderId}

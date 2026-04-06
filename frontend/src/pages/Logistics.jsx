@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
 import { fetchOrders, openInvoice, updateOrderStatus, deliverOrder } from '../services/orderService'
-import styles from './Logistics.module.css'
 
 /* ────────────────────────────────────────
    Mock de endereços e coordenadas
@@ -33,6 +32,13 @@ const STATUS_LABEL = {
   CONFIRMED: 'Confirmado',
   DELIVERED: 'Entregue',
   CANCELLED: 'Cancelado',
+}
+
+const BADGE_CLASSES = {
+  PENDING:   'bg-warn-bg text-warn',
+  CONFIRMED: 'bg-info-bg text-info',
+  DELIVERED: 'bg-ok-bg text-ok',
+  CANCELLED: 'bg-error-bg text-error',
 }
 
 const FILTERS = [
@@ -93,43 +99,50 @@ const RouteModal = ({ order, onClose }) => {
   }
 
   return (
-    <div className={styles.overlay} onClick={handleOverlayClick}>
-      <div className={styles.modal}>
+    <div
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4"
+      onClick={handleOverlayClick}
+    >
+      <div className="bg-surface border border-border rounded-lg w-full max-w-[640px] max-h-[90svh] flex flex-col overflow-hidden shadow-elevated">
 
-        <div className={styles.modalHeader}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <div>
-            <h2 className={styles.modalTitle}>Rota — Pedido #{order.id}</h2>
-            <p className={styles.modalMeta}>{geo.address}</p>
+            <h2 className="text-[0.9rem] font-bold text-primary m-0">Rota — Pedido #{order.id}</h2>
+            <p className="text-xs text-muted mt-0.5 mb-0">{ geo.address}</p>
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Fechar">
+          <button
+            className="bg-transparent border-none text-muted cursor-pointer p-1 rounded flex items-center transition-colors hover:text-primary"
+            onClick={onClose}
+            aria-label="Fechar"
+          >
             <IconClose />
           </button>
         </div>
 
         <iframe
-          className={styles.mapFrame}
+          className="w-full h-[380px] border-none block shrink-0"
           src={mapSrc}
           title={`Mapa do pedido #${order.id}`}
           loading="lazy"
           referrerPolicy="no-referrer"
         />
 
-        <div className={styles.modalInfo}>
-          <div className={styles.infoCell}>
-            <p className={styles.infoLabel}>Cliente</p>
-            <p className={styles.infoValue}>{email || '—'}</p>
+        <div className="grid grid-cols-2 border-t border-border shrink-0">
+          <div className="py-3.5 px-5 border-r border-border">
+            <p className="text-[0.625rem] font-bold uppercase tracking-wider text-muted mb-0.5 mt-0">Cliente</p>
+            <p className="text-[0.8125rem] text-primary m-0">{email || '—'}</p>
           </div>
-          <div className={styles.infoCell}>
-            <p className={styles.infoLabel}>Status</p>
-            <p className={styles.infoValue}>{STATUS_LABEL[order.status] ?? order.status}</p>
+          <div className="py-3.5 px-5">
+            <p className="text-[0.625rem] font-bold uppercase tracking-wider text-muted mb-0.5 mt-0">Status</p>
+            <p className="text-[0.8125rem] text-primary m-0">{STATUS_LABEL[order.status] ?? order.status}</p>
           </div>
-          <div className={styles.infoCell}>
-            <p className={styles.infoLabel}>Total (caixas)</p>
-            <p className={styles.infoValue}>{order.totalBoxes} {order.items?.some(i => i.container?.zone === 'OPEN_BOX') ? 'un' : 'cxs'}</p>
+          <div className="py-3.5 px-5 border-r border-border">
+            <p className="text-[0.625rem] font-bold uppercase tracking-wider text-muted mb-0.5 mt-0">Total (caixas)</p>
+            <p className="text-[0.8125rem] text-primary m-0">{order.totalBoxes} {order.items?.some(i => i.container?.zone === 'OPEN_BOX') ? 'un' : 'cxs'}</p>
           </div>
-          <div className={styles.infoCell}>
-            <p className={styles.infoLabel}>Data</p>
-            <p className={styles.infoValue}>
+          <div className="py-3.5 px-5">
+            <p className="text-[0.625rem] font-bold uppercase tracking-wider text-muted mb-0.5 mt-0">Data</p>
+            <p className="text-[0.8125rem] text-primary m-0">
               {new Date(order.createdAt).toLocaleDateString('pt-PT')}
             </p>
           </div>
@@ -148,43 +161,45 @@ const OrderMobileCard = ({ order, geo, onMap, onInvoice, onConfirm, onCancel, on
     ? `${Number(order.weightLb).toFixed(1)} lbs`
     : null
 
+  const routeBtnBase = 'inline-flex items-center gap-1.5 bg-transparent border border-border rounded px-3 py-1.5 text-xs font-semibold text-secondary cursor-pointer whitespace-nowrap transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5'
+
   return (
-    <div className={styles.mobileCard}>
-      <div className={styles.mobileCardTop}>
-        <span className={styles.mobileOrderId}>#{order.id}</span>
-        <span className={`${styles.badge} ${styles[status]}`}>
-          <span className={styles.badgeDot} />
+    <div className="bg-page border border-border rounded-md p-4 flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[0.8125rem] font-bold text-secondary">#{order.id}</span>
+        <span className={`inline-flex items-center gap-1 text-[0.6875rem] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full whitespace-nowrap ${BADGE_CLASSES[status] ?? ''}`}>
+          <span className="w-1.5 h-1.5 rounded-full bg-current" />
           {STATUS_LABEL[status] ?? status}
         </span>
       </div>
-      <p className={styles.mobileClient}>{email}</p>
-      <p className={styles.mobileAddress}>{geo.address}</p>
-      <div className={styles.mobileStats}>
+      <p className="text-[0.8125rem] font-semibold text-primary m-0">{email}</p>
+      <p className="text-[0.8rem] text-secondary m-0">{geo.address}</p>
+      <div className="flex gap-3 text-xs text-muted">
         <span>{order.totalBoxes} cxs</span>
         {weight && <span>{weight}</span>}
         <span>{new Date(order.createdAt).toLocaleDateString('pt-PT')}</span>
       </div>
-      <div className={styles.mobileActions}>
-        <button className={styles.routeBtn} onClick={onMap}>
+      <div className="flex gap-2 flex-wrap mt-1">
+        <button className={routeBtnBase} onClick={onMap}>
           <IconMap /> Rota
         </button>
         {order.status !== 'PENDING' && (
-          <button className={`${styles.routeBtn} ${styles.invoiceBtn}`} onClick={onInvoice}>
+          <button className={`${routeBtnBase} hover:border-error hover:text-error`} onClick={onInvoice}>
             <IconPdf /> Invoice
           </button>
         )}
         {order.status === 'PENDING' && (
-          <button className={`${styles.routeBtn} ${styles.confirmBtn}`} onClick={onConfirm}>
+          <button className={`${routeBtnBase} hover:border-ok hover:text-ok`} onClick={onConfirm}>
             Confirmar
           </button>
         )}
         {(order.status === 'PENDING' || order.status === 'CONFIRMED') && (
-          <button className={`${styles.routeBtn} ${styles.cancelBtn}`} onClick={onCancel}>
+          <button className={`${routeBtnBase} border-red-light text-red hover:bg-red-light hover:text-red`} onClick={onCancel}>
             Cancelar
           </button>
         )}
         {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
-          <button className={`${styles.routeBtn} ${styles.signBtn}`} onClick={onDeliver}>
+          <button className={`${routeBtnBase} hover:border-ok hover:text-ok`} onClick={onDeliver}>
             <IconSign /> Entregar
           </button>
         )}
@@ -239,82 +254,83 @@ const Logistics = () => {
     [orders, filter]
   )
 
-  return (
-    <div className={styles.page}>
+  const routeBtnBase = 'inline-flex items-center gap-1.5 bg-transparent border border-border rounded px-3 py-1.5 text-xs font-semibold text-secondary cursor-pointer whitespace-nowrap transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5'
 
-      <div className={styles.header}>
-        <h1 className={styles.title}>Logística</h1>
+  return (
+    <div className="p-6 flex flex-col gap-6">
+
+      <div className="flex flex-col gap-1">
+        <h1 className="text-xl font-bold text-primary m-0">Logística</h1>
       </div>
 
       {/* KPI Cards */}
-      <div className={styles.kpiGrid}>
-        <div className={`${styles.kpiCard} ${styles.kpiTotal}`}>
-          <p className={styles.kpiLabel}>Total de Pedidos</p>
-          <p className={styles.kpiValue}>{loading ? '—' : kpis.total}</p>
+      <div className="grid grid-cols-4 gap-4 max-[480px]:grid-cols-2">
+        <div className="bg-surface border border-border rounded-md px-5 py-4 border-t-[3px] border-t-border">
+          <p className="text-[0.625rem] font-bold uppercase tracking-wider text-muted mb-1.5 mt-0">Total de Pedidos</p>
+          <p className="text-[1.75rem] font-bold text-primary m-0 leading-none">{loading ? '—' : kpis.total}</p>
         </div>
-        <div className={`${styles.kpiCard} ${styles.kpiPending}`}>
-          <p className={styles.kpiLabel}>Pendentes</p>
-          <p className={styles.kpiValue}>{loading ? '—' : kpis.pending}</p>
+        <div className="bg-surface border border-border rounded-md px-5 py-4 border-t-[3px] border-t-warn">
+          <p className="text-[0.625rem] font-bold uppercase tracking-wider text-muted mb-1.5 mt-0">Pendentes</p>
+          <p className="text-[1.75rem] font-bold text-primary m-0 leading-none">{loading ? '—' : kpis.pending}</p>
         </div>
-        <div className={`${styles.kpiCard} ${styles.kpiTransit}`}>
-          <p className={styles.kpiLabel}>Em Trânsito</p>
-          <p className={styles.kpiValue}>{loading ? '—' : kpis.transit}</p>
+        <div className="bg-surface border border-border rounded-md px-5 py-4 border-t-[3px] border-t-info">
+          <p className="text-[0.625rem] font-bold uppercase tracking-wider text-muted mb-1.5 mt-0">Em Trânsito</p>
+          <p className="text-[1.75rem] font-bold text-primary m-0 leading-none">{loading ? '—' : kpis.transit}</p>
         </div>
-        <div className={`${styles.kpiCard} ${styles.kpiDelivered}`}>
-          <p className={styles.kpiLabel}>Entregues</p>
-          <p className={styles.kpiValue}>{loading ? '—' : kpis.delivered}</p>
+        <div className="bg-surface border border-border rounded-md px-5 py-4 border-t-[3px] border-t-ok">
+          <p className="text-[0.625rem] font-bold uppercase tracking-wider text-muted mb-1.5 mt-0">Entregues</p>
+          <p className="text-[1.75rem] font-bold text-primary m-0 leading-none">{loading ? '—' : kpis.delivered}</p>
         </div>
       </div>
 
-      <div className={styles.card}>
+      <div className="bg-surface border border-border rounded-md overflow-hidden">
 
         {/* Filter bar */}
-        <div className={styles.filterBar}>
+        <div className="flex items-center gap-2 px-4 py-3.5 border-b border-border flex-wrap">
           {FILTERS.map(f => (
             <button
               key={f.key}
-              className={`${styles.filterBtn} ${filter === f.key ? styles.active : ''}`}
+              className={`border rounded-full px-3.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wide cursor-pointer whitespace-nowrap transition-colors ${
+                filter === f.key
+                  ? 'bg-red border-red text-on-red'
+                  : 'bg-transparent border-border text-secondary hover:border-muted hover:text-primary'
+              }`}
               onClick={() => setFilter(f.key)}
             >
               {f.label}
             </button>
           ))}
-          <span className={styles.filterCount}>
+          <span className="ml-auto text-xs text-muted whitespace-nowrap">
             {loading ? '' : `${visible.length} ${visible.length === 1 ? 'pedido' : 'pedidos'}`}
           </span>
         </div>
 
         {/* Desktop table */}
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
+        <div className="overflow-x-auto [-webkit-overflow-scrolling:touch] max-md:hidden">
+          <table className="w-full border-collapse text-[0.8125rem]">
+            <thead className="bg-hover border-b border-border">
               <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Endereço</th>
-                <th>Total (cxs)</th>
-                <th>Peso (lbs)</th>
-                <th>Status</th>
-                <th>Data</th>
-                <th>Ações</th>
+                {['ID', 'Cliente', 'Endereço', 'Total (cxs)', 'Peso (lbs)', 'Status', 'Data', 'Ações'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-[0.6875rem] font-bold uppercase tracking-wider text-secondary whitespace-nowrap">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr className={styles.stateRow}>
-                  <td colSpan={8}>A carregar pedidos…</td>
+                <tr>
+                  <td colSpan={8} className="text-center py-12 px-4 text-muted">A carregar pedidos…</td>
                 </tr>
               )}
 
               {!loading && error && (
-                <tr className={`${styles.stateRow} ${styles.error}`}>
-                  <td colSpan={8}>{error}</td>
+                <tr>
+                  <td colSpan={8} className="text-center py-12 px-4 text-error">{error}</td>
                 </tr>
               )}
 
               {!loading && !error && visible.length === 0 && (
-                <tr className={styles.stateRow}>
-                  <td colSpan={8}>
+                <tr>
+                  <td colSpan={8} className="text-center py-12 px-4 text-muted">
                     {orders.length === 0 ? 'Nenhum pedido registado.' : 'Nenhum pedido com este filtro.'}
                   </td>
                 </tr>
@@ -334,23 +350,23 @@ const Logistics = () => {
                   : '—'
 
                 return (
-                  <tr key={order.id}>
-                    <td>#{order.id}</td>
-                    <td>{email}</td>
-                    <td>{geo.address}</td>
-                    <td>{order.totalBoxes}</td>
-                    <td>{weightDisplay}</td>
-                    <td>
-                      <span className={`${styles.badge} ${styles[status]}`}>
-                        <span className={styles.badgeDot} />
+                  <tr key={order.id} className="group">
+                    <td className="px-4 py-3.5 text-primary border-b border-border align-middle group-last:border-b-0 group-hover:bg-hover">#{order.id}</td>
+                    <td className="px-4 py-3.5 text-primary border-b border-border align-middle group-last:border-b-0 group-hover:bg-hover">{email}</td>
+                    <td className="px-4 py-3.5 text-primary border-b border-border align-middle group-last:border-b-0 group-hover:bg-hover">{geo.address}</td>
+                    <td className="px-4 py-3.5 text-primary border-b border-border align-middle group-last:border-b-0 group-hover:bg-hover">{order.totalBoxes}</td>
+                    <td className="px-4 py-3.5 text-primary border-b border-border align-middle group-last:border-b-0 group-hover:bg-hover">{weightDisplay}</td>
+                    <td className="px-4 py-3.5 text-primary border-b border-border align-middle group-last:border-b-0 group-hover:bg-hover">
+                      <span className={`inline-flex items-center gap-1 text-[0.6875rem] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full whitespace-nowrap ${BADGE_CLASSES[status] ?? ''}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
                         {STATUS_LABEL[status] ?? status}
                       </span>
                     </td>
-                    <td>{dateDisplay}</td>
-                    <td>
-                      <div className={styles.actions}>
+                    <td className="px-4 py-3.5 text-primary border-b border-border align-middle group-last:border-b-0 group-hover:bg-hover">{dateDisplay}</td>
+                    <td className="px-4 py-3.5 text-primary border-b border-border align-middle group-last:border-b-0 group-hover:bg-hover">
+                      <div className="flex gap-2 flex-wrap">
                         <button
-                          className={styles.routeBtn}
+                          className={`${routeBtnBase} hover:border-info hover:text-info`}
                           onClick={() => setActiveMap(order)}
                         >
                           <IconMap />
@@ -358,7 +374,7 @@ const Logistics = () => {
                         </button>
                         {order.status !== 'PENDING' && (
                           <button
-                            className={`${styles.routeBtn} ${styles.invoiceBtn}`}
+                            className={`${routeBtnBase} hover:border-error hover:text-error`}
                             onClick={() => openInvoice(order.id)}
                           >
                             <IconPdf />
@@ -367,7 +383,7 @@ const Logistics = () => {
                         )}
                         {order.status === 'PENDING' && (
                           <button
-                            className={`${styles.routeBtn} ${styles.confirmBtn}`}
+                            className={`${routeBtnBase} hover:border-ok hover:text-ok`}
                             onClick={() => handleStatusChange(order.id, 'CONFIRMED')}
                           >
                             Confirmar
@@ -375,7 +391,7 @@ const Logistics = () => {
                         )}
                         {(order.status === 'PENDING' || order.status === 'CONFIRMED') && (
                           <button
-                            className={`${styles.routeBtn} ${styles.cancelBtn}`}
+                            className={`${routeBtnBase} !border-red-light !text-red hover:!bg-red-light`}
                             onClick={() => handleStatusChange(order.id, 'CANCELLED')}
                           >
                             Cancelar
@@ -383,7 +399,7 @@ const Logistics = () => {
                         )}
                         {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
                           <button
-                            className={`${styles.routeBtn} ${styles.signBtn}`}
+                            className={`${routeBtnBase} hover:border-ok hover:text-ok`}
                             onClick={() => handleDeliver(order.id)}
                           >
                             <IconSign />
@@ -400,11 +416,11 @@ const Logistics = () => {
         </div>
 
         {/* Mobile cards */}
-        <div className={styles.mobileList}>
-          {loading && <p className={styles.stateMsg}>A carregar pedidos…</p>}
-          {!loading && error && <p className={`${styles.stateMsg} ${styles.error}`}>{error}</p>}
+        <div className="hidden max-md:flex flex-col gap-3 p-3">
+          {loading && <p className="text-center py-10 px-4 text-muted text-sm m-0">A carregar pedidos…</p>}
+          {!loading && error && <p className="text-center py-10 px-4 text-error text-sm m-0">{error}</p>}
           {!loading && !error && visible.length === 0 && (
-            <p className={styles.stateMsg}>
+            <p className="text-center py-10 px-4 text-muted text-sm m-0">
               {orders.length === 0 ? 'Nenhum pedido registado.' : 'Nenhum pedido com este filtro.'}
             </p>
           )}

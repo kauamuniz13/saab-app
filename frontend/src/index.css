@@ -1,6 +1,6 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ── Light theme (default) ── */
 :root,
@@ -30,15 +30,14 @@
   --shadow-card:    0 1px 3px rgba(0,0,0,0.08);
   --shadow-elevated: 0 8px 32px rgba(0,0,0,0.12);
 
-  /* Status backgrounds */
   --status-ok:      #15803d;
   --status-ok-bg:   #dcfce7;
-  --status-warn:     #b45309;
+  --status-warn:    #b45309;
   --status-warn-bg: #fef3c7;
   --status-error:   #dc2626;
   --status-error-bg: #fee2e2;
-  --status-info:     #1a6bb5;
-  --status-info-bg:  #dbeafe;
+  --status-info:    #1a6bb5;
+  --status-info-bg: #dbeafe;
 }
 
 /* ── Dark theme ── */
@@ -68,7 +67,6 @@
   --shadow-card:    0 1px 3px rgba(0,0,0,0.3);
   --shadow-elevated: 0 16px 48px rgba(0,0,0,0.55);
 
-  /* Status backgrounds */
   --status-ok:      #4ade80;
   --status-ok-bg:   #0d1a0f;
   --status-warn:    #fbbf24;
@@ -80,12 +78,8 @@
 }
 
 body {
-  margin: 0;
-  background-color: var(--bg-page);
-  color: var(--text-primary);
+  @apply m-0 bg-page text-primary antialiased;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s, color 0.2s;
 }
 

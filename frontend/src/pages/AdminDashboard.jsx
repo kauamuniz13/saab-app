@@ -3,12 +3,13 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import logoSaab from '../assets/Logo-saab-S.png'
 import ThemeToggle from '../components/ThemeToggle'
-import styles from './AdminDashboard.module.css'
 import { fetchOrders } from '../services/orderService'
 
 /* ── Icons ── */
+const navIconClass = 'w-[1.125rem] h-[1.125rem] shrink-0 opacity-80'
+
 const IconInventory = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5
          M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5
@@ -18,14 +19,14 @@ const IconInventory = () => (
 )
 
 const IconHome = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
   </svg>
 )
 
 const IconOrders = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2
          M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2
@@ -34,7 +35,7 @@ const IconOrders = () => (
 )
 
 const IconLogistics = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375
          a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0
@@ -47,7 +48,7 @@ const IconLogistics = () => (
 )
 
 const IconRoutes = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M9 6.75V15m6-6v8.25M5.25 3h13.5
          A2.25 2.25 0 0121 5.25v13.5A2.25 2.25 0 0118.75 21H5.25
@@ -56,7 +57,7 @@ const IconRoutes = () => (
 )
 
 const IconProducts = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591
          l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223
@@ -66,7 +67,7 @@ const IconProducts = () => (
 )
 
 const IconUsers = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952
          4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07
@@ -153,73 +154,73 @@ export const AdminHome = () => {
   const v = (val) => loading ? '—' : val
 
   return (
-    <div className={styles.homeContent}>
+    <div className="flex flex-col gap-6 p-6">
 
-      <div className={styles.welcomeCard}>
-        <p className={styles.welcomeEyebrow}>Painel de Controlo</p>
-        <h1 className={styles.welcomeTitle}>Bem-vindo ao Sistema de Gestão SAAB</h1>
-        <p className={styles.welcomeText}>
+      <div className="bg-surface border border-border border-l-4 border-l-red rounded-[6px] p-8 max-w-[640px] shadow-card">
+        <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-red mb-2.5">Painel de Controlo</p>
+        <h1 className="text-[1.375rem] font-bold text-primary mb-3 leading-tight">Bem-vindo ao Sistema de Gestão SAAB</h1>
+        <p className="text-sm text-secondary leading-relaxed m-0">
           Acesse o estoque de contêineres, gerencie pedidos de clientes
           e acompanhe as rotas de entrega em tempo real.
         </p>
       </div>
 
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Pedidos Hoje</p>
-          <p className={styles.statValue}>{v(kpis.pedidosHoje)}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-surface border border-border rounded-[6px] px-6 py-5 shadow-card">
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-secondary mb-1.5">Pedidos Hoje</p>
+          <p className="text-2xl font-bold text-primary m-0">{v(kpis.pedidosHoje)}</p>
         </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Lbs Entregues Hoje</p>
-          <p className={styles.statValue}>{v(kpis.lbsEntreguesHoje)}</p>
+        <div className="bg-surface border border-border rounded-[6px] px-6 py-5 shadow-card">
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-secondary mb-1.5">Lbs Entregues Hoje</p>
+          <p className="text-2xl font-bold text-primary m-0">{v(kpis.lbsEntreguesHoje)}</p>
         </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Prontos para Carga</p>
-          <p className={`${styles.statValue} ${styles.statGreen}`}>{v(kpis.prontos)}</p>
+        <div className="bg-surface border border-border rounded-[6px] px-6 py-5 shadow-card">
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-secondary mb-1.5">Prontos para Carga</p>
+          <p className="text-2xl font-bold text-ok m-0">{v(kpis.prontos)}</p>
         </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Em Separação</p>
-          <p className={`${styles.statValue} ${styles.statBlue}`}>{v(kpis.emSeparacao)}</p>
+        <div className="bg-surface border border-border rounded-[6px] px-6 py-5 shadow-card">
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-secondary mb-1.5">Em Separação</p>
+          <p className="text-2xl font-bold text-info m-0">{v(kpis.emSeparacao)}</p>
         </div>
-        <div className={styles.statCard}>
-          <p className={styles.statLabel}>Pendentes</p>
-          <p className={`${styles.statValue} ${styles.statWarn}`}>{v(kpis.pendentes)}</p>
+        <div className="bg-surface border border-border rounded-[6px] px-6 py-5 shadow-card">
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-secondary mb-1.5">Pendentes</p>
+          <p className="text-2xl font-bold text-warn m-0">{v(kpis.pendentes)}</p>
         </div>
       </div>
 
-      <div className={styles.recentSection}>
-        <h2 className={styles.recentTitle}>Últimos Pedidos</h2>
-        <div className={styles.recentTable}>
-          <div className={styles.recentHeader}>
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-muted m-0">Últimos Pedidos</h2>
+        <div className="bg-surface border border-border rounded-[6px] overflow-hidden shadow-card">
+          <div className="grid grid-cols-[80px_1fr_140px_130px] gap-2 px-5 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-muted border-b border-border">
             <span>Pedido</span>
             <span>Cliente</span>
             <span>Status</span>
             <span>Criado em</span>
           </div>
           {loading ? (
-            <p className={styles.recentEmpty}>A carregar...</p>
+            <p className="py-8 px-5 text-sm text-muted m-0">A carregar...</p>
           ) : recentOrders.length === 0 ? (
-            <p className={styles.recentEmpty}>Sem pedidos registados.</p>
+            <p className="py-8 px-5 text-sm text-muted m-0">Sem pedidos registados.</p>
           ) : (
             recentOrders.map(order => {
               const cfg = STATUS_CONFIG[order.status] ?? { label: order.status, color: '#888', bg: '#88888818' }
               return (
-                <div key={order.id} className={styles.recentRow}>
-                  <span className={styles.recentId}>
+                <div key={order.id} className="grid grid-cols-[80px_1fr_140px_130px] items-center gap-2 px-5 py-3 border-b border-border last:border-b-0 transition-colors duration-[120ms] hover:bg-hover">
+                  <span className="font-mono text-[0.8125rem] font-bold text-secondary">
                     #{String(order.id).padStart(4, '0')}
                   </span>
-                  <span className={styles.recentEmail}>
+                  <span className="text-[0.8125rem] text-primary overflow-hidden text-ellipsis whitespace-nowrap pr-2">
                     {order.client?.email ?? '—'}
                   </span>
                   <span>
                     <span
-                      className={styles.recentBadge}
+                      className="inline-block px-2.5 py-0.5 rounded-full border text-[0.6875rem] font-semibold uppercase tracking-[0.08em] whitespace-nowrap"
                       style={{ color: cfg.color, borderColor: cfg.color, backgroundColor: cfg.bg }}
                     >
                       {cfg.label}
                     </span>
                   </span>
-                  <span className={styles.recentMeta}>
+                  <span className="text-xs text-muted">
                     {new Date(order.createdAt).toLocaleString('pt-PT', {
                       day: '2-digit', month: '2-digit',
                       hour: '2-digit', minute: '2-digit',
@@ -263,20 +264,27 @@ const AdminDashboard = () => {
   })()
 
   return (
-    <div className={styles.shell}>
+    <div className="flex flex-col md:flex-row min-h-svh bg-page">
 
       {/* ── Sidebar ── */}
-      <aside className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>
-          <img src={logoSaab} alt="SAAB" className={styles.sidebarLogo} />
-          <p className={styles.sidebarSubtitle}>Gestão Logística</p>
+      <aside className="w-full md:w-60 md:min-w-[240px] bg-sidebar border-b md:border-b-0 md:border-r border-border-sidebar flex flex-col transition-[width] duration-200">
+        <div className="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-1 px-5 pt-6 pb-5 border-b border-border-sidebar">
+          <img src={logoSaab} alt="SAAB" className="h-10 w-auto max-w-[120px] object-contain object-left" />
+          <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-secondary m-0 md:mt-2">Gestão Logística</p>
         </div>
 
-        <nav className={styles.nav}>
+        <nav className="flex-1 flex flex-row md:flex-col gap-0.5 py-2 md:py-4 px-2 md:px-0 overflow-x-auto md:overflow-x-visible">
           {NAV_ITEMS.map(({ key, label, Icon, path }) => (
             <button
               key={key}
-              className={`${styles.navItem} ${activeKey === key ? styles.active : ''}`}
+              className={`flex items-center gap-3 px-5 py-3 text-sm font-medium text-nav cursor-pointer bg-transparent
+                border-0 md:border-l-[3px] border-b-[3px] md:border-b-0 border-transparent w-auto md:w-full text-left whitespace-nowrap md:whitespace-normal
+                transition-colors duration-150
+                hover:bg-sidebar-hover hover:text-nav-hover hover:border-b-border-input md:hover:border-b-transparent md:hover:border-l-border-input
+                ${activeKey === key
+                  ? 'bg-sidebar-active text-primary !border-b-red md:!border-b-transparent md:!border-l-red'
+                  : ''
+                }`}
               onClick={() => navigate(path)}
             >
               <Icon />
@@ -285,28 +293,32 @@ const AdminDashboard = () => {
           ))}
         </nav>
 
-        <div className={styles.sidebarFooter}>
-          <span className={styles.sidebarUser}>{user?.email}</span>
+        <div className="hidden md:block px-5 py-4 border-t border-border-sidebar mt-auto">
+          <span className="text-xs text-secondary block py-1">{user?.email}</span>
         </div>
       </aside>
 
       {/* ── Main ── */}
-      <div className={styles.main}>
+      <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Topbar */}
-        <header className={styles.topbar}>
-          <h2 className={styles.topbarTitle}>{PAGE_TITLES[activeKey]}</h2>
-          <div className={styles.topbarRight}>
+        <header className="h-14 bg-surface border-b border-border flex items-center justify-between px-6 shrink-0">
+          <h2 className="text-[0.9rem] font-semibold text-primary m-0">{PAGE_TITLES[activeKey]}</h2>
+          <div className="flex items-center gap-3">
             <ThemeToggle />
-            <span className={styles.userEmail}>{user?.email}</span>
-            <button className={styles.logoutBtn} onClick={handleLogout} title="Sair">
+            <span className="text-xs text-secondary max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{user?.email}</span>
+            <button
+              className="flex items-center gap-2 bg-transparent border border-border-input px-3 py-2 text-[0.8125rem] text-secondary cursor-pointer rounded transition-colors duration-150 hover:text-error hover:bg-error-bg hover:border-error"
+              onClick={handleLogout}
+              title="Sair"
+            >
               Sair
             </button>
           </div>
         </header>
 
         {/* Content — child routes render here via <Outlet /> */}
-        <main className={styles.content}>
+        <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
 

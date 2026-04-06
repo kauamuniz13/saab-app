@@ -2,11 +2,12 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import logoSaab from '../assets/Logo-saab-S.png'
 import ThemeToggle from '../components/ThemeToggle'
-import styles from './ExpedicaoLayout.module.css'
 
 /* ── Icons ── */
+const navIconCls = 'w-[1.125rem] h-[1.125rem] shrink-0 opacity-80'
+
 const IconDashboard = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconCls} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25
          a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6z
@@ -20,7 +21,7 @@ const IconDashboard = () => (
 )
 
 const IconOrders = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconCls} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2
          M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2
@@ -29,7 +30,7 @@ const IconOrders = () => (
 )
 
 const IconContainers = () => (
-  <svg className={styles.navIcon} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className={navIconCls} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622
          a2.25 2.25 0 01-2.247-2.118L3.75 7.5
@@ -42,7 +43,7 @@ const IconContainers = () => (
 )
 
 const IconLogout = () => (
-  <svg style={{ width: '1rem', height: '1rem' }} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5
          A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15
@@ -80,20 +81,28 @@ const ExpedicaoLayout = () => {
   })()
 
   return (
-    <div className={styles.shell}>
+    <div className="flex flex-col md:flex-row min-h-[100svh] bg-page">
 
       {/* ── Sidebar ── */}
-      <aside className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>
-          <img src={logoSaab} alt="SAAB" className={styles.sidebarLogo} />
-          <p className={styles.sidebarSubtitle}>Expedição</p>
+      <aside className="w-full md:w-[220px] md:min-w-[220px] bg-sidebar border-b md:border-b-0 md:border-r border-border-sidebar flex flex-col">
+        <div className="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-1 px-5 py-3.5 md:pt-6 md:pb-5 border-b border-border-sidebar">
+          <img src={logoSaab} alt="SAAB" className="h-10 w-auto max-w-[120px] object-contain object-left" />
+          <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-secondary md:mt-2">Expedição</p>
         </div>
 
-        <nav className={styles.nav}>
+        <nav className="flex-1 flex flex-row md:flex-col gap-0.5 p-2 md:py-4 md:px-0 overflow-x-auto md:overflow-x-visible">
           {NAV_ITEMS.map(({ key, label, Icon, path }) => (
             <button
               key={key}
-              className={`${styles.navItem} ${activeKey === key ? styles.active : ''}`}
+              className={`flex items-center gap-3 px-4 md:px-5 py-2 md:py-3 text-sm font-medium text-nav
+                border-b-[3px] md:border-b-0 md:border-l-[3px] border-transparent
+                whitespace-nowrap md:whitespace-normal w-full text-left cursor-pointer
+                bg-transparent transition-[background-color,color,border-color] duration-150
+                hover:bg-sidebar-hover hover:text-nav-hover hover:border-b-border-input md:hover:border-b-transparent md:hover:border-l-border-input
+                ${activeKey === key
+                  ? 'bg-sidebar-active !text-primary !border-b-red md:!border-b-transparent md:!border-l-red'
+                  : ''
+                }`}
               onClick={() => navigate(path)}
             >
               <Icon />
@@ -102,8 +111,11 @@ const ExpedicaoLayout = () => {
           ))}
         </nav>
 
-        <div className={styles.sidebarFooter}>
-          <button className={styles.logoutBtn} onClick={handleLogout}>
+        <div className="hidden md:block px-5 py-4 border-t border-border-sidebar mt-auto">
+          <button
+            className="flex items-center gap-3 w-full bg-transparent border-none px-3 py-2.5 text-[0.8125rem] text-secondary cursor-pointer transition-[color,background-color] duration-150 rounded hover:text-error hover:bg-error-bg"
+            onClick={handleLogout}
+          >
             <IconLogout />
             Sair
           </button>
@@ -111,18 +123,20 @@ const ExpedicaoLayout = () => {
       </aside>
 
       {/* ── Main ── */}
-      <div className={styles.main}>
+      <div className="flex-1 flex flex-col overflow-hidden">
 
-        <header className={styles.topbar}>
-          <h2 className={styles.topbarTitle}>{PAGE_TITLES[activeKey]}</h2>
-          <div className={styles.topbarUser}>
+        <header className="h-14 bg-surface border-b border-border flex items-center justify-between px-6 shrink-0">
+          <h2 className="text-[0.9rem] font-semibold text-primary m-0">{PAGE_TITLES[activeKey]}</h2>
+          <div className="flex items-center gap-2 text-[0.8rem] text-secondary">
             <ThemeToggle />
             <span>{user?.email}</span>
-            <div className={styles.topbarAvatar}>{initials}</div>
+            <div className="w-8 h-8 rounded-full bg-avatar-bg border border-red flex items-center justify-center text-xs font-bold text-avatar-tx shrink-0">
+              {initials}
+            </div>
           </div>
         </header>
 
-        <main className={styles.content}>
+        <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
 

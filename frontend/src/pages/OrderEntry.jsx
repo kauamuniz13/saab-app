@@ -3,7 +3,6 @@ import { fetchProducts, fetchProductStock } from '../services/inventoryService'
 import { fetchClients, createOrder } from '../services/orderService'
 import { useAuth } from '../context/AuthContext'
 import ClientPanel from '../components/Orders/ClientPanel'
-import styles from './OrderEntry.module.css'
 
 /* ── Helpers ── */
 const CATEGORIES = [
@@ -15,7 +14,7 @@ const fmt = (n) =>
   Number(n).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 
 const Spinner = () => (
-  <svg className={styles.spinner} fill="none" viewBox="0 0 24 24">
+  <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
     <path fill="currentColor" opacity="0.75" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
   </svg>
@@ -183,43 +182,43 @@ const OrderEntry = () => {
   }
 
   return (
-    <div className={styles.page}>
+    <div className="p-6 flex flex-col gap-6">
 
-      <div className={styles.header}>
-        <h1 className={styles.title}>Novo Pedido</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-xl font-bold text-primary m-0">Novo Pedido</h1>
       </div>
 
-      <div className={styles.body}>
+      <div className="flex flex-col gap-5 md:flex-row md:items-start">
 
         {/* ── Form card ── */}
-        <div className={`${styles.card} ${styles.form}`}>
-          <p className={styles.cardTitle}>Adicionar Produto</p>
+        <div className="bg-surface border border-border rounded-[6px] p-6 flex-1 flex flex-col gap-0">
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted m-0 mb-5">Adicionar Produto</p>
 
-          <div className={styles.formFields}>
+          <div className="flex flex-col gap-[1.125rem]">
 
             {/* Cliente (visível para ADMIN e VENDEDOR) */}
             {!isClient && (
-              <div className={styles.field}>
-                <label className={styles.label}>Restaurante</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-secondary">Restaurante</label>
                 <select
-                  className={styles.select}
+                  className="bg-input border border-border-input rounded text-sm text-primary outline-none w-full py-[0.7rem] px-[0.875rem] appearance-none transition-[border-color,box-shadow] duration-[180ms] focus:border-red focus:ring-2 focus:ring-red/20 disabled:opacity-40 disabled:cursor-not-allowed"
                   value={clientId}
                   onChange={e => setClientId(e.target.value)}
                   disabled={loading}
                 >
                   <option value="">Selecione um restaurante…</option>
                   {clients.map(c => (
-                    <option key={c.id} value={c.id}>{c.email}</option>
+                    <option key={c.id} value={c.id} className="bg-surface">{c.email}</option>
                   ))}
                 </select>
               </div>
             )}
 
             {/* Produto */}
-            <div className={styles.field}>
-              <label className={styles.label}>Produto</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-secondary">Produto</label>
               <select
-                className={styles.select}
+                className="bg-input border border-border-input rounded text-sm text-primary outline-none w-full py-[0.7rem] px-[0.875rem] appearance-none transition-[border-color,box-shadow] duration-[180ms] focus:border-red focus:ring-2 focus:ring-red/20 disabled:opacity-40 disabled:cursor-not-allowed"
                 value={productId}
                 onChange={e => { setProductId(e.target.value); setQuantity('') }}
                 disabled={loading}
@@ -237,21 +236,21 @@ const OrderEntry = () => {
               </select>
 
               {productId && !stockLoading && stock && (
-                <p className={`${styles.stockHint} ${effectiveStock === 0 ? styles.danger : effectiveStock <= 20 ? styles.warning : styles.ok}`}>
+                <p className={`text-xs m-0 py-1.5 px-2.5 rounded bg-hover border border-border ${effectiveStock === 0 ? 'text-error' : effectiveStock <= 20 ? 'text-warn' : 'text-ok'}`}>
                   Stock disponível: {effectiveStock} cxs
                   {effectiveStock <= 20 && effectiveStock > 0 ? ' — Stock baixo' : ''}
                 </p>
               )}
               {stockLoading && (
-                <p className={styles.stockHint}>A verificar stock...</p>
+                <p className="text-xs m-0 py-1.5 px-2.5 rounded bg-hover border border-border">A verificar stock...</p>
               )}
             </div>
 
             {/* Quantidade */}
-            <div className={styles.field}>
-              <label className={styles.label}>Quantidade (caixas)</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-secondary">Quantidade (caixas)</label>
               <input
-                className={styles.input}
+                className="bg-input border border-border-input rounded text-sm text-primary outline-none w-full py-[0.7rem] px-[0.875rem] appearance-none transition-[border-color,box-shadow] duration-[180ms] focus:border-red focus:ring-2 focus:ring-red/20 placeholder:text-muted disabled:opacity-40 disabled:cursor-not-allowed"
                 type="number"
                 min="1"
                 max={effectiveStock || undefined}
@@ -264,11 +263,11 @@ const OrderEntry = () => {
             </div>
 
             {/* Tipo de preço + Preço */}
-            <div className={styles.fieldRow}>
-              <div className={styles.field}>
-                <label className={styles.label}>Tipo de Preço</label>
+            <div className="flex gap-3 [&>*]:flex-1">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-secondary">Tipo de Preço</label>
                 <select
-                  className={styles.select}
+                  className="bg-input border border-border-input rounded text-sm text-primary outline-none w-full py-[0.7rem] px-[0.875rem] appearance-none transition-[border-color,box-shadow] duration-[180ms] focus:border-red focus:ring-2 focus:ring-red/20"
                   value={priceType}
                   onChange={e => setPriceType(e.target.value)}
                 >
@@ -276,12 +275,12 @@ const OrderEntry = () => {
                   <option value="PER_BOX">Por Caixa</option>
                 </select>
               </div>
-              <div className={styles.field}>
-                <label className={styles.label}>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-secondary">
                   {priceType === 'PER_LB' ? 'Preço/lb ($)' : 'Preço/cx ($)'}
                 </label>
                 <input
-                  className={styles.input}
+                  className="bg-input border border-border-input rounded text-sm text-primary outline-none w-full py-[0.7rem] px-[0.875rem] appearance-none transition-[border-color,box-shadow] duration-[180ms] focus:border-red focus:ring-2 focus:ring-red/20 placeholder:text-muted disabled:opacity-40 disabled:cursor-not-allowed"
                   type="number"
                   min="0.01"
                   step="0.01"
@@ -294,7 +293,7 @@ const OrderEntry = () => {
             </div>
 
             {quantity && !qtyValid && productId && (
-              <p className={`${styles.banner} ${styles.error}`}>
+              <p className="text-[0.8125rem] py-3 px-4 rounded m-0 leading-[1.45] bg-error-bg border border-red/45 text-error">
                 {qty <= 0
                   ? 'A quantidade deve ser maior que zero.'
                   : `Stock insuficiente. Máximo disponível: ${effectiveStock} cxs.`}
@@ -303,7 +302,7 @@ const OrderEntry = () => {
 
             <button
               type="button"
-              className={styles.addBtn}
+              className="w-full bg-transparent border-2 border-dashed border-border-input rounded py-3 px-4 text-[0.8125rem] font-bold uppercase tracking-[0.05em] text-secondary cursor-pointer transition-[border-color,color] duration-[180ms] hover:enabled:border-red hover:enabled:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
               onClick={handleAddItem}
               disabled={!canAdd}
             >
@@ -313,23 +312,23 @@ const OrderEntry = () => {
 
           {/* ── Cart ── */}
           {cart.length > 0 && (
-            <div className={styles.cartSection}>
-              <p className={styles.cardTitle}>
+            <div className="mt-5 pt-5 border-t border-border flex flex-col gap-3">
+              <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted m-0">
                 Itens no Pedido ({cart.length})
               </p>
-              <div className={styles.cartList}>
+              <div className="flex flex-col gap-2">
                 {cart.map((item, i) => (
-                  <div key={i} className={styles.cartItem}>
-                    <div className={styles.cartItemInfo}>
-                      <span className={styles.cartItemName}>{item.productName}</span>
-                      <span className={styles.cartItemMeta}>
+                  <div key={i} className="flex items-center justify-between gap-3 bg-hover border border-border rounded py-2.5 px-3.5">
+                    <div className="flex flex-col gap-[0.15rem] min-w-0">
+                      <span className="text-[0.8125rem] font-semibold text-primary whitespace-nowrap overflow-hidden text-ellipsis">{item.productName}</span>
+                      <span className="text-[0.6875rem] text-secondary">
                         {item.quantity} cxs · {item.priceType === 'PER_LB'
                           ? `${fmt(item.pricePerLb)}/lb`
                           : `${fmt(item.pricePerBox)}/cx`}
                       </span>
                     </div>
                     <button
-                      className={styles.cartRemoveBtn}
+                      className="bg-transparent border-none text-muted cursor-pointer p-1.5 rounded flex shrink-0 transition-[color,background-color] duration-150 hover:text-error hover:bg-error-bg"
                       onClick={() => handleRemoveItem(i)}
                       aria-label="Remover item"
                     >
@@ -339,11 +338,11 @@ const OrderEntry = () => {
                 ))}
               </div>
 
-              {error   && <p className={`${styles.banner} ${styles.error}`}>{error}</p>}
-              {success && <p className={`${styles.banner} ${styles.success}`}>{success}</p>}
+              {error   && <p className="text-[0.8125rem] py-3 px-4 rounded m-0 leading-[1.45] bg-error-bg border border-red/45 text-error">{error}</p>}
+              {success && <p className="text-[0.8125rem] py-3 px-4 rounded m-0 leading-[1.45] bg-ok-bg border border-ok/35 text-ok">{success}</p>}
 
               <button
-                className={styles.submitBtn}
+                className="mt-2 w-full bg-red hover:bg-red-h active:bg-red-a text-on-red font-bold uppercase border-none rounded py-[0.8125rem] px-4 text-sm tracking-[0.05em] cursor-pointer transition-colors duration-[180ms] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={handleSubmit}
                 disabled={!canSubmit}
               >
@@ -352,15 +351,15 @@ const OrderEntry = () => {
             </div>
           )}
 
-          {cart.length === 0 && error && <p className={`${styles.banner} ${styles.error}`}>{error}</p>}
-          {cart.length === 0 && success && <p className={`${styles.banner} ${styles.success}`}>{success}</p>}
+          {cart.length === 0 && error && <p className="text-[0.8125rem] py-3 px-4 rounded m-0 leading-[1.45] bg-error-bg border border-red/45 text-error">{error}</p>}
+          {cart.length === 0 && success && <p className="text-[0.8125rem] py-3 px-4 rounded m-0 leading-[1.45] bg-ok-bg border border-ok/35 text-ok">{success}</p>}
         </div>
 
         {/* ── Summary card ── */}
-        <div className={`${styles.card} ${styles.summary}`}>
-          <p className={styles.cardTitle}>Resumo</p>
+        <div className="bg-surface border border-border rounded-[6px] p-6 w-full md:w-[280px] md:shrink-0">
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted m-0 mb-5">Resumo</p>
 
-          <div className={styles.summaryRow}>
+          <div className="flex justify-between items-baseline py-2 border-b border-border text-[0.8125rem] text-secondary [&>span:last-child]:text-primary [&>span:last-child]:font-semibold">
             <span>Restaurante</span>
             <span>
               {isClient
@@ -371,19 +370,19 @@ const OrderEntry = () => {
             </span>
           </div>
 
-          <div className={styles.summaryRow}>
+          <div className="flex justify-between items-baseline py-2 border-b border-border text-[0.8125rem] text-secondary [&>span:last-child]:text-primary [&>span:last-child]:font-semibold">
             <span>Itens</span>
             <span>{cart.length > 0 ? cart.length : '—'}</span>
           </div>
 
           {cart.map((item, i) => (
-            <div key={i} className={styles.summaryRow}>
-              <span className={styles.summaryItemLabel}>{item.productName}</span>
+            <div key={i} className="flex justify-between items-baseline py-2 border-b border-border text-[0.8125rem] text-secondary last:border-b-0 [&>span:last-child]:text-primary [&>span:last-child]:font-semibold">
+              <span className="text-xs max-w-[120px] whitespace-nowrap overflow-hidden text-ellipsis">{item.productName}</span>
               <span>{item.quantity} cxs</span>
             </div>
           ))}
 
-          <div className={styles.summaryTotal}>
+          <div className="mt-4 pt-4 border-t border-border flex justify-between items-baseline text-sm font-bold text-primary [&>span:last-child]:text-lg [&>span:last-child]:text-primary">
             <span>Total caixas</span>
             <span>{cartTotals.boxes > 0 ? `${cartTotals.boxes} cxs` : '—'}</span>
           </div>

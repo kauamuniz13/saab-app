@@ -1,11 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { registerUser, fetchUsers } from '../../services/authService'
-import styles from './ClientPanel.module.css'
 
 const ROLES  = ['CLIENTE', 'MOTORISTA']
 const EMPTY  = { email: '', password: '', role: 'CLIENTE' }
 
 const ROLE_LABEL = { CLIENTE: 'Cliente', MOTORISTA: 'Motorista', ADMIN: 'Admin' }
+
+const ROLE_BADGE_CLASSES = {
+  CLIENTE:   'bg-info-bg text-info',
+  MOTORISTA: 'bg-warn-bg text-warn',
+  ADMIN:     'bg-error-bg text-error',
+}
 
 const ClientPanel = () => {
   const [users,      setUsers]      = useState([])
@@ -34,7 +39,7 @@ const ClientPanel = () => {
     setAddError('')
     setAddSuccess('')
 
-    if (!form.email.trim()) { setAddError('Email é obrigatório.'); return }
+    if (!form.email.trim()) { setAddError('Email e obrigatorio.'); return }
     if (form.password.length < 6) { setAddError('A password deve ter pelo menos 6 caracteres.'); return }
 
     setAdding(true)
@@ -56,78 +61,78 @@ const ClientPanel = () => {
   }
 
   return (
-    <div className={styles.panel}>
+    <div className="bg-surface border border-border rounded-md overflow-hidden">
 
-      <button className={styles.toggle} onClick={() => setOpen(o => !o)}>
-        <span className={styles.toggleLeft}>
-          <span className={styles.toggleTitle}>Gestão de Utilizadores</span>
+      <button className="w-full flex items-center justify-between px-5 py-4 bg-transparent border-none border-b border-border cursor-pointer text-left gap-4 hover:bg-hover transition-colors duration-150" onClick={() => setOpen(o => !o)}>
+        <span className="flex flex-col gap-0.5">
+          <span className="text-[0.9375rem] font-bold text-primary">Gestao de Utilizadores</span>
         </span>
-        <span className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`}>▾</span>
+        <span className={`text-base text-muted shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>&#x25BE;</span>
       </button>
 
       {open && (
-        <div className={styles.body}>
+        <div className="p-5 flex flex-col gap-5">
 
-          {/* ── Add form ── */}
-          <form className={styles.addForm} onSubmit={handleAdd}>
-            <p className={styles.sectionLabel}>Novo Utilizador</p>
-            <div className={styles.addRow}>
+          {/* -- Add form -- */}
+          <form className="flex flex-col" onSubmit={handleAdd}>
+            <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-muted mb-2 mt-0">Novo Utilizador</p>
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_120px_auto] gap-2.5 items-center">
               <input
-                className={styles.input}
+                className="bg-input border border-border-input rounded py-2 px-3 text-[0.8125rem] text-primary w-full outline-none transition-all duration-150 placeholder:text-muted focus:border-red focus:ring-[3px] focus:ring-red/20"
                 type="email"
                 placeholder="email@exemplo.com"
                 value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
               />
               <input
-                className={styles.input}
+                className="bg-input border border-border-input rounded py-2 px-3 text-[0.8125rem] text-primary w-full outline-none transition-all duration-150 placeholder:text-muted focus:border-red focus:ring-[3px] focus:ring-red/20"
                 type="password"
-                placeholder="Password (mín. 6 chars)"
+                placeholder="Password (min. 6 chars)"
                 value={form.password}
                 onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
               />
               <select
-                className={styles.select}
+                className="bg-input border border-border-input rounded py-2 px-3 text-[0.8125rem] text-primary w-full outline-none transition-all duration-150 focus:border-red focus:ring-[3px] focus:ring-red/20"
                 value={form.role}
                 onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
               >
                 {ROLES.map(r => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
               </select>
-              <button className={styles.addBtn} type="submit" disabled={adding}>
-                {adding ? 'A criar…' : '+ Criar'}
+              <button className="bg-red hover:bg-red-h active:bg-red-a border-none rounded py-2 px-4 text-[0.8125rem] font-bold text-on-red cursor-pointer whitespace-nowrap uppercase tracking-[0.05em] transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed" type="submit" disabled={adding}>
+                {adding ? 'A criar...' : '+ Criar'}
               </button>
             </div>
-            {addError   && <p className={styles.errMsg}>{addError}</p>}
-            {addSuccess && <p className={styles.successMsg}>{addSuccess}</p>}
+            {addError   && <p className="text-[0.8125rem] text-error mt-1.5 mb-0">{addError}</p>}
+            {addSuccess && <p className="text-[0.8125rem] text-ok mt-1.5 mb-0">{addSuccess}</p>}
           </form>
 
-          {/* ── Table ── */}
+          {/* -- Table -- */}
           {loading ? (
-            <p className={styles.stateMsg}>A carregar utilizadores…</p>
+            <p className="text-center py-8 text-sm text-muted m-0">A carregar utilizadores...</p>
           ) : fetchError ? (
-            <p className={`${styles.stateMsg} ${styles.errMsg}`}>{fetchError}</p>
+            <p className="text-center py-8 text-sm text-error m-0">{fetchError}</p>
           ) : users.length === 0 ? (
-            <p className={styles.stateMsg}>Sem utilizadores registados.</p>
+            <p className="text-center py-8 text-sm text-muted m-0">Sem utilizadores registados.</p>
           ) : (
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
+            <div className="border border-border rounded-md overflow-hidden overflow-x-auto">
+              <table className="w-full border-collapse text-[0.8125rem]">
+                <thead className="bg-hover">
                   <tr>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Data de Registo</th>
+                    <th className="px-4 py-2.5 text-left text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-muted border-b border-border whitespace-nowrap">Email</th>
+                    <th className="px-4 py-2.5 text-left text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-muted border-b border-border whitespace-nowrap">Role</th>
+                    <th className="px-4 py-2.5 text-left text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-muted border-b border-border whitespace-nowrap">Data de Registo</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map(u => (
-                    <tr key={u.id}>
-                      <td className={styles.cellEmail}>{u.email}</td>
-                      <td>
-                        <span className={`${styles.roleBadge} ${styles[u.role]}`}>
+                    <tr key={u.id} className="hover:bg-hover [&:last-child_td]:border-b-0">
+                      <td className="px-4 py-3 text-primary border-b border-border align-middle font-medium">{u.email}</td>
+                      <td className="px-4 py-3 text-primary border-b border-border align-middle">
+                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[0.6875rem] font-bold uppercase tracking-[0.05em] ${ROLE_BADGE_CLASSES[u.role] ?? ''}`}>
                           {ROLE_LABEL[u.role] ?? u.role}
                         </span>
                       </td>
-                      <td className={styles.cellDate}>
+                      <td className="px-4 py-3 text-secondary text-xs border-b border-border align-middle">
                         {new Date(u.createdAt).toLocaleDateString('pt-PT')}
                       </td>
                     </tr>

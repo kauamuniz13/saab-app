@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { fetchOrderById, loadOrder, deliverOrder } from '../services/orderService'
-import styles from './DriverDelivery.module.css'
 
 const STATUS_CONFIG = {
   PENDING:    { label: 'Pendente',     color: '#b45309', bg: '#b4530918' },
@@ -80,8 +79,8 @@ const DriverDelivery = () => {
     }
   }
 
-  if (loading) return <div className={styles.state}>A carregar...</div>
-  if (error && !order) return <div className={styles.state}>{error}</div>
+  if (loading) return <div className="py-12 px-6 text-sm text-muted text-center">A carregar...</div>
+  if (error && !order) return <div className="py-12 px-6 text-sm text-muted text-center">{error}</div>
 
   const cfg      = STATUS_CONFIG[order.status] ?? { label: order.status, color: '#888', bg: '#88888818' }
   const mapsUrl  = order.lat && order.lon
@@ -91,21 +90,24 @@ const DriverDelivery = () => {
   const totalWeight = order.items?.reduce((s, i) => s + (i.weightLb ?? 0), 0) ?? order.weightLb ?? 0
 
   return (
-    <div className={styles.page}>
+    <div className="p-6 flex flex-col gap-6 max-w-[720px]">
 
       {/* ── Back ── */}
-      <button className={styles.backBtn} onClick={() => navigate('/motorista/routes')}>
+      <button
+        className="inline-flex items-center gap-2 bg-transparent border-none p-0 text-[0.8125rem] text-secondary cursor-pointer transition-colors duration-150 w-fit hover:text-primary"
+        onClick={() => navigate('/motorista/routes')}
+      >
         <IconBack /> Rota do Dia
       </button>
 
       {/* ── Header ── */}
-      <div className={styles.header}>
-        <div className={styles.headerTop}>
-          <div className={styles.headerLeft}>
-            <p className={styles.eyebrow}>Entrega</p>
-            <h1 className={styles.orderNum}>#{String(order.id).padStart(4, '0')}</h1>
+      <div className="bg-surface border border-border border-l-4 border-l-red rounded-[6px] px-6 py-5 flex flex-col gap-4 shadow-card">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-2">
+            <p className="text-[0.5625rem] font-bold uppercase tracking-[0.25em] text-red m-0">Entrega</p>
+            <h1 className="text-[1.75rem] font-bold text-primary m-0 leading-none font-mono">#{String(order.id).padStart(4, '0')}</h1>
             <span
-              className={styles.badge}
+              className="inline-block px-2.5 py-[0.2rem] rounded-full border text-[0.6875rem] font-semibold uppercase tracking-[0.08em] w-fit"
               style={{ color: cfg.color, borderColor: cfg.color, backgroundColor: cfg.bg }}
             >
               {cfg.label}
@@ -116,7 +118,7 @@ const DriverDelivery = () => {
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.mapsLink}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-transparent border border-border-input rounded text-[0.8125rem] font-semibold text-secondary no-underline transition-colors duration-150 whitespace-nowrap hover:border-info hover:text-info"
             >
               <IconMap />
               Abrir no Google Maps
@@ -124,18 +126,18 @@ const DriverDelivery = () => {
           )}
         </div>
 
-        <div className={styles.metaGrid}>
-          <div className={styles.metaRow}>
-            <span className={styles.metaLabel}>Cliente</span>
-            <span className={styles.metaValue}>{order.client?.email ?? '—'}</span>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-3 text-[0.8125rem] items-baseline">
+            <span className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-muted min-w-[64px] shrink-0">Cliente</span>
+            <span className="text-primary">{order.client?.email ?? '—'}</span>
           </div>
-          <div className={styles.metaRow}>
-            <span className={styles.metaLabel}>Endereço</span>
-            <span className={styles.metaValue}>{order.address || '—'}</span>
+          <div className="flex gap-3 text-[0.8125rem] items-baseline">
+            <span className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-muted min-w-[64px] shrink-0">Endereço</span>
+            <span className="text-primary">{order.address || '—'}</span>
           </div>
-          <div className={styles.metaRow}>
-            <span className={styles.metaLabel}>Janela</span>
-            <span className={styles.metaValue}>
+          <div className="flex gap-3 text-[0.8125rem] items-baseline">
+            <span className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-muted min-w-[64px] shrink-0">Janela</span>
+            <span className="text-primary">
               {order.deliveryWindowStart} – {order.deliveryWindowEnd}
             </span>
           </div>
@@ -143,30 +145,30 @@ const DriverDelivery = () => {
       </div>
 
       {/* ── Items ── */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Itens a Entregar</h2>
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-muted m-0">Itens a Entregar</h2>
 
-        <div className={styles.itemsCard}>
+        <div className="bg-surface border border-border rounded-[6px] overflow-hidden shadow-card">
           {order.items?.map(item => (
-            <div key={item.id} className={styles.itemRow}>
-              <div className={styles.itemInfo}>
-                <span className={styles.itemName}>{item.product?.name ?? '—'}</span>
-                <span className={styles.itemType}>{item.product?.type ?? ''}</span>
+            <div key={item.id} className="flex items-center justify-between px-5 py-3.5 border-b border-border last:border-b-0 gap-4">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm text-primary font-medium">{item.product?.name ?? '—'}</span>
+                <span className="text-xs text-secondary">{item.product?.type ?? ''}</span>
               </div>
-              <div className={styles.itemNums}>
-                <span className={styles.itemQty}>{item.quantity} cx</span>
-                <span className={styles.itemWeight}>
+              <div className="flex gap-5 items-center shrink-0 max-sm:gap-3">
+                <span className="text-sm font-bold text-primary min-w-[48px] text-right">{item.quantity} cx</span>
+                <span className="text-sm text-secondary min-w-[56px] text-right">
                   {item.weightLb > 0 ? `${item.weightLb} lbs` : '—'}
                 </span>
               </div>
             </div>
           ))}
 
-          <div className={styles.totalsRow}>
-            <span className={styles.totalsLabel}>Total</span>
-            <div className={styles.totalsNums}>
-              <span className={styles.totalsValue}>{order.totalBoxes} cx</span>
-              <span className={styles.totalsValue}>
+          <div className="flex items-center justify-between px-5 py-3.5 bg-hover border-t border-border">
+            <span className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-muted">Total</span>
+            <div className="flex gap-5 max-sm:gap-3">
+              <span className="text-[0.9375rem] font-bold text-primary min-w-[48px] text-right">{order.totalBoxes} cx</span>
+              <span className="text-[0.9375rem] font-bold text-primary min-w-[48px] text-right">
                 {totalWeight > 0 ? `${totalWeight} lbs` : '—'}
               </span>
             </div>
@@ -175,17 +177,21 @@ const DriverDelivery = () => {
       </div>
 
       {/* ── Painel de Acções ── */}
-      <div className={styles.actions}>
+      <div className="flex flex-col gap-3">
 
-        {error && <p className={styles.errorMsg}>{error}</p>}
+        {error && (
+          <p className="text-[0.8125rem] text-error bg-error-bg border border-red/25 rounded px-3.5 py-2.5 m-0">
+            {error}
+          </p>
+        )}
 
         {order.status === 'READY' && (
-          <div className={styles.actionPanel}>
-            <p className={styles.actionHint}>
+          <div className="bg-surface border border-border rounded-[6px] px-6 py-5 flex flex-col gap-4">
+            <p className="text-[0.8125rem] text-secondary m-0 leading-relaxed">
               Confirma que carregaste todos os itens na viatura antes de sair.
             </p>
             <button
-              className={styles.btnPrimary}
+              className="bg-red hover:bg-red-h active:bg-red-a text-on-red font-bold uppercase border-none rounded px-7 py-3 text-[0.9375rem] tracking-[0.06em] cursor-pointer w-fit transition-colors duration-[180ms] disabled:opacity-40 disabled:cursor-not-allowed max-sm:w-full max-sm:text-center"
               disabled={acting}
               onClick={handleLoad}
             >
@@ -195,12 +201,12 @@ const DriverDelivery = () => {
         )}
 
         {order.status === 'IN_TRANSIT' && (
-          <div className={styles.actionPanel}>
-            <p className={styles.actionHint}>
+          <div className="bg-surface border border-border rounded-[6px] px-6 py-5 flex flex-col gap-4">
+            <p className="text-[0.8125rem] text-secondary m-0 leading-relaxed">
               Confirma a entrega ao cliente.
             </p>
             <button
-              className={styles.btnPrimary}
+              className="bg-red hover:bg-red-h active:bg-red-a text-on-red font-bold uppercase border-none rounded px-7 py-3 text-[0.9375rem] tracking-[0.06em] cursor-pointer w-fit transition-colors duration-[180ms] disabled:opacity-40 disabled:cursor-not-allowed max-sm:w-full max-sm:text-center"
               disabled={acting}
               onClick={handleDeliver}
             >
@@ -210,13 +216,15 @@ const DriverDelivery = () => {
         )}
 
         {order.status === 'DELIVERED' && (
-          <div className={`${styles.actionPanel} ${styles.actionPanelGreen}`}>
-            <div className={styles.deliveredConfirm}>
-              <span className={styles.deliveredIcon}><IconCheck /></span>
+          <div className="bg-ok-bg border border-ok rounded-[6px] px-6 py-5 flex flex-col gap-4">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-ok text-on-red shrink-0">
+                <IconCheck />
+              </span>
               <div>
-                <p className={styles.deliveredTitle}>Entrega Confirmada</p>
+                <p className="text-base font-bold text-ok m-0 mb-1">Entrega Confirmada</p>
                 {order.deliveredAt && (
-                  <p className={styles.deliveredTime}>
+                  <p className="text-[0.8125rem] text-secondary m-0">
                     {new Date(order.deliveredAt).toLocaleString('pt-PT', {
                       day: '2-digit', month: '2-digit', year: 'numeric',
                       hour: '2-digit', minute: '2-digit',
@@ -229,8 +237,8 @@ const DriverDelivery = () => {
         )}
 
         {!['READY', 'IN_TRANSIT', 'DELIVERED'].includes(order.status) && (
-          <div className={styles.actionPanel}>
-            <p className={styles.actionHint}>
+          <div className="bg-surface border border-border rounded-[6px] px-6 py-5 flex flex-col gap-4">
+            <p className="text-[0.8125rem] text-secondary m-0 leading-relaxed">
               Este pedido está em estado <strong>{cfg.label}</strong> — sem acções disponíveis para o motorista.
             </p>
           </div>

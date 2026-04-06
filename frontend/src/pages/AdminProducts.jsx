@@ -4,17 +4,16 @@ import {
   createProduct,
   updateProduct,
 } from '../services/inventoryService'
-import styles from './AdminProducts.module.css'
 
 /* ── Icons ── */
 const IconPlus = () => (
-  <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ width: '1rem', height: '1rem' }}>
+  <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="w-4 h-4">
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
   </svg>
 )
 
 const IconClose = () => (
-  <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ width: '1.125rem', height: '1.125rem' }}>
+  <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-[1.125rem] h-[1.125rem]">
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 )
@@ -59,40 +58,48 @@ const ProductModal = ({ initial, onClose, onSaved }) => {
   }
 
   return (
-    <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={styles.modal}>
-        <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>{isEdit ? 'Editar Produto' : 'Novo Produto'}</h2>
-          <button className={styles.closeBtn} onClick={onClose}><IconClose /></button>
+    <div
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-surface border border-border rounded-md shadow-elevated w-full max-w-[460px] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+          <h2 className="text-[0.9375rem] font-bold text-primary m-0">{isEdit ? 'Editar Produto' : 'Novo Produto'}</h2>
+          <button
+            className="bg-transparent border-none text-muted cursor-pointer p-1 flex items-center transition-colors duration-150 hover:text-primary"
+            onClick={onClose}
+          >
+            <IconClose />
+          </button>
         </div>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="name">Nome do Produto</label>
+        <form className="p-6 flex flex-col gap-[1.125rem]" onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-secondary" htmlFor="name">Nome do Produto</label>
             <input
               id="name"
               type="text"
               required
-              className={styles.input}
+              className="bg-input border border-border-input rounded px-3 py-[0.5625rem] text-sm text-primary w-full transition-[border-color,box-shadow] duration-150 placeholder:text-muted focus:outline-none focus:border-red focus:shadow-[0_0_0_3px_rgba(139,0,0,0.22)]"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="ex: Picanha, Cerveja Heineken 600ml, Carvão 5kg"
+              placeholder="ex: Picanha, Cerveja Heineken 600ml, Carvao 5kg"
             />
           </div>
 
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="type">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-secondary" htmlFor="type">
               Categoria
-              <span className={styles.hint}> — texto livre</span>
+              <span className="font-normal normal-case tracking-normal text-muted"> — texto livre</span>
             </label>
             <input
               id="type"
               type="text"
               required
-              className={styles.input}
+              className="bg-input border border-border-input rounded px-3 py-[0.5625rem] text-sm text-primary w-full transition-[border-color,box-shadow] duration-150 placeholder:text-muted focus:outline-none focus:border-red focus:shadow-[0_0_0_3px_rgba(139,0,0,0.22)]"
               value={type}
               onChange={e => setType(e.target.value)}
-              placeholder="ex: Bovino, Bebidas, Acessórios, Suíno"
+              placeholder="ex: Bovino, Bebidas, Acessorios, Suino"
               list="type-suggestions"
             />
             <datalist id="type-suggestions">
@@ -109,19 +116,19 @@ const ProductModal = ({ initial, onClose, onSaved }) => {
           </div>
 
           {isEdit && (
-            <div className={styles.fieldRow}>
-              <label className={styles.label}>Estado</label>
-              <div className={styles.toggleRow}>
+            <div className="flex items-center justify-between gap-4">
+              <label className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-secondary">Estado</label>
+              <div className="flex border border-border-input rounded overflow-hidden">
                 <button
                   type="button"
-                  className={`${styles.toggleBtn} ${active ? styles.toggleActive : ''}`}
+                  className={`px-3.5 py-1.5 bg-transparent border-none text-xs font-semibold cursor-pointer transition-[background-color,color] duration-150 ${active ? 'bg-ok text-on-red' : 'text-muted'}`}
                   onClick={() => setActive(true)}
                 >
                   Activo
                 </button>
                 <button
                   type="button"
-                  className={`${styles.toggleBtn} ${!active ? styles.toggleInactive : ''}`}
+                  className={`px-3.5 py-1.5 bg-transparent border-l border-border-input text-xs font-semibold cursor-pointer transition-[background-color,color] duration-150 ${!active ? 'bg-red-light text-error' : 'text-muted border-none'}`}
                   onClick={() => setActive(false)}
                 >
                   Inactivo
@@ -130,14 +137,27 @@ const ProductModal = ({ initial, onClose, onSaved }) => {
             </div>
           )}
 
-          {error && <p className={styles.errorMsg}>{error}</p>}
+          {error && (
+            <p className="text-[0.8125rem] text-error bg-error-bg border border-red/25 rounded px-3.5 py-2.5 m-0">
+              {error}
+            </p>
+          )}
 
-          <div className={styles.formActions}>
-            <button type="button" className={styles.btnSecondary} onClick={onClose} disabled={saving}>
+          <div className="flex justify-end gap-3 pt-1.5">
+            <button
+              type="button"
+              className="bg-transparent border border-border-input rounded px-[1.125rem] py-2 text-[0.8125rem] font-semibold text-secondary cursor-pointer transition-[border-color,color] duration-150 hover:border-muted hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={onClose}
+              disabled={saving}
+            >
               Cancelar
             </button>
-            <button type="submit" className={styles.btnPrimary} disabled={saving}>
-              {saving ? 'A guardar...' : isEdit ? 'Guardar Alterações' : 'Criar Produto'}
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 bg-red border-none rounded px-[1.125rem] py-2 text-[0.8125rem] font-bold uppercase tracking-[0.05em] text-on-red cursor-pointer transition-colors duration-150 hover:bg-red-h active:bg-red-a disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={saving}
+            >
+              {saving ? 'A guardar...' : isEdit ? 'Guardar Alteracoes' : 'Criar Produto'}
             </button>
           </div>
         </form>
@@ -185,70 +205,83 @@ const AdminProducts = () => {
   }
 
   return (
-    <div className={styles.page}>
+    <div className="p-6 flex flex-col gap-5">
 
-      <div className={styles.toolbar}>
-        <div className={styles.toolbarLeft}>
-          <h1 className={styles.pageTitle}>Produtos</h1>
-          <div className={styles.filters}>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
+          <h1 className="text-base font-bold text-primary m-0">Produtos</h1>
+          <div className="flex gap-1.5">
             <button
-              className={`${styles.filterBtn} ${filter === 'active' ? styles.filterActive : ''}`}
+              className={`flex items-center gap-[0.4rem] px-3 py-[0.35rem] bg-transparent border border-border-input rounded text-xs font-medium text-secondary cursor-pointer transition-[border-color,color,background-color] duration-150 hover:border-muted hover:text-primary ${filter === 'active' ? '!bg-red !border-red !text-on-red' : ''}`}
               onClick={() => setFilter('active')}
             >
               Activos
-              <span className={styles.filterCount}>{products.filter(p => p.active !== false).length}</span>
+              <span className={`inline-flex items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full text-[0.625rem] font-bold ${filter === 'active' ? 'bg-white/20 text-on-red' : 'bg-input text-secondary'}`}>
+                {products.filter(p => p.active !== false).length}
+              </span>
             </button>
             <button
-              className={`${styles.filterBtn} ${filter === 'all' ? styles.filterActive : ''}`}
+              className={`flex items-center gap-[0.4rem] px-3 py-[0.35rem] bg-transparent border border-border-input rounded text-xs font-medium text-secondary cursor-pointer transition-[border-color,color,background-color] duration-150 hover:border-muted hover:text-primary ${filter === 'all' ? '!bg-red !border-red !text-on-red' : ''}`}
               onClick={() => setFilter('all')}
             >
               Todos
-              <span className={styles.filterCount}>{products.length}</span>
+              <span className={`inline-flex items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full text-[0.625rem] font-bold ${filter === 'all' ? 'bg-white/20 text-on-red' : 'bg-input text-secondary'}`}>
+                {products.length}
+              </span>
             </button>
           </div>
         </div>
-        <button className={styles.btnPrimary} onClick={() => setModal('new')}>
+        <button
+          className="inline-flex items-center gap-2 bg-red border-none rounded px-[1.125rem] py-2 text-[0.8125rem] font-bold uppercase tracking-[0.05em] text-on-red cursor-pointer transition-colors duration-150 hover:bg-red-h active:bg-red-a disabled:opacity-40 disabled:cursor-not-allowed"
+          onClick={() => setModal('new')}
+        >
           <IconPlus /> Novo Produto
         </button>
       </div>
 
       {!loading && visible.length > 0 && (
-        <div className={styles.categories}>
+        <div className="flex flex-wrap gap-2">
           {Object.entries(categories).map(([cat, count]) => (
-            <span key={cat} className={styles.catChip}>
-              {cat} <span className={styles.catCount}>{count}</span>
+            <span key={cat} className="inline-flex items-center gap-1.5 px-3 py-1 bg-input border border-border-input rounded-full text-[0.6875rem] text-secondary">
+              {cat} <span className="font-bold text-primary">{count}</span>
             </span>
           ))}
         </div>
       )}
 
-      <div className={styles.tableWrap}>
-        <div className={styles.tableHeader}>
-          <span>ID</span>
+      <div className="bg-surface border border-border rounded-md overflow-hidden shadow-card">
+        <div className="grid grid-cols-[52px_1fr_130px_110px_90px_80px] md:grid-cols-[52px_1fr_130px_110px_90px_80px] max-md:grid-cols-[1fr_100px_90px_80px] items-center px-5 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-muted border-b border-border gap-3">
+          <span className="max-md:hidden">ID</span>
           <span>Nome</span>
-          <span>Categoria</span>
+          <span className="max-md:hidden">Categoria</span>
           <span>Estado</span>
           <span />
         </div>
 
         {loading ? (
-          <p className={styles.empty}>A carregar...</p>
+          <p className="py-10 px-5 text-sm text-muted m-0 text-center">A carregar...</p>
         ) : visible.length === 0 ? (
-          <p className={styles.empty}>Nenhum produto encontrado.</p>
+          <p className="py-10 px-5 text-sm text-muted m-0 text-center">Nenhum produto encontrado.</p>
         ) : (
           visible.map(product => (
-            <div key={product.id} className={`${styles.tableRow} ${product.active === false ? styles.rowInactive : ''}`}>
-              <span className={styles.productId}>#{product.id}</span>
-              <span className={styles.productName}>{product.name}</span>
-              <span className={styles.productType}>{product.type}</span>
+            <div
+              key={product.id}
+              className={`grid grid-cols-[52px_1fr_130px_110px_90px_80px] max-md:grid-cols-[1fr_100px_90px_80px] items-center px-5 py-3.5 gap-3 border-b border-border last:border-b-0 transition-colors duration-100 hover:bg-hover ${product.active === false ? 'opacity-50' : ''}`}
+            >
+              <span className="font-mono text-[0.8125rem] text-muted max-md:hidden">#{product.id}</span>
+              <span className="text-sm font-medium text-primary overflow-hidden text-ellipsis whitespace-nowrap">{product.name}</span>
+              <span className="text-[0.8125rem] text-secondary max-md:hidden">{product.type}</span>
               <span>
                 {product.active !== false
-                  ? <span className={`${styles.badge} ${styles.badgeActive}`}>Activo</span>
-                  : <span className={`${styles.badge} ${styles.badgeInactive}`}>Inactivo</span>
+                  ? <span className="inline-block px-2.5 py-[0.2rem] rounded-full border border-ok text-[0.6875rem] font-semibold uppercase tracking-[0.08em] whitespace-nowrap text-ok bg-ok-bg">Activo</span>
+                  : <span className="inline-block px-2.5 py-[0.2rem] rounded-full border border-border-input text-[0.6875rem] font-semibold uppercase tracking-[0.08em] whitespace-nowrap text-muted bg-transparent">Inactivo</span>
                 }
               </span>
-              <span className={styles.actionCell}>
-                <button className={styles.btnEdit} onClick={() => setModal(product)}>
+              <span className="flex justify-end">
+                <button
+                  className="bg-transparent border border-border-input rounded px-3 py-[0.35rem] text-xs font-semibold text-secondary cursor-pointer transition-[border-color,color] duration-150 hover:border-muted hover:text-primary"
+                  onClick={() => setModal(product)}
+                >
                   Editar
                 </button>
               </span>
