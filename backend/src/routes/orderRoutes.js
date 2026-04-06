@@ -19,15 +19,15 @@ router.use(authMiddleware)
 
 /* Rotas específicas ANTES de /:id para evitar colisões */
 router.get('/clients',        authorizeRoles('ADMIN', 'VENDEDOR'),                     listClients)
-router.get('/:id/invoice',    authorizeRoles('ADMIN', 'CLIENTE', 'VENDEDOR'),           getInvoice)
+router.get('/:id/invoice',    authorizeRoles('ADMIN', 'VENDEDOR'),                     getInvoice)
 router.patch('/:id/deliver',  authorizeRoles('ADMIN', 'MOTORISTA'),                     deliverOrder)
 router.patch('/:id/status',   authorizeRoles('ADMIN', 'EXPEDICAO'),                     updateStatus)
 router.patch('/:id/separate', authorizeRoles('ADMIN', 'EXPEDICAO'),                     separateOrder)
 router.patch('/:id/pack',     authorizeRoles('ADMIN', 'EXPEDICAO'),                     packOrder)
 router.patch('/:id/load',     authorizeRoles('MOTORISTA'),                              loadOrder)
 
-router.get('/',    authorizeRoles('ADMIN', 'EXPEDICAO', 'MOTORISTA', 'CLIENTE', 'VENDEDOR'), listOrders)
+router.get('/',    authorizeRoles('ADMIN', 'EXPEDICAO', 'MOTORISTA', 'VENDEDOR'), listOrders)
 router.post('/',   authorizeRoles('ADMIN', 'VENDEDOR'),                                      createOrder)
-router.get('/:id', authorizeRoles('ADMIN', 'EXPEDICAO', 'MOTORISTA', 'CLIENTE', 'VENDEDOR'), getOrder)
+router.get('/:id', authorizeRoles('ADMIN', 'EXPEDICAO', 'MOTORISTA', 'VENDEDOR'), getOrder)
 
 module.exports = router

@@ -4,10 +4,10 @@ const InvoiceService = require('../services/InvoiceService')
 
 /* ── Create ── */
 const createOrder = async (req, res) => {
-  const { clientId, items } = req.body
+  const { clientId, clientName, items } = req.body
 
-  if (!clientId) {
-    return res.status(400).json({ message: 'clientId é obrigatório.' })
+  if (!clientId && !clientName) {
+    return res.status(400).json({ message: 'clientId ou clientName é obrigatório.' })
   }
 
   if (!Array.isArray(items) || items.length === 0) {
@@ -34,8 +34,9 @@ const createOrder = async (req, res) => {
 
   try {
     const order = await OrderService.createOrder({
-      clientId: Number(clientId),
-      items:    parsedItems,
+      clientId:    clientId ? Number(clientId) : null,
+      clientName:  clientName?.trim() || '',
+      items:       parsedItems,
     })
     return res.status(201).json(order)
   } catch (err) {
@@ -45,8 +46,7 @@ const createOrder = async (req, res) => {
 
 /* ── List ── */
 const listOrders = async (req, res) => {
-  const filters = req.user.role === 'CLIENTE' ? { clientId: req.user.sub } : {}
-  const orders  = await OrderService.listOrders(filters)
+  const orders = await OrderService.listOrders({})
   return res.json(orders)
 }
 
@@ -54,10 +54,6 @@ const listOrders = async (req, res) => {
 const getOrder = async (req, res) => {
   const order = await OrderService.getOrderById(req.params.id)
   if (!order) return res.status(404).json({ message: 'Pedido não encontrado.' })
-
-  if (req.user.role === 'CLIENTE' && order.clientId !== req.user.sub) {
-    return res.status(403).json({ message: 'Acesso negado.' })
-  }
   return res.json(order)
 }
 
@@ -136,10 +132,6 @@ const getInvoice = async (req, res) => {
 
   if (order.status === 'PENDING') {
     return res.status(400).json({ message: 'Fatura só pode ser gerada após confirmação do pedido.' })
-  }
-
-  if (req.user.role === 'CLIENTE' && order.clientId !== req.user.sub) {
-    return res.status(403).json({ message: 'Acesso negado.' })
   }
 
   const filename = `fatura-saab-${String(order.id).padStart(6, '0')}.pdf`

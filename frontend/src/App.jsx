@@ -12,8 +12,6 @@ import AdminUsers     from './pages/AdminUsers'
 import DriverRoutes    from './pages/DriverRoutes'
 import DriverDelivery  from './pages/DriverDelivery'
 import MotoristaLayout from './pages/MotoristaLayout'
-import ClientOrders   from './pages/ClientOrders'
-import ClienteLayout  from './pages/ClienteLayout'
 import ExpedicaoLayout      from './pages/ExpedicaoLayout'
 import ExpedicaoDashboard   from './pages/ExpedicaoDashboard'
 import ExpedicaoOrders      from './pages/ExpedicaoOrders'
@@ -50,21 +48,6 @@ const App = () => {
             <Route path="routes"        element={<DriverRoutes />} />
             <Route path="users"         element={<AdminUsers />} />
             <Route path="*"             element={<Navigate to="inventory" replace />} />
-          </Route>
-
-          {/* CLIENTE */}
-          <Route
-            path="/cliente"
-            element={
-              <ProtectedRoute allowedRoles={['CLIENTE']}>
-                <ClienteLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index             element={<Navigate to="orders" replace />} />
-            <Route path="orders"     element={<ClientOrders />} />
-            <Route path="orders/new" element={<OrderEntry />} />
-            <Route path="*"          element={<Navigate to="orders" replace />} />
           </Route>
 
           {/* EXPEDIÇÃO */}

@@ -15,7 +15,7 @@ const STATUS_LABEL = {
 const STATUS_COLOR = {
   PENDING:    '#b45309',
   CONFIRMED:  '#888888',
-  SEPARATING: '#1a6bb5',
+  SEPARATING: '#4a4a4a',
   READY:      '#15803d',
   IN_TRANSIT: '#505050',
   DELIVERED:  '#15803d',
@@ -25,7 +25,7 @@ const STATUS_COLOR = {
 const CARDS = [
   { key: 'PENDING',    label: 'Pendentes',         color: '#b45309' },
   { key: 'CONFIRMED',  label: 'A Confirmar',        color: '#888888' },
-  { key: 'SEPARATING', label: 'Em Separação',       color: '#1a6bb5' },
+  { key: 'SEPARATING', label: 'Em Separação',       color: '#4a4a4a' },
   { key: 'READY',      label: 'Prontos para Carga', color: '#15803d' },
 ]
 

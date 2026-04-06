@@ -12,10 +12,10 @@ const listUsers = async (_req, res) => {
 
 /* ── Create ── */
 const createUser = async (req, res) => {
-  const { email, password, role, address, lat, lon } = req.body
+  const { name, email, password, role, address, lat, lon } = req.body
 
   try {
-    const user = await UserService.createUser({ email, password, role, address, lat, lon })
+    const user = await UserService.createUser({ name, email, password, role, address, lat, lon })
     return res.status(201).json(user)
   } catch (err) {
     return res.status(err.status || 500).json({ message: err.message })
@@ -24,14 +24,26 @@ const createUser = async (req, res) => {
 
 /* ── Update ── */
 const updateUser = async (req, res) => {
-  const { email, password, role, address, lat, lon } = req.body
+  const { name, email, password, role, address, lat, lon } = req.body
 
   try {
-    const user = await UserService.updateUser(req.params.id, { email, password, role, address, lat, lon })
+    const user = await UserService.updateUser(req.params.id, { name, email, password, role, address, lat, lon })
     return res.json(user)
   } catch (err) {
     return res.status(err.status || 500).json({ message: err.message })
   }
 }
 
-module.exports = { listUsers, createUser, updateUser }
+/* ── Create Client (vendedor cria cliente com apenas nome) ── */
+const createClient = async (req, res) => {
+  const { name } = req.body
+
+  try {
+    const client = await UserService.createClient({ name })
+    return res.status(201).json(client)
+  } catch (err) {
+    return res.status(err.status || 500).json({ message: err.message })
+  }
+}
+
+module.exports = { listUsers, createUser, updateUser, createClient }

@@ -7,7 +7,6 @@ import logoSaab from '../assets/Logo-saab-S.png'
 const ROLE_REDIRECT = {
   ADMIN:     '/admin/dashboard',
   EXPEDICAO: '/expedicao/dashboard',
-  CLIENTE:   '/cliente/orders',
   MOTORISTA: '/motorista/routes',
   VENDEDOR:  '/vendedor/orders',
 }

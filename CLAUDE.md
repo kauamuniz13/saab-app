@@ -4,7 +4,9 @@
 
 Sistema de gestão para distribuidora de carnes, bebidas e acessórios para churrasco, baseada em Orlando, FL (EUA).
 Moeda: **USD ($)**. Localização: **Orlando, Florida**.
-Fluxo operacional: **Cliente faz pedido → Expedição confirma e separa → Motorista carrega e entrega → Admin monitoriza tudo.**
+Fluxo operacional: **Vendedor faz pedido (digita nome da loja) → Expedição confirma, separa e insere pesos → Motorista carrega e entrega → Admin monitoriza tudo.**
+
+> **Nota**: O CLIENTE não faz mais parte do fluxo. O vendedor digita o nome da loja diretamente no pedido. O campo `clientName` substitui o `clientId` do User.
 
 ## Tech Stack
 
@@ -97,9 +99,9 @@ project/
         ├── ExpedicaoDashboard.jsx     # Contadores por status
         ├── ExpedicaoOrders.jsx        # Fila de trabalho com filtros
         ├── ExpedicaoPickingList.jsx   # Picking list + transições de status
-        ├── MotoristaLayout.jsx        # Layout shell motorista (topbar + Outlet)
-        ├── ClienteLayout.jsx          # Layout shell cliente (topbar + Outlet)
-        └── ClientOrders.jsx           # Pedidos do cliente
+        ├── VendedorLayout.jsx          # Layout shell vendedor (topbar + Outlet)
+        ├── VendedorOrders.jsx          # Lista de pedidos criados
+        └── MotoristaLayout.jsx        # Layout shell motorista (topbar + Outlet)
 ```
 
 ## Roles & Permissions
@@ -107,15 +109,15 @@ project/
 | Role       | Redirect        | Access |
 |------------|-----------------|--------|
 | `ADMIN`    | `/admin`        | Dashboard KPIs, inventário, produtos, pedidos, logística, rotas, utilizadores |
-| `EXPEDICAO`| `/expedicao`    | Dashboard contadores, fila de pedidos, picking list, contêineres |
+| `VENDEDOR` | `/vendedor`    | Criar pedidos para clientes, visualizar pedidos |
+| `EXPEDICAO`| `/expedicao`    | Dashboard contadores, fila de pedidos, picking list, contêineres, entrada de pesos |
 | `MOTORISTA`| `/motorista`    | Rota do dia, detalhe de entrega, assinatura digital |
-| `CLIENTE`  | `/cliente`      | Pedidos próprios, novo pedido, fatura PDF |
 
 ## Order Status Pipeline
 
 ```
 PENDING → CONFIRMED → SEPARATING → READY → IN_TRANSIT → DELIVERED
-                   ↘ CANCELLED (antes de IN_TRANSIT)
+                 ↘ CANCELLED (antes de IN_TRANSIT)
 ```
 
 | Transition              | Who              | Endpoint                  |
@@ -143,6 +145,10 @@ PENDING → CONFIRMED → SEPARATING → READY → IN_TRANSIT → DELIVERED
   /admin/routes            → DriverRoutes
   /admin/users             → AdminUsers (CRUD)
 
+/vendedor                  → VendedorLayout
+  /vendedor/orders         → VendedorOrders (criar pedidos)
+  /vendedor/orders/new     → OrderEntry
+
 /expedicao                 → ExpedicaoLayout
   /expedicao/dashboard     → ExpedicaoDashboard
   /expedicao/orders        → ExpedicaoOrders
@@ -152,22 +158,18 @@ PENDING → CONFIRMED → SEPARATING → READY → IN_TRANSIT → DELIVERED
 /motorista                 → MotoristaLayout
   /motorista/routes        → DriverRoutes
   /motorista/delivery/:id  → DriverDelivery
-
-/cliente                   → ClienteLayout
-  /cliente/orders          → ClientOrders
-  /cliente/orders/new      → OrderEntry
 ```
 
 ## Database Models (Prisma)
 
 ```
-User         → id, email, password, role (ADMIN|EXPEDICAO|MOTORISTA|CLIENTE)
+User         → id, name, email, password, role (ADMIN|VENDEDOR|EXPEDICAO|MOTORISTA)
 Product      → id, name, type (Bovino|Suíno|Aves|Miúdos|Laticínios|Congelados|Secos|Bebidas|Outros), pricePerBox (USD), active
-Container    → id, label, zone (CAMARA_FRIA|CAMARA_FRIA_FORA|CONTAINERS|SECOS|OPEN_BOX),
-               subZone? (NASSIF|SAAB|BEBIDAS), capacity, quantity, productId?
-Order        → id, clientId, status, totalBoxes, weightKg, address, lat/lon,
+Container    → id, label, zone (CAMARA_FRIA|CONTAINER_31|CONTAINER_32|CONTAINER_33|CONTAINER_36|BEBIDAS|SECOS),
+               capacity, quantity, productId?
+Order        → id, clientName (string), clientId? (legacy), status, totalBoxes, weightLb, address, lat/lon,
                deliveryWindow, signature, deliveredAt/By, separatedAt/By, packedAt/By, loadedAt
-OrderItem    → id, orderId, containerId, productId, quantity, weightKg
+OrderItem    → id, orderId, containerId, productId, quantity, weightLb, priceType (PER_LB|PER_BOX), pricePerLb?, pricePerBox?
 ```
 
 ## Seed Data
@@ -177,26 +179,20 @@ OrderItem    → id, orderId, containerId, productId, quantity, weightKg
 | Email               | Password       | Role      |
 |---------------------|----------------|-----------|
 | admin@saab.com      | 123456         | ADMIN     |
+| vendedor@saab.com   | vendedor123    | VENDEDOR  |
 | expedicao@saab.com  | expedicao123   | EXPEDICAO |
-| motorista@saab.com  | motorista123   | MOTORISTA |
-| frigorifico.norte@saab.com | 123456  | CLIENTE   |
-| distribuidora.sul@saab.com | 123456  | CLIENTE   |
-| supermercado.abc@saab.com  | 123456  | CLIENTE   |
+| motorista@saab.com   | motorist123    | MOTORISTA |
 
 ### Inventory (~191 produtos, ~240 contêineres)
 
-| Zona | Prefixo | Conteúdo |
-|------|---------|----------|
-| Câmara Fria | CF-xx | Carnes bovinas, suínas, laticínios |
-| Câmara Fria / Fora | CFF-xx | Carnes, aves, miúdos |
-| Container 36 | CT36-xx | Carnes, congelados (tostones, yuca, batata) |
-| Container 33 | CT33-xx | Miúdos, aves, suínos, congelados |
-| Container 32 | CT32-xx | Carnes bovinas, aves |
-| Container 31 | CT31-xx | Aves, carnes, congelados |
-| Secos / Nassif | SN-xx | Polvilho, palmito |
-| Secos / Saab | SS-xx | Polvilho, palmito |
-| Bebidas | SB-xx | Cerveja (Império), cachaça (51), vinhos, energéticos (Baly) |
-| Open Box | OB-xx | Bebidas avulsas |
+| Container 36 | Carnes, congelados (tostones, yuca, batata) |
+| Container 33 | Miúdos, aves, suínos, congelados |
+| Container 32 | Carnes bovinas, aves |
+| Container 31 | Aves, carnes, congelados |
+| Secos / Nassif | Polvilho, palmito |
+| Secos / Saab | Polvilho, palmito |
+| Bebidas | Cerveja (Império), cachaça (51), vinhos, energéticos (Baly) |
+| Open Box | Bebidas avulsas |
 
 ### Product Categories
 
@@ -242,7 +238,7 @@ Tema industrial escuro, sóbrio e funcional. Alto contraste, vermelho como cor d
 | status-ok     | `#15803d` | Success, ready, delivered                |
 | status-warn   | `#b45309` | Warning, pending                         |
 | status-error  | `#f87171` | Error, cancelled                         |
-| blue-accent   | `#1a6bb5` | Separating status, info highlights       |
+| accent        | `#4a4a4a` | Secondary highlights (dark gray)         |
 
 ### Components
 - Cards: `border-radius: 6px`, `border: 1px solid #333`

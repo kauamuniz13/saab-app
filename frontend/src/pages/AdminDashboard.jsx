@@ -109,9 +109,9 @@ const PAGE_TITLES = {
 const STATUS_CONFIG = {
   PENDING:    { label: 'Pendente',      color: '#b45309', bg: '#b4530918' },
   CONFIRMED:  { label: 'Confirmado',    color: '#888888', bg: '#88888818' },
-  SEPARATING: { label: 'Em Separação',  color: '#1a6bb5', bg: '#1a6bb518' },
+  SEPARATING: { label: 'Em Separação',  color: '#4a4a4a', bg: '#4a4a4a18' },
   READY:      { label: 'Pronto',        color: '#15803d', bg: '#15803d18' },
-  IN_TRANSIT: { label: 'Em Trânsito',   color: '#1a6bb5', bg: '#1a6bb518' },
+  IN_TRANSIT: { label: 'Em Trânsito',   color: '#4a4a4a', bg: '#4a4a4a18' },
   DELIVERED:  { label: 'Entregue',      color: '#15803d', bg: '#15803d18' },
   CANCELLED:  { label: 'Cancelado',     color: '#f87171', bg: '#f8717118' },
 }

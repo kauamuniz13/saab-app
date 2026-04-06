@@ -259,10 +259,6 @@ const Logistics = () => {
   return (
     <div className="p-6 flex flex-col gap-6">
 
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold text-primary m-0">Logística</h1>
-      </div>
-
       {/* KPI Cards */}
       <div className="grid grid-cols-4 gap-4 max-[480px]:grid-cols-2">
         <div className="bg-surface border border-border rounded-md px-5 py-4 border-t-[3px] border-t-border">

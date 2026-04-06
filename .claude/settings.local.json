@@ -18,7 +18,9 @@
       "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(''''/dev/stdin'''',''''utf8''''\\);const o=JSON.parse\\(d\\);console.log\\(o.length+'''' pedidos''''\\);o.slice\\(0,3\\).forEach\\(x=>console.log\\(''''#''''+x.id+'''' status=''''+x.status+'''' sig=''''+\\(x.signature?''''SIM'''':''''NAO''''\\)\\)\\)\")",
       "Bash(DATABASE_URL=\"postgresql://saab:saab_secret@localhost:5432/saab\" npx prisma migrate dev --name add_address_to_user --create-only)",
       "Bash(grep \"\\\\.jsx$\")",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(grep -rL \"module\\\\.css\" pages/*.jsx components/*.jsx components/**/*.jsx)",
+      "Bash(find . -name \"*.module.css\" -type f -delete)"
     ]
   }
 }

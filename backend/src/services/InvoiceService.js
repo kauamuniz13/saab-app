@@ -70,8 +70,8 @@ const generateInvoice = (order, stream) => {
   doc.font('Helvetica-Bold').fontSize(7).fillColor(COLOR.midGray)
      .text('CLIENTE', PL + 12, infoY + 12)
 
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(COLOR.dark)
-     .text(order.client?.email ?? '—', PL + 12, infoY + 26, { width: W / 2 - PL - 30 })
+   doc.font('Helvetica-Bold').fontSize(11).fillColor(COLOR.dark)
+      .text(order.clientName || order.client?.email || '—', PL + 12, infoY + 26, { width: W / 2 - PL - 30 })
 
   // Box direito — Info pedido
   doc.rect(col2, infoY, W - col2 - PL, 90)

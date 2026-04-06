@@ -9,30 +9,6 @@ const prisma = new PrismaClient()
 const ZONES = []
 
 /* ───────────────────────────────────────────────────────────────
- * CLIENTES — endereços e janelas de entrega
- * ─────────────────────────────────────────────────────────────── */
-const CLIENTS = [
-  {
-    email: 'frigorifico.norte@saab.com',
-    address: '7600 Dr Phillips Blvd, Orlando, FL',
-    lat: 28.4488, lon: -81.4940,
-    deliveryWindowStart: '07:00', deliveryWindowEnd: '10:00',
-  },
-  {
-    email: 'distribuidora.sul@saab.com',
-    address: '5770 W Irlo Bronson Memorial Hwy, Kissimmee, FL',
-    lat: 28.3387, lon: -81.4584,
-    deliveryWindowStart: '09:00', deliveryWindowEnd: '12:00',
-  },
-  {
-    email: 'supermercado.abc@saab.com',
-    address: '4200 Conroy Rd, Orlando, FL',
-    lat: 28.4835, lon: -81.4310,
-    deliveryWindowStart: '08:00', deliveryWindowEnd: '11:00',
-  },
-]
-
-/* ───────────────────────────────────────────────────────────────
  * SEED
  * ─────────────────────────────────────────────────────────────── */
 async function main() {
@@ -49,14 +25,6 @@ async function main() {
     { email: 'expedicao@saab.com', password: 'expedicao123', role: 'EXPEDICAO' },
     { email: 'motorista@saab.com', password: 'motorista123', role: 'MOTORISTA' },
     { email: 'vendedor@saab.com', password: 'vendedor123', role: 'VENDEDOR' },
-    ...CLIENTS.map(c => ({
-      email: c.email,
-      password: '123456',
-      role: 'CLIENTE',
-      address: c.address,
-      lat: c.lat,
-      lon: c.lon,
-    })),
   ]
 
   for (const u of users) {

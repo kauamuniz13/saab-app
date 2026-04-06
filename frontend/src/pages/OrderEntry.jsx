@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { fetchProducts, fetchProductStock } from '../services/inventoryService'
-import { fetchClients, createOrder } from '../services/orderService'
+import { createOrder } from '../services/orderService'
+import { fetchClients, createClient } from '../services/userService'
 import { useAuth } from '../context/AuthContext'
-import ClientPanel from '../components/Orders/ClientPanel'
 
 /* ── Helpers ── */
 const CATEGORIES = [
@@ -36,13 +36,13 @@ const IconTrash = () => (
 /* ── OrderEntry ── */
 const OrderEntry = () => {
   const { user }     = useAuth()
-  const isClient     = user?.role === 'CLIENTE'
 
-  const [clients,    setClients]    = useState([])
   const [products,   setProducts]   = useState([])
+  const [clients,    setClients]   = useState([])
   const [loading,    setLoading]    = useState(true)
 
   const [clientId,   setClientId]   = useState('')
+  const [clientName, setClientName] = useState('')
   const [productId,  setProductId]  = useState('')
   const [quantity,   setQuantity]   = useState('')
   const [priceType,  setPriceType]  = useState('PER_LB')
@@ -60,19 +60,11 @@ const OrderEntry = () => {
   const [success,    setSuccess]    = useState('')
 
   useEffect(() => {
-    if (isClient) {
-      setClientId(String(user.id))
-      fetchProducts()
-        .then(setProducts)
-        .catch(() => setError('Erro ao carregar dados.'))
-        .finally(() => setLoading(false))
-    } else {
-      Promise.all([fetchClients(), fetchProducts()])
-        .then(([cls, prods]) => { setClients(cls); setProducts(prods) })
-        .catch(() => setError('Erro ao carregar dados.'))
-        .finally(() => setLoading(false))
-    }
-  }, [isClient, user?.id])
+    Promise.all([fetchProducts(), fetchClients()])
+      .then(([prods, cls]) => { setProducts(prods); setClients(cls) })
+      .catch(() => setError('Erro ao carregar dados.'))
+      .finally(() => setLoading(false))
+  }, [])
 
   // Fetch stock when product changes
   useEffect(() => {
@@ -150,6 +142,19 @@ const OrderEntry = () => {
     setPrice('')
   }
 
+  const handleCreateClient = async () => {
+    const name = prompt('Nome do novo cliente:')
+    if (!name?.trim()) return
+    
+    try {
+      const newClient = await createClient({ name: name.trim() })
+      setClients(prev => [...prev, newClient].sort((a, b) => a.name.localeCompare(b.name)))
+      setClientId(String(newClient.id))
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao criar cliente.')
+    }
+  }
+
   const handleRemoveItem = (index) => {
     setCart(prev => prev.filter((_, i) => i !== index))
   }
@@ -184,10 +189,6 @@ const OrderEntry = () => {
   return (
     <div className="p-6 flex flex-col gap-6">
 
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold text-primary m-0">Novo Pedido</h1>
-      </div>
-
       <div className="flex flex-col gap-5 md:flex-row md:items-start">
 
         {/* ── Form card ── */}
@@ -196,23 +197,30 @@ const OrderEntry = () => {
 
           <div className="flex flex-col gap-[1.125rem]">
 
-            {/* Cliente (visível para ADMIN e VENDEDOR) */}
-            {!isClient && (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-secondary">Restaurante</label>
-                <select
-                  className="bg-input border border-border-input rounded text-sm text-primary outline-none w-full py-[0.7rem] px-[0.875rem] appearance-none transition-[border-color,box-shadow] duration-[180ms] focus:border-red focus:ring-2 focus:ring-red/20 disabled:opacity-40 disabled:cursor-not-allowed"
-                  value={clientId}
-                  onChange={e => setClientId(e.target.value)}
-                  disabled={loading}
+            {/* Cliente */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-secondary">Loja / Cliente</label>
+                <button
+                  type="button"
+                  className="text-xs text-red hover:underline cursor-pointer bg-transparent border-none p-0"
+                  onClick={handleCreateClient}
                 >
-                  <option value="">Selecione um restaurante…</option>
-                  {clients.map(c => (
-                    <option key={c.id} value={c.id} className="bg-surface">{c.email}</option>
-                  ))}
-                </select>
+                  + Novo Cliente
+                </button>
               </div>
-            )}
+              <select
+                className="bg-input border border-border-input rounded text-sm text-primary outline-none w-full py-[0.7rem] px-[0.875rem] appearance-none transition-[border-color,box-shadow] duration-[180ms] focus:border-red focus:ring-2 focus:ring-red/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                value={clientId}
+                onChange={e => setClientId(e.target.value)}
+                disabled={loading}
+              >
+                <option value="">Selecione um cliente…</option>
+                {clients.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
 
             {/* Produto */}
             <div className="flex flex-col gap-1.5">
@@ -360,14 +368,8 @@ const OrderEntry = () => {
           <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted m-0 mb-5">Resumo</p>
 
           <div className="flex justify-between items-baseline py-2 border-b border-border text-[0.8125rem] text-secondary [&>span:last-child]:text-primary [&>span:last-child]:font-semibold">
-            <span>Restaurante</span>
-            <span>
-              {isClient
-                ? user.email
-                : clientId
-                  ? clients.find(c => c.id === Number(clientId))?.email ?? '—'
-                  : '—'}
-            </span>
+            <span>Loja / Cliente</span>
+            <span>{clientId ? clients.find(c => c.id === Number(clientId))?.name || '—' : '—'}</span>
           </div>
 
           <div className="flex justify-between items-baseline py-2 border-b border-border text-[0.8125rem] text-secondary [&>span:last-child]:text-primary [&>span:last-child]:font-semibold">
@@ -389,8 +391,6 @@ const OrderEntry = () => {
         </div>
 
       </div>
-
-      {!isClient && <ClientPanel />}
 
     </div>
   )

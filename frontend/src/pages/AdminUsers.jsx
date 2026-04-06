@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { fetchUsers, createUser, updateUser } from '../services/userService'
 
-const ROLES = ['ADMIN', 'EXPEDICAO', 'MOTORISTA', 'CLIENTE']
+const ROLES = ['ADMIN', 'VENDEDOR', 'EXPEDICAO', 'MOTORISTA']
 
 const ROLE_CONFIG = {
   ADMIN:     { label: 'Admin',     color: '#8b0000', bg: '#8b000018' },
-  EXPEDICAO: { label: 'Expedição', color: '#1a6bb5', bg: '#1a6bb518' },
+  VENDEDOR:  { label: 'Vendedor',  color: '#b45309', bg: '#b4530918' },
+  EXPEDICAO: { label: 'Expedição', color: '#4a4a4a', bg: '#4a4a4a18' },
   MOTORISTA: { label: 'Motorista', color: '#15803d', bg: '#15803d18' },
-  CLIENTE:   { label: 'Cliente',   color: '#505050', bg: '#50505028' },
 }
 
 /* ── Icons ── */
@@ -30,25 +30,24 @@ const gridCols = 'grid items-center gap-3 px-5 grid-cols-[1fr_110px_72px] min-[4
 const UserModal = ({ initial, onClose, onSaved }) => {
   const isEdit = !!initial
 
+  const [name,     setName]     = useState(initial?.name     ?? '')
   const [email,    setEmail]    = useState(initial?.email    ?? '')
   const [password, setPassword] = useState('')
-  const [role,     setRole]     = useState(initial?.role     ?? 'CLIENTE')
+  const [role,     setRole]     = useState(initial?.role     ?? 'VENDEDOR')
   const [address,  setAddress]  = useState(initial?.address  ?? '')
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState('')
-
-  const isClient = role === 'CLIENTE'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (isClient && !address.trim()) {
-      setError('Endereço é obrigatório para clientes.')
+    if (!email.trim()) {
+      setError('Email é obrigatório.')
       return
     }
 
-    const data = { email, role, address: isClient ? address : '' }
+    const data = { name, email, role, address }
     if (password) data.password = password
     if (!isEdit)  {
       if (!password) { setError('Password obrigatória.'); return }
@@ -219,7 +218,7 @@ const AdminUsers = () => {
       <div className="bg-surface border border-border rounded-md overflow-hidden shadow-card">
         <div className={`${gridCols} py-2.5 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-muted border-b border-border`}>
           <span className="hidden min-[480px]:inline">ID</span>
-          <span>Email</span>
+          <span>Nome / Email</span>
           <span>Perfil</span>
           <span className="hidden md:inline">Endereço</span>
           <span className="hidden lg:inline">Criado em</span>
@@ -239,7 +238,9 @@ const AdminUsers = () => {
                 className={`${gridCols} py-3.5 border-b border-border last:border-b-0 transition-colors duration-[120ms] hover:bg-hover`}
               >
                 <span className="hidden min-[480px]:inline font-mono text-[0.8125rem] text-muted">#{user.id}</span>
-                <span className="text-sm text-primary overflow-hidden text-ellipsis whitespace-nowrap">{user.email}</span>
+                <span className="text-sm text-primary overflow-hidden text-ellipsis whitespace-nowrap">
+                  {user.role === 'CLIENTE' ? user.name || '—' : user.email}
+                </span>
                 <span>
                   <span
                     className="inline-block px-2.5 py-0.5 rounded-full border text-[0.6875rem] font-semibold uppercase tracking-[0.08em] whitespace-nowrap"

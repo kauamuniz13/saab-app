@@ -16,12 +16,12 @@ const router = Router()
 router.use(authMiddleware)
 
 /* ── Containers ── */
-router.get('/containers',       authorizeRoles('ADMIN', 'CLIENTE', 'EXPEDICAO', 'VENDEDOR'), listContainers)
-router.get('/containers/:id',   authorizeRoles('ADMIN', 'CLIENTE', 'EXPEDICAO', 'VENDEDOR'), getContainer)
+router.get('/containers',       authorizeRoles('ADMIN', 'EXPEDICAO', 'VENDEDOR'), listContainers)
+router.get('/containers/:id',   authorizeRoles('ADMIN', 'EXPEDICAO', 'VENDEDOR'), getContainer)
 router.patch('/containers/:id', authorizeRoles('ADMIN'),            updateContainer)
 
 /* ── Products ── */
-router.get('/products',             authorizeRoles('ADMIN', 'CLIENTE', 'EXPEDICAO', 'VENDEDOR'), listProducts)
+router.get('/products',             authorizeRoles('ADMIN', 'EXPEDICAO', 'VENDEDOR'), listProducts)
 router.get('/products/:id/stock',   authorizeRoles('ADMIN', 'VENDEDOR', 'EXPEDICAO'),            getProductStock)
 router.post('/products',            authorizeRoles('ADMIN'),            createProduct)
 router.patch('/products/:id',       authorizeRoles('ADMIN'),            updateProduct)

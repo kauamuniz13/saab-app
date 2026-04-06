@@ -15,7 +15,7 @@ const FILTERS = [
 const STATUS_CONFIG = {
   PENDING:    { label: 'Pendente',      color: '#b45309', bg: '#b4530918' },
   CONFIRMED:  { label: 'Confirmado',    color: '#888888', bg: '#88888818' },
-  SEPARATING: { label: 'Em Separação',  color: '#1a6bb5', bg: '#1a6bb518' },
+  SEPARATING: { label: 'Em Separação',  color: '#4a4a4a', bg: '#4a4a4a18' },
   READY:      { label: 'Pronto',        color: '#15803d', bg: '#15803d18' },
 }
 

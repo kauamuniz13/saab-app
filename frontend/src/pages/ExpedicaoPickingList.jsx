@@ -6,12 +6,11 @@ import {
   separateOrder,
   packOrder,
 } from '../services/orderService'
-import styles from './ExpedicaoPickingList.module.css'
 
 const STATUS_CONFIG = {
   PENDING:    { label: 'Pendente',      color: '#b45309', bg: '#b4530918' },
   CONFIRMED:  { label: 'Confirmado',    color: '#888888', bg: '#88888818' },
-  SEPARATING: { label: 'Em Separação',  color: '#1a6bb5', bg: '#1a6bb518' },
+  SEPARATING: { label: 'Em Separação',  color: '#4a4a4a', bg: '#4a4a4a18' },
   READY:      { label: 'Pronto',        color: '#15803d', bg: '#15803d18' },
   IN_TRANSIT: { label: 'Em Trânsito',   color: '#505050', bg: '#50505018' },
   DELIVERED:  { label: 'Entregue',      color: '#15803d', bg: '#15803d18' },
@@ -22,13 +21,13 @@ const fmt = (n) =>
   Number(n).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 
 const IconBack = () => (
-  <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ width: '1rem', height: '1rem' }}>
+  <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="w-4 h-4">
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
   </svg>
 )
 
 const IconCheck = () => (
-  <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ width: '0.875rem', height: '0.875rem' }}>
+  <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="w-3.5 h-3.5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 )
@@ -52,14 +51,12 @@ const ExpedicaoPickingList = () => {
     fetchOrderById(id)
       .then(data => {
         setOrder(data)
-        // Initialize box weights and confirmations
         const bwMap = {}
         const bcMap = {}
         data.items?.forEach(item => {
           if (item.priceType === 'PER_LB') {
             bwMap[item.id] = {}
             for (let i = 1; i <= item.quantity; i++) {
-              // Pre-fill from existing boxWeights if any
               const existing = item.boxWeights?.find(bw => bw.boxNumber === i)
               bwMap[item.id][i] = existing ? String(existing.weightLb) : ''
             }
@@ -87,7 +84,6 @@ const ExpedicaoPickingList = () => {
     setBoxConfirmed(prev => ({ ...prev, [itemId]: !prev[itemId] }))
   }
 
-  // Calculate subtotals in real-time
   const itemSubtotals = useMemo(() => {
     if (!order?.items) return {}
     const result = {}
@@ -103,7 +99,6 @@ const ExpedicaoPickingList = () => {
     return result
   }, [order, boxWeightsMap])
 
-  // Check if all weights filled and all PER_BOX confirmed
   const allReady = useMemo(() => {
     if (!order?.items) return false
     for (const item of order.items) {
@@ -152,44 +147,47 @@ const ExpedicaoPickingList = () => {
     handleAction(() => packOrder(id, itemWeights))
   }
 
-  if (loading) return <div className={styles.state}>A carregar...</div>
-  if (error && !order) return <div className={styles.state}>{error}</div>
+  if (loading) return <div className="py-12 px-6 text-sm text-muted text-center">A carregar...</div>
+  if (error && !order) return <div className="py-12 px-6 text-sm text-muted text-center">{error}</div>
 
   const cfg = STATUS_CONFIG[order.status] ?? { label: order.status, color: '#888', bg: '#88888818' }
   const readOnly = ['READY', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'].includes(order.status)
 
   return (
-    <div className={styles.page}>
+    <div className="p-6 flex flex-col gap-6 max-w-[900px]">
 
       {/* ── Back ── */}
-      <button className={styles.backBtn} onClick={() => navigate('/expedicao/orders')}>
+      <button
+        className="inline-flex items-center gap-2 bg-transparent border-none p-0 text-[0.8125rem] text-secondary cursor-pointer transition-colors duration-150 w-fit hover:text-primary"
+        onClick={() => navigate('/expedicao/orders')}
+      >
         <IconBack /> Fila de Pedidos
       </button>
 
       {/* ── Header ── */}
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <p className={styles.eyebrow}>Pedido</p>
-          <h1 className={styles.orderNum}>#{String(order.id).padStart(4, '0')}</h1>
+      <div className="bg-surface border border-border border-l-4 border-l-red rounded-md px-6 py-5 flex gap-8 items-start flex-wrap max-md:flex-col max-md:gap-4">
+        <div className="flex flex-col gap-2 min-w-[120px]">
+          <p className="text-[0.5625rem] font-bold uppercase tracking-[0.25em] text-red m-0">Pedido</p>
+          <h1 className="text-[1.75rem] font-bold text-primary m-0 leading-none font-mono">#{String(order.id).padStart(4, '0')}</h1>
           <span
-            className={styles.badge}
+            className="inline-block px-2.5 py-0.5 rounded-full border text-[0.6875rem] font-semibold uppercase tracking-[0.08em] w-fit"
             style={{ color: cfg.color, borderColor: cfg.color, backgroundColor: cfg.bg }}
           >
             {cfg.label}
           </span>
         </div>
-        <div className={styles.headerMeta}>
-          <div className={styles.metaRow}>
-            <span className={styles.metaLabel}>Cliente</span>
-            <span className={styles.metaValue}>{order.client?.email ?? '—'}</span>
+        <div className="flex-1 flex flex-col gap-2">
+          <div className="flex gap-3 text-[0.8125rem] items-baseline">
+            <span className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-muted min-w-[64px] shrink-0">Cliente</span>
+            <span className="text-secondary">{order.client?.email ?? '—'}</span>
           </div>
-          <div className={styles.metaRow}>
-            <span className={styles.metaLabel}>Endereço</span>
-            <span className={styles.metaValue}>{order.address || '—'}</span>
+          <div className="flex gap-3 text-[0.8125rem] items-baseline">
+            <span className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-muted min-w-[64px] shrink-0">Endereço</span>
+            <span className="text-secondary">{order.address || '—'}</span>
           </div>
-          <div className={styles.metaRow}>
-            <span className={styles.metaLabel}>Total</span>
-            <span className={styles.metaValue}>
+          <div className="flex gap-3 text-[0.8125rem] items-baseline">
+            <span className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-muted min-w-[64px] shrink-0">Total</span>
+            <span className="text-secondary">
               {order.totalBoxes} cx · {order.weightLb > 0 ? `${order.weightLb} lbs` : '—'}
             </span>
           </div>
@@ -197,20 +195,20 @@ const ExpedicaoPickingList = () => {
       </div>
 
       {/* ── Picking List ── */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Picking List</h2>
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-muted m-0">Picking List</h2>
 
         {order.items?.length === 0 && (
-          <p className={styles.empty}>Sem itens neste pedido.</p>
+          <p className="py-8 px-5 text-sm text-muted m-0">Sem itens neste pedido.</p>
         )}
 
         {order.items?.map(item => (
-          <div key={item.id} className={styles.pickingItem}>
-            <div className={styles.pickingHeader}>
-              <span className={styles.containerLabel}>[{item.container?.label ?? '—'}]</span>
-              <span className={styles.productName}>{item.product?.name ?? '—'}</span>
-              <span className={styles.productType}>{item.product?.type ?? '—'}</span>
-              <span className={styles.pickingQty}>
+          <div key={item.id} className="bg-surface border border-border rounded-md px-5 py-4 flex flex-col gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="font-mono text-sm font-bold text-secondary">[{item.container?.label ?? '—'}]</span>
+              <span className="text-sm text-primary">{item.product?.name ?? '—'}</span>
+              <span className="text-xs text-secondary">{item.product?.type ?? '—'}</span>
+              <span className="text-[0.8125rem] font-semibold text-secondary ml-auto">
                 {item.quantity} cx a {item.priceType === 'PER_LB'
                   ? `${fmt(item.pricePerLb || 0)}/lb`
                   : `${fmt(item.pricePerBox || 0)}/cx`}
@@ -218,61 +216,65 @@ const ExpedicaoPickingList = () => {
             </div>
 
             {item.priceType === 'PER_LB' && order.status === 'SEPARATING' && (
-              <div className={styles.boxWeightsGrid}>
+              <div className="flex flex-col gap-2 pl-2">
                 {Array.from({ length: item.quantity }, (_, i) => i + 1).map(boxNum => (
-                  <div key={boxNum} className={styles.boxWeightRow}>
-                    <label className={styles.boxLabel}>Cx {boxNum} (lbs)</label>
+                  <div key={boxNum} className="flex items-center gap-3">
+                    <label className="text-xs font-semibold text-secondary min-w-[80px]">Cx {boxNum} (lbs)</label>
                     <input
                       type="number"
                       min="0"
                       step="0.1"
-                      className={styles.weightInput}
+                      className="bg-input border border-border-input rounded px-3 py-2 text-[0.9375rem] text-primary w-[140px] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-muted focus:border-red focus:shadow-[0_0_0_3px_rgba(139,0,0,0.22)]"
                       placeholder="0.0"
                       value={boxWeightsMap[item.id]?.[boxNum] ?? ''}
                       onChange={e => setBoxWeight(item.id, boxNum, e.target.value)}
                     />
                   </div>
                 ))}
-                <div className={styles.itemSubtotal}>
+                <div className="text-[0.8125rem] font-bold text-primary text-right pt-1 border-t border-border">
                   Subtotal: {fmt(itemSubtotals[item.id] || 0)}
                 </div>
               </div>
             )}
 
             {item.priceType === 'PER_LB' && readOnly && (
-              <div className={styles.boxWeightsGrid}>
+              <div className="flex flex-col gap-2 pl-2">
                 {item.boxWeights?.map(bw => (
-                  <div key={bw.id} className={styles.boxWeightRow}>
-                    <span className={styles.boxLabel}>Cx {bw.boxNumber}</span>
-                    <span className={styles.boxValue}>{bw.weightLb} lbs</span>
+                  <div key={bw.id} className="flex items-center gap-3">
+                    <span className="text-xs font-semibold text-secondary min-w-[80px]">Cx {bw.boxNumber}</span>
+                    <span className="text-[0.8125rem] text-primary">{bw.weightLb} lbs</span>
                   </div>
                 ))}
-                <div className={styles.itemSubtotal}>
+                <div className="text-[0.8125rem] font-bold text-primary text-right pt-1 border-t border-border">
                   Subtotal: {fmt(itemSubtotals[item.id] || 0)}
                 </div>
               </div>
             )}
 
             {item.priceType === 'PER_BOX' && order.status === 'SEPARATING' && (
-              <div className={styles.boxConfirmRow}>
-                <label className={styles.confirmLabel}>
+              <div className="flex items-center justify-between gap-4 pl-2 flex-wrap">
+                <label className="flex items-center gap-2 text-[0.8125rem] text-secondary cursor-pointer">
                   <span
-                    className={`${styles.checkbox} ${boxConfirmed[item.id] ? styles.checkboxOn : ''}`}
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-[border-color,background-color] duration-150 ${
+                      boxConfirmed[item.id]
+                        ? 'border-ok bg-ok text-on-red'
+                        : 'border-border-input bg-input text-on-red'
+                    }`}
                     onClick={() => toggleBoxConfirm(item.id)}
                   >
                     {boxConfirmed[item.id] && <IconCheck />}
                   </span>
                   Separado — {item.quantity} cxs
                 </label>
-                <div className={styles.itemSubtotal}>
+                <div className="text-[0.8125rem] font-bold text-primary text-right pt-1 border-t border-border">
                   Subtotal: {fmt(itemSubtotals[item.id] || 0)}
                 </div>
               </div>
             )}
 
             {item.priceType === 'PER_BOX' && readOnly && (
-              <div className={styles.boxConfirmRow}>
-                <span className={styles.boxValue}>{item.quantity} cxs — {fmt(item.quantity * (item.pricePerBox || 0))}</span>
+              <div className="flex items-center justify-between gap-4 pl-2 flex-wrap">
+                <span className="text-[0.8125rem] text-primary">{item.quantity} cxs — {fmt(item.quantity * (item.pricePerBox || 0))}</span>
               </div>
             )}
           </div>
@@ -280,17 +282,17 @@ const ExpedicaoPickingList = () => {
       </div>
 
       {/* ── Painel de Acções ── */}
-      <div className={styles.actions}>
+      <div className="flex flex-col gap-3">
 
-        {error && <p className={styles.errorMsg}>{error}</p>}
+        {error && <p className="text-[0.8125rem] text-error bg-error-bg border border-[rgba(139,0,0,0.25)] rounded px-3.5 py-2.5 m-0">{error}</p>}
 
         {order.status === 'PENDING' && (
-          <div className={styles.actionPanel}>
-            <p className={styles.actionHint}>
+          <div className="bg-surface border border-border rounded-md px-6 py-5 flex flex-col gap-4">
+            <p className="text-[0.8125rem] text-secondary m-0 leading-relaxed">
               Verifique os dados do pedido antes de confirmar.
             </p>
             <button
-              className={styles.btnPrimary}
+              className="bg-red border-none rounded px-6 py-2.5 text-sm font-bold uppercase tracking-[0.06em] text-on-red cursor-pointer w-fit transition-colors duration-[180ms] hover:enabled:bg-red-h active:enabled:bg-red-a disabled:opacity-40 disabled:cursor-not-allowed"
               disabled={acting}
               onClick={() => handleAction(() => confirmOrder(id))}
             >
@@ -300,12 +302,12 @@ const ExpedicaoPickingList = () => {
         )}
 
         {order.status === 'CONFIRMED' && (
-          <div className={styles.actionPanel}>
-            <p className={styles.actionHint}>
+          <div className="bg-surface border border-border rounded-md px-6 py-5 flex flex-col gap-4">
+            <p className="text-[0.8125rem] text-secondary m-0 leading-relaxed">
               Inicia a separação quando estiveres pronto para retirar os itens.
             </p>
             <button
-              className={styles.btnPrimary}
+              className="bg-red border-none rounded px-6 py-2.5 text-sm font-bold uppercase tracking-[0.06em] text-on-red cursor-pointer w-fit transition-colors duration-[180ms] hover:enabled:bg-red-h active:enabled:bg-red-a disabled:opacity-40 disabled:cursor-not-allowed"
               disabled={acting}
               onClick={() => handleAction(() => separateOrder(id))}
             >
@@ -315,12 +317,12 @@ const ExpedicaoPickingList = () => {
         )}
 
         {order.status === 'SEPARATING' && (
-          <div className={styles.actionPanel}>
-            <p className={styles.actionHint}>
+          <div className="bg-surface border border-border rounded-md px-6 py-5 flex flex-col gap-4">
+            <p className="text-[0.8125rem] text-secondary m-0 leading-relaxed">
               Pesa cada caixa de carnes (por libra) e confirma bebidas/secos antes de embalar.
             </p>
             <button
-              className={styles.btnPrimary}
+              className="bg-red border-none rounded px-6 py-2.5 text-sm font-bold uppercase tracking-[0.06em] text-on-red cursor-pointer w-fit transition-colors duration-[180ms] hover:enabled:bg-red-h active:enabled:bg-red-a disabled:opacity-40 disabled:cursor-not-allowed"
               disabled={acting || !allReady}
               onClick={handlePack}
               title={!allReady ? 'Preencha todos os pesos e confirme todos os itens' : ''}
@@ -328,7 +330,7 @@ const ExpedicaoPickingList = () => {
               {acting ? 'A processar...' : 'Marcar como Pronto'}
             </button>
             {!allReady && (
-              <p className={styles.hintWarn}>
+              <p className="text-xs text-warn m-0">
                 Preencha todos os pesos e confirme todos os itens antes de continuar.
               </p>
             )}
@@ -336,16 +338,16 @@ const ExpedicaoPickingList = () => {
         )}
 
         {order.status === 'READY' && (
-          <div className={`${styles.actionPanel} ${styles.actionPanelGreen}`}>
-            <p className={styles.actionReady}>
+          <div className="bg-ok-bg border border-ok rounded-md px-6 py-5 flex flex-col gap-4">
+            <p className="text-[0.9375rem] font-semibold text-ok m-0">
               Pedido embalado e pronto para carga pelo motorista.
             </p>
           </div>
         )}
 
         {['IN_TRANSIT', 'DELIVERED', 'CANCELLED'].includes(order.status) && (
-          <div className={styles.actionPanel}>
-            <p className={styles.actionHint}>
+          <div className="bg-surface border border-border rounded-md px-6 py-5 flex flex-col gap-4">
+            <p className="text-[0.8125rem] text-secondary m-0 leading-relaxed">
               Este pedido encontra-se em estado <strong>{cfg.label}</strong> — sem acções disponíveis.
             </p>
           </div>

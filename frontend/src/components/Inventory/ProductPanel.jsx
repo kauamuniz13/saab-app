@@ -5,10 +5,12 @@ import {
   updateProduct,
   deleteProduct,
 } from '../../services/inventoryService'
-import styles from './ProductPanel.module.css'
 
 const TYPES    = ['Bovino', 'Suíno', 'Frango', 'Cordeiro', 'Outro']
 const EMPTY    = { name: '', type: 'Bovino' }
+
+const inputCls = 'bg-input border border-border-input rounded px-3 py-2 text-[0.8125rem] text-primary w-full outline-none transition-[border-color,box-shadow] duration-150 focus:border-red focus:shadow-[0_0_0_3px_rgba(139,0,0,0.22)] placeholder:text-muted'
+const selectCls = `${inputCls} [&_option]:bg-surface`
 
 /* ── ProductPanel ── */
 const ProductPanel = () => {
@@ -107,63 +109,70 @@ const ProductPanel = () => {
   }
 
   return (
-    <div className={styles.panel}>
+    <div className="bg-surface border border-border rounded-md overflow-hidden">
 
       {/* Toggle header */}
-      <button className={styles.toggle} onClick={() => setOpen(o => !o)}>
-        <span className={styles.toggleLeft}>
-          <span className={styles.toggleTitle}>Gestão de Produtos</span>
+      <button
+        className="w-full flex items-center justify-between px-5 py-4 bg-transparent border-none border-b border-border cursor-pointer text-left gap-4 transition-colors duration-150 hover:bg-hover"
+        onClick={() => setOpen(o => !o)}
+      >
+        <span className="flex flex-col gap-0.5">
+          <span className="text-[0.9375rem] font-bold text-primary">Gestão de Produtos</span>
         </span>
-        <span className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`}>▾</span>
+        <span className={`text-base text-muted shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
 
       {open && (
-        <div className={styles.body}>
+        <div className="p-5 flex flex-col gap-5">
 
           {/* ── Add form ── */}
-          <form className={styles.addForm} onSubmit={handleAdd}>
-            <p className={styles.sectionLabel}>Novo Produto</p>
-            <div className={styles.addRow}>
+          <form className="flex flex-col" onSubmit={handleAdd}>
+            <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-muted m-0 mb-2">Novo Produto</p>
+            <div className="grid grid-cols-[1fr_140px_140px_auto] gap-2.5 items-center max-md:grid-cols-1">
               <input
-                className={styles.input}
+                className={inputCls}
                 placeholder="Nome do produto"
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               />
               <select
-                className={styles.select}
+                className={selectCls}
                 value={form.type}
                 onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
               >
                 {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
-              <button className={styles.addBtn} type="submit" disabled={adding}>
+              <button
+                className="bg-red border-none rounded px-4 py-2 text-[0.8125rem] font-bold text-on-red cursor-pointer whitespace-nowrap uppercase tracking-[0.05em] transition-colors duration-[180ms] hover:enabled:bg-red-h active:enabled:bg-red-a disabled:opacity-40 disabled:cursor-not-allowed"
+                type="submit"
+                disabled={adding}
+              >
                 {adding ? 'A adicionar…' : '+ Adicionar'}
               </button>
             </div>
-            {addError && <p className={styles.errMsg}>{addError}</p>}
+            {addError && <p className="text-[0.8125rem] text-error mt-1.5 m-0">{addError}</p>}
           </form>
 
           {/* Delete error banner */}
           {deleteError && (
-            <div className={styles.errorBanner}>{deleteError}</div>
+            <div className="bg-error-bg border border-red-light rounded px-3.5 py-2.5 text-[0.8125rem] text-error">{deleteError}</div>
           )}
 
           {/* ── Table ── */}
           {loading ? (
-            <p className={styles.stateMsg}>A carregar produtos…</p>
+            <p className="text-center py-8 text-sm text-muted m-0">A carregar produtos…</p>
           ) : fetchError ? (
-            <p className={`${styles.stateMsg} ${styles.errMsg}`}>{fetchError}</p>
+            <p className="text-center py-8 text-sm text-error m-0">{fetchError}</p>
           ) : products.length === 0 ? (
-            <p className={styles.stateMsg}>Sem produtos registados.</p>
+            <p className="text-center py-8 text-sm text-muted m-0">Sem produtos registados.</p>
           ) : (
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
+            <div className="border border-border rounded-md overflow-hidden overflow-x-auto">
+              <table className="w-full border-collapse text-[0.8125rem]">
                 <thead>
-                  <tr>
-                    <th>Nome</th>
-                    <th>Tipo</th>
-                    <th>Ações</th>
+                  <tr className="bg-hover">
+                    <th className="px-4 py-2.5 text-left text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-muted border-b border-border whitespace-nowrap">Nome</th>
+                    <th className="px-4 py-2.5 text-left text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-muted border-b border-border whitespace-nowrap">Tipo</th>
+                    <th className="px-4 py-2.5 text-left text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-muted border-b border-border whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -171,65 +180,69 @@ const ProductPanel = () => {
                     editId === p.id ? (
 
                       /* ── Edit row ── */
-                      <tr key={p.id} className={styles.editRow}>
-                        <td>
+                      <tr key={p.id} className="!bg-page">
+                        <td className="px-3 py-2 text-primary border-b border-border align-middle">
                           <input
-                            className={styles.input}
+                            className={inputCls}
                             value={editForm.name}
                             onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
                           />
                         </td>
-                        <td>
+                        <td className="px-3 py-2 text-primary border-b border-border align-middle">
                           <select
-                            className={styles.select}
+                            className={selectCls}
                             value={editForm.type}
                             onChange={e => setEditForm(f => ({ ...f, type: e.target.value }))}
                           >
                             {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                           </select>
                         </td>
-                        <td className={styles.actions}>
-                          <button
-                            className={styles.saveBtn}
-                            onClick={handleSaveEdit}
-                            disabled={saving}
-                          >
-                            {saving ? '…' : 'Guardar'}
-                          </button>
-                          <button
-                            className={styles.cancelBtn}
-                            onClick={cancelEdit}
-                            disabled={saving}
-                          >
-                            Cancelar
-                          </button>
-                          {editError && (
-                            <span className={styles.inlineErr}>{editError}</span>
-                          )}
+                        <td className="px-3 py-2 text-primary border-b border-border align-middle">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                              className="bg-red border-none rounded px-3.5 py-1 text-xs font-bold text-on-red cursor-pointer transition-colors duration-[180ms] hover:enabled:bg-red-h disabled:opacity-40 disabled:cursor-not-allowed"
+                              onClick={handleSaveEdit}
+                              disabled={saving}
+                            >
+                              {saving ? '…' : 'Guardar'}
+                            </button>
+                            <button
+                              className="bg-transparent border border-border-input rounded px-3 py-1 text-xs font-semibold text-muted cursor-pointer transition-[border-color,color] duration-150 hover:enabled:border-muted hover:enabled:text-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+                              onClick={cancelEdit}
+                              disabled={saving}
+                            >
+                              Cancelar
+                            </button>
+                            {editError && (
+                              <span className="text-xs text-error">{editError}</span>
+                            )}
+                          </div>
                         </td>
                       </tr>
 
                     ) : (
 
                       /* ── Normal row ── */
-                      <tr key={p.id}>
-                        <td className={styles.cellName}>{p.name}</td>
-                        <td>
-                          <span className={styles.typeBadge}>{p.type}</span>
+                      <tr key={p.id} className="hover:bg-hover [&:last-child_td]:border-b-0">
+                        <td className="px-4 py-3 text-primary border-b border-border align-middle font-semibold">{p.name}</td>
+                        <td className="px-4 py-3 text-primary border-b border-border align-middle">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-hover text-secondary border border-border">{p.type}</span>
                         </td>
-                        <td className={styles.actions}>
-                          <button
-                            className={styles.editBtn}
-                            onClick={() => startEdit(p)}
-                          >
-                            Editar
-                          </button>
-                          <button
-                            className={styles.deleteBtn}
-                            onClick={() => handleDelete(p.id)}
-                          >
-                            Apagar
-                          </button>
+                        <td className="px-4 py-3 text-primary border-b border-border align-middle">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                              className="bg-transparent border border-border-input rounded px-3 py-1 text-xs font-semibold text-secondary cursor-pointer transition-[border-color,color] duration-150 hover:border-muted hover:text-primary"
+                              onClick={() => startEdit(p)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              className="bg-transparent border border-red-light rounded px-3 py-1 text-xs font-semibold text-red cursor-pointer transition-[background-color,color] duration-150 hover:bg-red-light hover:text-red"
+                              onClick={() => handleDelete(p.id)}
+                            >
+                              Apagar
+                            </button>
+                          </div>
                         </td>
                       </tr>
 

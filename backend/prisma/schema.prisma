@@ -7,12 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Valores válidos: "ADMIN" | "EXPEDICAO" | "MOTORISTA" | "CLIENTE" | "VENDEDOR"
+// Valores válidos: "ADMIN" | "EXPEDICAO" | "MOTORISTA" | "VENDEDOR"
 model User {
   id        Int      @id @default(autoincrement())
+  name      String   @default("")        // Nome do cliente (opcional para staff)
   email     String   @unique
   password  String
-  role      String   @default("CLIENTE")
+  role      String   @default("VENDEDOR")
   address   String   @default("")
   lat       Float?
   lon       Float?
@@ -58,8 +59,9 @@ model Container {
 // Valores válidos: "PENDING" | "CONFIRMED" | "SEPARATING" | "READY" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED"
 model Order {
   id                  Int         @id @default(autoincrement())
-  clientId            Int
-  client              User        @relation(fields: [clientId], references: [id])
+  clientId            Int?                              // opcional (legacy)
+  client              User?        @relation(fields: [clientId], references: [id])
+  clientName          String       @default("")          // nome da loja (vendedor digita)
   status              String      @default("PENDING")
   totalBoxes          Int
   // Entrega

@@ -1,5 +1,4 @@
 import { useTheme } from '../context/ThemeContext'
-import styles from './ThemeToggle.module.css'
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme()
@@ -7,7 +6,7 @@ const ThemeToggle = () => {
 
   return (
     <button
-      className={styles.toggle}
+      className="flex items-center justify-center w-8 h-8 rounded-md border border-border-input bg-input text-secondary cursor-pointer shrink-0 transition-colors duration-150 hover:text-primary hover:border-secondary"
       onClick={toggleTheme}
       aria-label={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
       title={isDark ? 'Tema claro' : 'Tema escuro'}
