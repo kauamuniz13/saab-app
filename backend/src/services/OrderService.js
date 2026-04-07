@@ -17,13 +17,12 @@ const INCLUDE_FULL = {
 const DEFAULT_GEO = { address: 'Orlando, FL', lat: 28.5383, lon: -81.3792 }
 
 /* ── Create ── */
-const createOrder = async ({ clientId, clientName, items }) => {
+const createOrder = async ({ clientId, clientName, address: inputAddress, items }) => {
   return prisma.$transaction(async (tx) => {
     const itemsToCreate = []
     let totalBoxes = 0
 
     for (const item of items) {
-      // Buscar todos os containers com este produto, ordenados por label
       const containers = await tx.container.findMany({
         where: { productId: item.productId },
         orderBy: { label: 'asc' },
@@ -39,7 +38,6 @@ const createOrder = async ({ clientId, clientName, items }) => {
         )
       }
 
-      // Distribuir caixas pelos containers na ordem
       let remaining = item.quantity
       for (const container of containers) {
         if (remaining <= 0) break
@@ -66,12 +64,14 @@ const createOrder = async ({ clientId, clientName, items }) => {
       totalBoxes += item.quantity
     }
 
-    // Resolve endereço/coordenadas do cliente a partir do cadastro (se clientId) ou usa default
+    // Resolve endereço: usa o fornecido no pedido, ou busca do cadastro do cliente, ou usa default
     let address = DEFAULT_GEO.address
     let lat = DEFAULT_GEO.lat
     let lon = DEFAULT_GEO.lon
 
-    if (clientId) {
+    if (inputAddress) {
+      address = inputAddress
+    } else if (clientId) {
       const client = await tx.user.findUnique({
         where:  { id: clientId },
         select: { address: true, lat: true, lon: true },

@@ -12,6 +12,19 @@ api.interceptors.request.use(config => {
   return config
 })
 
+// Redireciona para login se token expirou ou é inválido
+api.interceptors.response.use(
+  res => res,
+  err => {
+    if (err.response?.status === 401 && window.location.pathname !== '/login') {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+    }
+    return Promise.reject(err)
+  }
+)
+
 export const loginRequest = (email, password) =>
   api.post('/auth/login', { email, password })
 

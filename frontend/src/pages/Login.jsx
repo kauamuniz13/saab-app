@@ -46,8 +46,8 @@ const Login = () => {
 
         <div className="flex flex-col items-center gap-2">
           <img src={logoSaab} alt="SAAB" className="h-20 sm:h-24 w-auto object-contain" />
-          <h1 className="text-[1.75rem] sm:text-[2rem] font-extrabold text-primary m-0 tracking-[0.08em]">SAAB</h1>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary m-0">Gestão Logística</p>
+          <h1 className="text-[1.75rem] sm:text-[2rem] font-display font-black text-primary m-0 tracking-[0.08em]">SAAB</h1>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-secondary m-0">Gestão Logística</p>
         </div>
 
         <form onSubmit={handleSubmit} className="w-full bg-surface border border-border rounded-xl px-8 py-10 sm:p-10 flex flex-col gap-6 shadow-elevated" noValidate>

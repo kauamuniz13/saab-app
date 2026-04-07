@@ -4,7 +4,7 @@ const InvoiceService = require('../services/InvoiceService')
 
 /* ── Create ── */
 const createOrder = async (req, res) => {
-  const { clientId, clientName, items } = req.body
+  const { clientId, clientName, address, items } = req.body
 
   if (!clientId && !clientName) {
     return res.status(400).json({ message: 'clientId ou clientName é obrigatório.' })
@@ -36,6 +36,7 @@ const createOrder = async (req, res) => {
     const order = await OrderService.createOrder({
       clientId:    clientId ? Number(clientId) : null,
       clientName:  clientName?.trim() || '',
+      address:     address?.trim() || null,
       items:       parsedItems,
     })
     return res.status(201).json(order)

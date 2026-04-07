@@ -215,7 +215,7 @@ const InventoryGrid = () => {
                   zone={zone}
                   containers={zoneContainers}
                   onSelect={setSelectedContainer}
-                  defaultOpen={true}
+                  defaultOpen={false}
                 />
               )
             })
@@ -234,7 +234,7 @@ const InventoryGrid = () => {
             zone={zone}
             containers={zoneContainers}
             onSelect={setSelectedContainer}
-            defaultOpen={true}
+            defaultOpen={false}
           />
         )
       })}

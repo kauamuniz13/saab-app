@@ -7,6 +7,10 @@ export default {
   darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Montserrat', 'system-ui', 'sans-serif'],
+      },
       colors: {
         page:       'var(--bg-page)',
         surface:    'var(--bg-surface)',

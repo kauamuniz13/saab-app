@@ -97,7 +97,7 @@ const NAV_ITEMS = [
 ]
 
 const PAGE_TITLES = {
-  dashboard: 'Painel de Controlo',
+  dashboard: 'Painel de Controle',
   inventory: 'Estoque',
   products:  'Produtos',
   orders:    'Pedidos',
@@ -157,8 +157,8 @@ export const AdminHome = () => {
     <div className="flex flex-col gap-6 p-6">
 
       <div className="bg-surface border border-border border-l-4 border-l-red rounded-[6px] p-8 max-w-[640px] shadow-card">
-        <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-red mb-2.5">Painel de Controlo</p>
-        <h1 className="text-[1.375rem] font-bold text-primary mb-3 leading-tight">Bem-vindo ao Sistema de Gestão SAAB</h1>
+        <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-red mb-2.5">Painel de Controle</p>
+        <h1 className="text-[1.375rem] font-display font-black text-primary mb-3 leading-tight">Bem-vindo ao Sistema de Gestão SAAB</h1>
         <p className="text-sm text-secondary leading-relaxed m-0">
           Acesse o estoque de contêineres, gerencie pedidos de clientes
           e acompanhe as rotas de entrega em tempo real.
@@ -242,6 +242,12 @@ const AdminDashboard = () => {
   const { user, logout } = useAuth()
   const navigate         = useNavigate()
   const location         = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [sidebarOpen])
 
   const handleLogout = () => {
     logout()
@@ -266,29 +272,60 @@ const AdminDashboard = () => {
   return (
     <div className="flex flex-col md:flex-row min-h-svh bg-page">
 
+      {/* ── Mobile overlay ── */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ── Sidebar ── */}
-      <aside className="w-full md:w-60 md:min-w-[240px] bg-sidebar border-b md:border-b-0 md:border-r border-border-sidebar flex flex-col transition-[width] duration-200">
+      <aside className={`
+        fixed md:relative z-50 md:z-auto
+        w-[75vw] max-w-[300px] md:w-60 md:min-w-[240px]
+        bg-sidebar border-b md:border-b-0 md:border-r border-border-sidebar 
+        flex flex-col transition-transform duration-200
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        h-full md:h-auto
+      `}>
         <div className="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-1 px-5 pt-6 pb-5 border-b border-border-sidebar">
-          <img src={logoSaab} alt="SAAB" className="h-10 w-auto max-w-[120px] object-contain object-left" />
-          <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-secondary m-0 md:mt-2">Gestão Logística</p>
+          <div className="flex items-center gap-2">
+            <img src={logoSaab} alt="SAAB" className="h-10 w-auto max-w-[120px] object-contain object-left" />
+            <span className="text-[0.9375rem] font-bold text-black tracking-wide">SAAB</span>
+            <span className="text-[0.9375rem] text-secondary hidden md:inline">|</span>
+            <span className="text-[0.8125rem] text-secondary hidden md:inline">Admin</span>
+          </div>
+          <button 
+            className="md:hidden p-2 text-black hover:text-gray-600"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-secondary m-0 md:mt-2 hidden md:block">Gestão Logística</p>
         </div>
 
-        <nav className="flex-1 flex flex-row md:flex-col gap-0.5 py-2 md:py-4 px-2 md:px-0 overflow-x-auto md:overflow-x-visible">
+        <nav className="flex-1 flex flex-col gap-0.5 py-4 px-0 overflow-x-visible">
           {NAV_ITEMS.map(({ key, label, Icon, path }) => (
             <button
               key={key}
-              className={`flex items-center gap-3 px-5 py-3 text-sm font-medium text-nav cursor-pointer bg-transparent
-                border-0 md:border-l-[3px] border-b-[3px] md:border-b-0 border-transparent w-auto md:w-full text-left whitespace-nowrap md:whitespace-normal
+              className={`flex items-center gap-3 px-5 py-3 text-sm font-medium text-black cursor-pointer bg-transparent
+                border-0 border-l-[3px] border-transparent w-full text-left
                 transition-colors duration-150
-                hover:bg-sidebar-hover hover:text-nav-hover hover:border-b-border-input md:hover:border-b-transparent md:hover:border-l-border-input
+                hover:bg-sidebar-hover hover:text-nav-hover hover:border-l-border-input
                 ${activeKey === key
-                  ? 'bg-sidebar-active text-primary !border-b-red md:!border-b-transparent md:!border-l-red'
+                  ? 'bg-sidebar-active text-primary !border-l-red'
                   : ''
                 }`}
-              onClick={() => navigate(path)}
+              onClick={() => {
+                navigate(path)
+                setSidebarOpen(false)
+              }}
             >
               <Icon />
-              {label}
+              <span>{label}</span>
             </button>
           ))}
         </nav>
@@ -303,16 +340,29 @@ const AdminDashboard = () => {
 
         {/* Topbar */}
         <header className="h-14 bg-surface border-b border-border flex items-center justify-between px-6 shrink-0">
-          <h2 className="text-[0.9rem] font-semibold text-primary m-0">{PAGE_TITLES[activeKey]}</h2>
+          <div className="flex items-center gap-3">
+            <button 
+              className="md:hidden p-2 text-secondary hover:text-primary"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h2 className="text-[0.9rem] font-semibold text-primary m-0">{PAGE_TITLES[activeKey]}</h2>
+          </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <span className="text-xs text-secondary max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{user?.email}</span>
+            <span className="text-xs text-secondary max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap hidden sm:block">{user?.email}</span>
             <button
               className="flex items-center gap-2 bg-transparent border border-border-input px-3 py-2 text-[0.8125rem] text-secondary cursor-pointer rounded transition-colors duration-150 hover:text-error hover:bg-error-bg hover:border-error"
               onClick={handleLogout}
               title="Sair"
             >
-              Sair
+              <span className="hidden sm:inline">Sair</span>
+              <svg className="w-4 h-4 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
             </button>
           </div>
         </header>

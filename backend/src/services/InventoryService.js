@@ -32,6 +32,19 @@ const getAllProducts = ({ includeInactive = false } = {}) =>
     orderBy: [{ type: 'asc' }, { name: 'asc' }],
   })
 
+const searchProducts = (query) =>
+  prisma.product.findMany({
+    where: {
+      active: true,
+      OR: [
+        { name: { contains: query, mode: 'insensitive' } },
+        { type: { contains: query, mode: 'insensitive' } },
+      ],
+    },
+    orderBy: [{ name: 'asc' }],
+    take: 20,
+  })
+
 const getProductStock = async (productId) => {
   const containers = await prisma.container.findMany({
     where: { productId: Number(productId) },
@@ -41,11 +54,29 @@ const getProductStock = async (productId) => {
   return { productId: Number(productId), totalBoxes: total, containers }
 }
 
-const createProduct = ({ name, type }) =>
-  prisma.product.create({ data: { name, type, active: true } })
+const createProduct = ({ name, type, priceType, pricePerLb, pricePerBox, pricePerUnit }) =>
+  prisma.product.create({ 
+    data: { 
+      name, 
+      type, 
+      active: true,
+      ...(priceType && { priceType }),
+      ...(pricePerLb !== undefined && { pricePerLb: Number(pricePerLb) }),
+      ...(pricePerBox !== undefined && { pricePerBox: Number(pricePerBox) }),
+      ...(pricePerUnit !== undefined && { pricePerUnit: Number(pricePerUnit) }),
+    } 
+  })
 
 const updateProduct = (id, data) =>
-  prisma.product.update({ where: { id: Number(id) }, data })
+  prisma.product.update({ 
+    where: { id: Number(id) }, 
+    data: {
+      ...data,
+      ...(data.pricePerLb !== undefined && { pricePerLb: Number(data.pricePerLb) }),
+      ...(data.pricePerBox !== undefined && { pricePerBox: Number(data.pricePerBox) }),
+      ...(data.pricePerUnit !== undefined && { pricePerUnit: Number(data.pricePerUnit) }),
+    }
+  })
 
 const deleteProduct = async (id) => {
   const numId = Number(id)
@@ -78,6 +109,7 @@ module.exports = {
   getContainerById,
   updateContainer,
   getAllProducts,
+  searchProducts,
   getProductStock,
   createProduct,
   updateProduct,

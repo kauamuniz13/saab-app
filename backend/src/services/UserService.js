@@ -10,7 +10,7 @@ const VALID_ROLES = ['ADMIN', 'EXPEDICAO', 'MOTORISTA', 'VENDEDOR']
 const listClients = () =>
   prisma.user.findMany({
     where:   { role: 'CLIENTE' },
-    select:  { id: true, name: true },
+    select:  { id: true, name: true, address: true },
     orderBy: { name: 'asc' },
   })
 

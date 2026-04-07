@@ -42,13 +42,22 @@ const listProducts = async (req, res) => {
   return res.json(products)
 }
 
+const searchProducts = async (req, res) => {
+  const { q } = req.query
+  if (!q || q.trim().length < 2) {
+    return res.json([])
+  }
+  const products = await InventoryService.searchProducts(q.trim())
+  return res.json(products)
+}
+
 const getProductStock = async (req, res) => {
   const stock = await InventoryService.getProductStock(req.params.id)
   return res.json(stock)
 }
 
 const createProduct = async (req, res) => {
-  const { name, type } = req.body
+  const { name, type, priceType, pricePerLb, pricePerBox, pricePerUnit } = req.body
 
   if (!name?.trim() || !type?.trim()) {
     return res.status(400).json({ message: 'Nome e tipo são obrigatórios.' })
@@ -57,12 +66,16 @@ const createProduct = async (req, res) => {
   const product = await InventoryService.createProduct({
     name: name.trim(),
     type: type.trim(),
+    priceType,
+    pricePerLb: pricePerLb ? Number(pricePerLb) : null,
+    pricePerBox: pricePerBox ? Number(pricePerBox) : null,
+    pricePerUnit: pricePerUnit ? Number(pricePerUnit) : null,
   })
   return res.status(201).json(product)
 }
 
 const updateProduct = async (req, res) => {
-  const { name, type, active } = req.body
+  const { name, type, active, priceType, pricePerLb, pricePerBox, pricePerUnit } = req.body
 
   if (name !== undefined && !name.trim()) {
     return res.status(400).json({ message: 'Nome não pode ser vazio.' })
@@ -72,6 +85,10 @@ const updateProduct = async (req, res) => {
     ...(name   !== undefined && { name: name.trim() }),
     ...(type   !== undefined && { type: type.trim() }),
     ...(active !== undefined && { active: Boolean(active) }),
+    ...(priceType !== undefined && { priceType }),
+    ...(pricePerLb !== undefined && { pricePerLb: pricePerLb ? Number(pricePerLb) : null }),
+    ...(pricePerBox !== undefined && { pricePerBox: pricePerBox ? Number(pricePerBox) : null }),
+    ...(pricePerUnit !== undefined && { pricePerUnit: pricePerUnit ? Number(pricePerUnit) : null }),
   })
   return res.json(product)
 }
@@ -93,6 +110,7 @@ module.exports = {
   getContainer,
   updateContainer,
   listProducts,
+  searchProducts,
   getProductStock,
   createProduct,
   updateProduct,

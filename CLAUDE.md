@@ -12,7 +12,7 @@ Fluxo operacional: **Vendedor faz pedido (digita nome da loja) → Expedição c
 
 | Camada    | Stack                                       |
 |-----------|---------------------------------------------|
-| Frontend  | React 18, Vite, CSS Modules, react-router-dom, axios, react-signature-canvas |
+| Frontend  | React 18, Vite, Tailwind CSS, react-router-dom, axios, react-signature-canvas |
 | Backend   | Node.js, Express 5, Prisma ORM, PostgreSQL, JWT, pdfkit, bcrypt |
 | Infra     | Docker Compose (PostgreSQL + backend), frontend local via Vite  |
 
@@ -70,10 +70,10 @@ project/
     ├── context/AuthContext.jsx         # AuthProvider, useAuth — login, logout, token, user
     ├── services/
     │   ├── authService.js             # Axios instance + JWT interceptor
-    │   ├── inventoryService.js        # fetchContainers, fetchProducts, fetchAllProducts, createProduct, updateProduct, deleteProduct
-    │   ├── orderService.js            # fetchOrders, fetchOrderById, createOrder, confirmOrder, separateOrder, packOrder, loadOrder, openInvoice
-    │   ├── routeService.js            # fetchDailyRoute
-    │   └── userService.js             # fetchUsers, createUser, updateUser
+│   ├── inventoryService.js        # fetchContainers, fetchProducts, fetchAllProducts, createProduct, updateProduct, deleteProduct, fetchProductStock, searchProducts
+│   ├── orderService.js            # fetchOrders, fetchOrderById, createOrder, confirmOrder, separateOrder, packOrder, loadOrder, deliverOrder, openInvoice, fetchClients
+│   ├── routeService.js            # fetchDailyRoute
+│   └── userService.js             # fetchUsers, createUser, updateUser, createClient
     ├── constants/
     │   ├── zones.js                   # ZONE_CONFIG, ZONE_LABELS, SUBZONE_LABELS
     │   └── categories.js             # CATEGORIES (Bovino, Suíno, Aves, Miúdos, Laticínios, Congelados, Secos, Bebidas, Outros)
@@ -139,7 +139,7 @@ PENDING → CONFIRMED → SEPARATING → READY → IN_TRANSIT → DELIVERED
 /admin                     → AdminDashboard (layout)
   /admin/dashboard         → AdminHome (KPIs reais)
   /admin/inventory         → Inventory (InventoryGrid)
-  /admin/products          → AdminProducts (CRUD)
+  /admin/products          → AdminProducts (CRUD produtos, toggle activo/inactivo)
   /admin/orders/new        → OrderEntry
   /admin/logistics         → Logistics
   /admin/routes            → DriverRoutes
@@ -158,18 +158,24 @@ PENDING → CONFIRMED → SEPARATING → READY → IN_TRANSIT → DELIVERED
 /motorista                 → MotoristaLayout
   /motorista/routes        → DriverRoutes
   /motorista/delivery/:id  → DriverDelivery
+
+/cliente                   → ClienteLayout (opcional - histórico de pedidos)
+  /cliente/orders          → ClientOrders (histórico + fatura PDF)
 ```
 
 ## Database Models (Prisma)
 
 ```
-User         → id, name, email, password, role (ADMIN|VENDEDOR|EXPEDICAO|MOTORISTA)
-Product      → id, name, type (Bovino|Suíno|Aves|Miúdos|Laticínios|Congelados|Secos|Bebidas|Outros), pricePerBox (USD), active
+User         → id, name, email, password, role (ADMIN|VENDEDOR|EXPEDICAO|MOTORISTA|CLIENTE)
+Product      → id, name, type (texto livre), active, priceType (PER_LB|PER_BOX|PER_UNIT),
+               pricePerLb?, pricePerBox?, pricePerUnit?
 Container    → id, label, zone (CAMARA_FRIA|CONTAINER_31|CONTAINER_32|CONTAINER_33|CONTAINER_36|BEBIDAS|SECOS),
                capacity, quantity, productId?
 Order        → id, clientName (string), clientId? (legacy), status, totalBoxes, weightLb, address, lat/lon,
-               deliveryWindow, signature, deliveredAt/By, separatedAt/By, packedAt/By, loadedAt
-OrderItem    → id, orderId, containerId, productId, quantity, weightLb, priceType (PER_LB|PER_BOX), pricePerLb?, pricePerBox?
+               deliveryWindowStart/End, signature, deliveredAt/By, separatedAt/By/At, packedAt/By/At, loadedAt
+OrderItem    → id, orderId, containerId, productId, quantity, weightLb, priceType (PER_LB|PER_BOX),
+               pricePerLb?, pricePerBox?, boxWeights (BoxWeight[])
+BoxWeight    → id, orderItemId, boxNumber, weightLb (peso individual por caixa)
 ```
 
 ## Seed Data

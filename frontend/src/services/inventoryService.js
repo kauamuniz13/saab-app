@@ -18,5 +18,8 @@ export const updateProduct = (id, data) =>
 export const fetchProductStock = (id) =>
   api.get(`/inventory/products/${id}/stock`).then(r => r.data)
 
+export const searchProducts = (query) =>
+  api.get(`/inventory/products/search?q=${encodeURIComponent(query)}`).then(r => r.data)
+
 export const deleteProduct = (id) =>
   api.delete(`/inventory/products/${id}`)

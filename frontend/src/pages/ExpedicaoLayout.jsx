@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import logoSaab from '../assets/Logo-saab-S.png'
@@ -65,6 +66,12 @@ const ExpedicaoLayout = () => {
   const { user, logout } = useAuth()
   const navigate         = useNavigate()
   const location         = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [sidebarOpen])
 
   const handleLogout = () => {
     logout()
@@ -77,36 +84,67 @@ const ExpedicaoLayout = () => {
 
   const activeKey = (() => {
     if (location.pathname.startsWith('/expedicao/orders'))     return 'orders'
+    if (location.pathname.startsWith('/expedicao/dashboard')) return 'dashboard'
     return 'dashboard'
   })()
 
   return (
     <div className="flex flex-col md:flex-row min-h-[100svh] bg-page">
 
+      {/* ── Mobile overlay ── */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ── Sidebar ── */}
-      <aside className="w-full md:w-[220px] md:min-w-[220px] bg-sidebar border-b md:border-b-0 md:border-r border-border-sidebar flex flex-col">
-        <div className="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-1 px-5 py-3.5 md:pt-6 md:pb-5 border-b border-border-sidebar">
-          <img src={logoSaab} alt="SAAB" className="h-10 w-auto max-w-[120px] object-contain object-left" />
-          <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-secondary md:mt-2">Expedição</p>
+      <aside className={`
+        fixed md:relative z-50 md:z-auto
+        w-[75vw] max-w-[300px] md:w-[220px] md:min-w-[220px]
+        bg-sidebar border-b md:border-b-0 md:border-r border-border-sidebar 
+        flex flex-col transition-transform duration-200
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        h-full md:h-auto
+      `}>
+        <div className="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-1 px-5 pt-6 pb-5 border-b border-border-sidebar">
+          <div className="flex items-center gap-2">
+            <img src={logoSaab} alt="SAAB" className="h-10 w-auto max-w-[120px] object-contain object-left" />
+            <span className="text-[0.9375rem] font-bold text-black tracking-wide">SAAB</span>
+            <span className="text-[0.9375rem] text-secondary hidden md:inline">|</span>
+            <span className="text-[0.8125rem] text-secondary hidden md:inline">Expedição</span>
+          </div>
+          <button 
+            className="md:hidden p-2 text-black hover:text-gray-600"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-secondary m-0 md:mt-2 hidden md:block">Expedição</p>
         </div>
 
-        <nav className="flex-1 flex flex-row md:flex-col gap-0.5 p-2 md:py-4 md:px-0 overflow-x-auto md:overflow-x-visible">
+        <nav className="flex-1 flex flex-col gap-0.5 py-4 px-0 overflow-x-visible">
           {NAV_ITEMS.map(({ key, label, Icon, path }) => (
             <button
               key={key}
-              className={`flex items-center gap-3 px-4 md:px-5 py-2 md:py-3 text-sm font-medium text-nav
-                border-b-[3px] md:border-b-0 md:border-l-[3px] border-transparent
-                whitespace-nowrap md:whitespace-normal w-full text-left cursor-pointer
-                bg-transparent transition-[background-color,color,border-color] duration-150
-                hover:bg-sidebar-hover hover:text-nav-hover hover:border-b-border-input md:hover:border-b-transparent md:hover:border-l-border-input
+              className={`flex items-center gap-3 px-5 py-3 text-sm font-medium text-black
+                border-l-[3px] border-transparent w-full text-left cursor-pointer
+                bg-transparent transition-colors duration-150
+                hover:bg-sidebar-hover hover:text-nav-hover hover:border-l-border-input
                 ${activeKey === key
-                  ? 'bg-sidebar-active !text-primary !border-b-red md:!border-b-transparent md:!border-l-red'
+                  ? 'bg-sidebar-active text-primary !border-l-red'
                   : ''
                 }`}
-              onClick={() => navigate(path)}
+              onClick={() => {
+                navigate(path)
+                setSidebarOpen(false)
+              }}
             >
               <Icon />
-              {label}
+              <span>{label}</span>
             </button>
           ))}
         </nav>
@@ -126,7 +164,17 @@ const ExpedicaoLayout = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         <header className="h-14 bg-surface border-b border-border flex items-center justify-between px-6 shrink-0">
-          <h2 className="text-[0.9rem] font-semibold text-primary m-0">{PAGE_TITLES[activeKey]}</h2>
+          <div className="flex items-center gap-3">
+            <button 
+              className="md:hidden p-2 text-secondary hover:text-primary"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h2 className="text-[0.9rem] font-semibold text-primary m-0">{PAGE_TITLES[activeKey]}</h2>
+          </div>
           <div className="flex items-center gap-2 text-[0.8rem] text-secondary">
             <ThemeToggle />
             <span>{user?.email}</span>

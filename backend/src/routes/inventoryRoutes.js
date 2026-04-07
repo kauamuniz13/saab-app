@@ -5,6 +5,7 @@ const {
   getContainer,
   updateContainer,
   listProducts,
+  searchProducts,
   getProductStock,
   createProduct,
   updateProduct,
@@ -22,6 +23,7 @@ router.patch('/containers/:id', authorizeRoles('ADMIN'),            updateContai
 
 /* ── Products ── */
 router.get('/products',             authorizeRoles('ADMIN', 'EXPEDICAO', 'VENDEDOR'), listProducts)
+router.get('/products/search',      authorizeRoles('ADMIN', 'EXPEDICAO', 'VENDEDOR'), searchProducts)
 router.get('/products/:id/stock',   authorizeRoles('ADMIN', 'VENDEDOR', 'EXPEDICAO'),            getProductStock)
 router.post('/products',            authorizeRoles('ADMIN'),            createProduct)
 router.patch('/products/:id',       authorizeRoles('ADMIN'),            updateProduct)

@@ -27,6 +27,11 @@ model Product {
   name       String
   type       String      // categoria livre: "Bovino", "Bebidas", "Acessórios", etc.
   active     Boolean     @default(true)
+  // Preços padrão
+  priceType   String      @default("PER_LB")  // "PER_LB" | "PER_BOX" | "PER_UNIT"
+  pricePerLb  Float?                           // preço por libra
+  pricePerBox Float?                           // preço por caixa
+  pricePerUnit Float?                          // preço por unidade
   createdAt  DateTime    @default(now())
   containers Container[]
   orderItems OrderItem[] @relation("OrderItemProduct")
