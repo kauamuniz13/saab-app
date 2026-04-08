@@ -6,11 +6,11 @@
     "dev": "node server.js",
     "start": "node server.js",
     "build": "npx prisma generate",
-    "postinstall": "npx prisma generate",
     "seed": "node prisma/seed.js"
   },
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "schema": "prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",
