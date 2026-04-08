@@ -30,6 +30,7 @@ const updateContainer = async (req, res) => {
     ...(quantity  !== undefined && { quantity: Number(quantity) }),
     ...(unit      !== undefined && { unit: String(unit) }),
     ...(productId !== undefined && { productId: productId ? Number(productId) : null }),
+    updatedById: req.user.sub,
   })
   return res.json(container)
 }

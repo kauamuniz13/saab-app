@@ -57,7 +57,7 @@ const DriverDelivery = () => {
     setActing(true)
     setError('')
     try {
-      const updated = await loadOrder(id)
+      const updated = await loadOrder(id, order.lastStatusAt)
       setOrder(updated)
     } catch (err) {
       setError(err?.response?.data?.message ?? 'Erro ao confirmar carga.')
@@ -70,7 +70,7 @@ const DriverDelivery = () => {
     setActing(true)
     setError('')
     try {
-      const updated = await deliverOrder(id)
+      const updated = await deliverOrder(id, order.lastStatusAt)
       setOrder(updated)
     } catch (err) {
       setError(err?.response?.data?.message ?? 'Erro ao confirmar entrega.')

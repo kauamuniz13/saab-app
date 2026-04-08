@@ -13,7 +13,7 @@ Fluxo operacional: **Vendedor faz pedido (digita nome da loja) → Expedição c
 | Camada    | Stack                                       |
 |-----------|---------------------------------------------|
 | Frontend  | React 18, Vite, Tailwind CSS, react-router-dom, axios, react-signature-canvas |
-| Backend   | Node.js, Express 5, Prisma ORM, PostgreSQL, JWT, pdfkit, bcrypt |
+| Backend   | Node.js, Express 5, Prisma ORM, PostgreSQL, JWT, Zod, pdfkit, bcrypt |
 | Infra     | Docker Compose (PostgreSQL + backend), frontend local via Vite  |
 
 ## Commands
@@ -54,10 +54,13 @@ project/
 │       │   ├── OrderController.js
 │       │   ├── RouteController.js
 │       │   └── UserController.js
+│       ├── lib/
+│       │   ├── prisma.js              # Prisma client singleton
+│       │   └── schemas.js             # Zod schemas — createOrderSchema, packOrderSchema, updateStatusSchema
 │       ├── services/                  # Business logic — Prisma queries, cálculos
 │       │   ├── InventoryService.js
-│       │   ├── OrderService.js
-│       │   ├── InvoiceService.js      # PDF generation (pdfkit), currency USD, custom fonts (Helvetica World + IBM Plex Sans), multi-page support
+│       │   ├── OrderService.js        # Status transitions with lastStatusAt conflict detection
+│       │   ├── InvoiceService.js      # PDF generation (pdfkit), currency USD, custom fonts, fail-fast asset check at startup
 │       │   ├── RouteService.js        # Haversine + nearest-neighbor, depot Orlando FL
 │       │   └── UserService.js
 │       └── routes/
@@ -170,12 +173,13 @@ User         → id, name, email, password, role (ADMIN|VENDEDOR|EXPEDICAO|MOTOR
 Product      → id, name, type (texto livre), active, priceType (PER_LB|PER_BOX|PER_UNIT),
                pricePerLb?, pricePerBox?, pricePerUnit?
 Container    → id, label, zone (CAMARA_FRIA|CONTAINER_31|CONTAINER_32|CONTAINER_33|CONTAINER_36|BEBIDAS|SECOS),
-               capacity, quantity, productId?
+               capacity, quantity, productId?, updatedById?
 Order        → id, clientName (string), clientId? (legacy), status, totalBoxes, weightLb, address, lat/lon,
-               deliveryWindowStart/End, signature, deliveredAt/By, separatedAt/By/At, packedAt/By/At, loadedAt
+               deliveryWindowStart/End, signature, deliveredAt/By, separatedAt/By/At, packedAt/By/At, loadedAt,
+               updatedById?, lastStatusAt?
 OrderItem    → id, orderId, containerId, productId, quantity, weightLb, priceType (PER_LB|PER_BOX),
                pricePerLb?, pricePerBox?, boxWeights (BoxWeight[])
-BoxWeight    → id, orderItemId, boxNumber, weightLb (peso individual por caixa)
+BoxWeight    → id, orderItemId, boxNumber, weightLb (peso individual por caixa), updatedById?, createdAt, updatedAt
 ```
 
 ## Seed Data
@@ -215,8 +219,11 @@ BoxWeight    → id, orderItemId, boxNumber, weightLb (peso individual por caixa
 - **CSS**: CSS Modules exclusively (`Component.module.css`). NO Tailwind, NO inline styles, NO styled-components.
 - **Node**: Express, REST, Controllers/Services separation. Controllers = HTTP, Services = business logic.
 - **Currency**: USD ($). Preços em dólar americano. `toLocaleString('en-US', { currency: 'USD' })`.
-- **Security**: JWT authentication, bcrypt for passwords, environment variables for secrets.
-- **Validation**: Frontend (UX) + Backend (Security). Never trust client input.
+- **Security**: JWT authentication (header-only, no query param tokens), bcrypt for passwords, environment variables for secrets.
+- **Validation**: Zod schemas in `src/lib/schemas.js` for backend input validation. Frontend (UX) + Backend (Security). Never trust client input.
+- **Audit**: All status-changing operations set `updatedById` (who) and `lastStatusAt` (when). Container mutations track `updatedById`.
+- **Offline conflict detection**: Status endpoints accept optional `lastStatusAt` from client; server rejects (409) if stale.
+- **Stock consistency**: `cancelOrder` reverts container quantities inside a transaction.
 - **Patterns**: Clean Code, DRY, SOLID. Reusable components in `src/components/`.
 - **Boolean fields**: Use `!== false` checks (not truthy) when a DB field has `@default(true)`, to handle `undefined` gracefully.
 
@@ -266,6 +273,8 @@ Mobile-first. Breakpoints: `480px` → `768px` → `1024px`.
 - `IBM Plex Sans Italic` (`IBMPlexSans-Italic-VariableFont_wdth,wght.ttf`) → alias `IBMItalic` — addresses, descriptions, metadata values, footer text, signatures
 
 **Logo**: `Logo-do-invoice.png` (includes "SAAB FOODS" text — do NOT render text separately)
+
+**Assets**: All in `backend/src/assets/`. Verified at startup (fail-fast if missing). Bundled via `COPY backend/ .` in Dockerfile.
 
 **Layout rules**:
 - One row per item; box weights consolidated into multi-line DESCRIPTION (`{type}\n{NN} CASES\n{w1} + {w2} + ...`)

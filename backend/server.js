@@ -2,6 +2,7 @@ require('dotenv').config()
 const path      = require('path')
 const express   = require('express')
 const cors      = require('cors')
+const prisma    = require('./src/lib/prisma')
 const authRoutes      = require('./src/routes/authRoutes')
 const inventoryRoutes = require('./src/routes/inventoryRoutes')
 const orderRoutes     = require('./src/routes/orderRoutes')
@@ -24,7 +25,25 @@ app.use('/orders',    orderRoutes)
 app.use('/routes',    routeRoutes)
 app.use('/users',     userRoutes)
 
-app.get('/health', (_req, res) => res.json({ status: 'ok' }))
+app.get('/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    return res.json({ status: 'ok', db: 'connected' })
+  } catch (err) {
+    return res.status(503).json({ status: 'degraded', db: 'unreachable', error: err.message })
+  }
+})
+
+/* ── Global error handler — impede crash por exceptions não tratadas ── */
+app.use((err, _req, res, _next) => {
+  console.error('[UNHANDLED]', err)
+  const status = err.status || err.statusCode || 500
+  res.status(status).json({
+    message: process.env.NODE_ENV === 'production'
+      ? 'Erro interno do servidor.'
+      : err.message,
+  })
+})
 
 /* ── Serve frontend build (produção / ngrok) ── */
 const clientBuild = path.join(__dirname, 'public')

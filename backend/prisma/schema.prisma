@@ -29,12 +29,15 @@ model Product {
   active     Boolean     @default(true)
   // Preços padrão
   priceType   String      @default("PER_LB")  // "PER_LB" | "PER_BOX" | "PER_UNIT"
-  pricePerLb  Float?                           // preço por libra
-  pricePerBox Float?                           // preço por caixa
-  pricePerUnit Float?                          // preço por unidade
+  pricePerLb   Decimal? @db.Decimal(10, 4)      // preço por libra
+  pricePerBox  Decimal? @db.Decimal(10, 2)     // preço por caixa
+  pricePerUnit Decimal? @db.Decimal(10, 2)     // preço por unidade
   createdAt  DateTime    @default(now())
   containers Container[]
   orderItems OrderItem[] @relation("OrderItemProduct")
+
+  @@index([type])
+  @@index([active])
 }
 
 enum ContainerZone {
@@ -48,17 +51,21 @@ enum ContainerZone {
 }
 
 model Container {
-  id         Int              @id @default(autoincrement())
-  label      String           @unique // ex: "CF-01", "SN-02"
-  zone       ContainerZone    @default(SECOS)
-  capacity   Int
-  quantity   Int              @default(0)
-  unit       String           @default("caixas")
-  productId  Int?
-  product    Product?         @relation(fields: [productId], references: [id])
-  orderItems OrderItem[]
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  id          Int              @id @default(autoincrement())
+  label       String           @unique // ex: "CF-01", "SN-02"
+  zone        ContainerZone    @default(SECOS)
+  capacity    Int
+  quantity    Int              @default(0)
+  unit        String           @default("caixas")
+  productId   Int?
+  product     Product?         @relation(fields: [productId], references: [id])
+  orderItems  OrderItem[]
+  updatedById Int?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([zone])
+  @@index([productId])
 }
 
 // Valores válidos: "PENDING" | "CONFIRMED" | "SEPARATING" | "READY" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED"
@@ -76,7 +83,7 @@ model Order {
   deliveryWindowStart String      @default("08:00") // "HH:MM"
   deliveryWindowEnd   String      @default("18:00") // "HH:MM"
   // Peso
-  weightLb            Float       @default(0)
+  weightLb            Decimal     @default(0) @db.Decimal(10, 4)
   deliveredAt         DateTime?
   deliveredById       Int?
   // Expedição
@@ -86,9 +93,17 @@ model Order {
   packedAt            DateTime?
   // Motorista
   loadedAt            DateTime?
+  // Auditoria
+  updatedById         Int?
+  lastStatusAt        DateTime?
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   items               OrderItem[]
+
+  @@index([status])
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([status, createdAt])
 }
 
 model OrderItem {
@@ -101,9 +116,9 @@ model OrderItem {
   product     Product     @relation("OrderItemProduct", fields: [productId], references: [id])
   quantity    Int
   priceType   String      @default("PER_LB")  // "PER_LB" | "PER_BOX"
-  pricePerLb  Float?                           // preenchido pelo vendedor se PER_LB
-  pricePerBox Float?                           // preenchido pelo vendedor se PER_BOX
-  weightLb    Float       @default(0)          // soma das boxWeights (calculado ao embalar)
+  pricePerLb  Decimal?    @db.Decimal(10, 4)   // preenchido pelo vendedor se PER_LB
+  pricePerBox Decimal?    @db.Decimal(10, 2)   // preenchido pelo vendedor se PER_BOX
+  weightLb    Decimal     @default(0) @db.Decimal(10, 4) // soma das boxWeights (calculado ao embalar)
   boxWeights  BoxWeight[]
 }
 
@@ -112,5 +127,8 @@ model BoxWeight {
   orderItemId Int
   orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
   boxNumber   Int
-  weightLb    Float
+  weightLb    Decimal   @db.Decimal(10, 4)
+  updatedById Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
 }

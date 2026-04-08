@@ -144,7 +144,7 @@ const ExpedicaoPickingList = () => {
       }
     })
 
-    handleAction(() => packOrder(id, itemWeights))
+    handleAction(() => packOrder(id, itemWeights, order.lastStatusAt))
   }
 
   if (loading) return <div className="py-12 px-6 text-sm text-muted text-center">A carregar...</div>
@@ -294,7 +294,7 @@ const ExpedicaoPickingList = () => {
             <button
               className="bg-red border-none rounded px-6 py-2.5 text-sm font-bold uppercase tracking-[0.06em] text-on-red cursor-pointer w-fit transition-colors duration-[180ms] hover:enabled:bg-red-h active:enabled:bg-red-a disabled:opacity-40 disabled:cursor-not-allowed"
               disabled={acting}
-              onClick={() => handleAction(() => confirmOrder(id))}
+              onClick={() => handleAction(() => confirmOrder(id, order.lastStatusAt))}
             >
               {acting ? 'A processar...' : 'Confirmar Pedido'}
             </button>
@@ -309,7 +309,7 @@ const ExpedicaoPickingList = () => {
             <button
               className="bg-red border-none rounded px-6 py-2.5 text-sm font-bold uppercase tracking-[0.06em] text-on-red cursor-pointer w-fit transition-colors duration-[180ms] hover:enabled:bg-red-h active:enabled:bg-red-a disabled:opacity-40 disabled:cursor-not-allowed"
               disabled={acting}
-              onClick={() => handleAction(() => separateOrder(id))}
+              onClick={() => handleAction(() => separateOrder(id, order.lastStatusAt))}
             >
               {acting ? 'A processar...' : 'Iniciar Separação'}
             </button>

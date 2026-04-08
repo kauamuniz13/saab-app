@@ -1,10 +1,19 @@
 const PDFDocument = require('pdfkit')
 const path = require('path')
+const fs   = require('fs')
 
 // ── Assets ──
-const LOGO_PATH       = path.join(__dirname, '..', 'assets', 'Logo-do-invoice.png')
-const FONT_HELV_BOLD  = path.join(__dirname, '..', 'assets', 'helvetica-world-italic.ttf')
-const FONT_IBM_ITALIC = path.join(__dirname, '..', 'assets', 'IBMPlexSans-Italic-VariableFont_wdth,wght.ttf')
+const ASSETS_DIR      = path.join(__dirname, '..', 'assets')
+const LOGO_PATH       = path.join(ASSETS_DIR, 'Logo-do-invoice.png')
+const FONT_HELV_BOLD  = path.join(ASSETS_DIR, 'helvetica-world-italic.ttf')
+const FONT_IBM_ITALIC = path.join(ASSETS_DIR, 'IBMPlexSans-Italic-VariableFont_wdth,wght.ttf')
+
+// Fail-fast: verify assets exist at startup
+for (const f of [LOGO_PATH, FONT_HELV_BOLD, FONT_IBM_ITALIC]) {
+  if (!fs.existsSync(f)) {
+    throw new Error(`InvoiceService: asset não encontrado — ${f}`)
+  }
+}
 
 // ── Palette ──
 const COLOR = {

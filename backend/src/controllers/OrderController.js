@@ -1,43 +1,25 @@
 const OrderService   = require('../services/OrderService')
 const UserService    = require('../services/UserService')
 const InvoiceService = require('../services/InvoiceService')
+const { createOrderSchema, packOrderSchema, updateStatusSchema } = require('../lib/schemas')
 
 /* ── Create ── */
 const createOrder = async (req, res) => {
-  const { clientId, clientName, address, items } = req.body
-
-  if (!clientId && !clientName) {
-    return res.status(400).json({ message: 'clientId ou clientName é obrigatório.' })
+  const parsed = createOrderSchema.safeParse(req.body)
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map(i => i.message).join('; ')
+    return res.status(400).json({ message: msg })
   }
 
-  if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ message: 'items[] é obrigatório e não pode ser vazio.' })
-  }
-
-  const parsedItems = []
-  for (const item of items) {
-    if (!item.productId || !item.quantity) {
-      return res.status(400).json({ message: 'Cada item deve ter productId e quantity.' })
-    }
-    const qty = Number(item.quantity)
-    if (!Number.isInteger(qty) || qty <= 0) {
-      return res.status(400).json({ message: 'Quantidade deve ser um inteiro positivo.' })
-    }
-    parsedItems.push({
-      productId:   Number(item.productId),
-      quantity:    qty,
-      priceType:   item.priceType || 'PER_LB',
-      pricePerLb:  item.pricePerLb != null ? Number(item.pricePerLb) : null,
-      pricePerBox: item.pricePerBox != null ? Number(item.pricePerBox) : null,
-    })
-  }
+  const { clientId, clientName, address, items } = parsed.data
 
   try {
     const order = await OrderService.createOrder({
-      clientId:    clientId ? Number(clientId) : null,
-      clientName:  clientName?.trim() || '',
-      address:     address?.trim() || null,
-      items:       parsedItems,
+      clientId:   clientId ?? null,
+      clientName: clientName?.trim() || '',
+      address:    address?.trim() || null,
+      items,
+      updatedById: req.user.sub,
     })
     return res.status(201).json(order)
   } catch (err) {
@@ -46,22 +28,30 @@ const createOrder = async (req, res) => {
 }
 
 /* ── List ── */
-const listOrders = async (req, res) => {
-  const orders = await OrderService.listOrders({})
-  return res.json(orders)
+const listOrders = async (req, res, next) => {
+  try {
+    const { page, limit, status } = req.query
+    const filters = status ? { status } : {}
+    const orders = await OrderService.listOrders(filters, { page, limit })
+    return res.json(orders)
+  } catch (err) { next(err) }
 }
 
 /* ── Get by ID ── */
-const getOrder = async (req, res) => {
-  const order = await OrderService.getOrderById(req.params.id)
-  if (!order) return res.status(404).json({ message: 'Pedido não encontrado.' })
-  return res.json(order)
+const getOrder = async (req, res, next) => {
+  try {
+    const order = await OrderService.getOrderById(req.params.id)
+    if (!order) return res.status(404).json({ message: 'Pedido não encontrado.' })
+    return res.json(order)
+  } catch (err) { next(err) }
 }
 
 /* ── List clients ── */
-const listClients = async (_req, res) => {
-  const clients = await UserService.listClients()
-  return res.json(clients)
+const listClients = async (_req, res, next) => {
+  try {
+    const clients = await UserService.listClients()
+    return res.json(clients)
+  } catch (err) { next(err) }
 }
 
 /* ── Deliver ── */
@@ -69,6 +59,7 @@ const deliverOrder = async (req, res) => {
   try {
     const order = await OrderService.deliverOrder(req.params.id, {
       deliveredById: req.user.sub,
+      lastStatusAt:  req.body.lastStatusAt,
     })
     return res.json(order)
   } catch (err) {
@@ -78,17 +69,19 @@ const deliverOrder = async (req, res) => {
 
 /* ── Update status (CONFIRMED | CANCELLED) ── */
 const updateStatus = async (req, res) => {
-  const { status } = req.body
-  const VALID = ['CONFIRMED', 'CANCELLED']
-
-  if (!status || !VALID.includes(status)) {
-    return res.status(400).json({ message: `Status deve ser: ${VALID.join(' | ')}.` })
+  const parsed = updateStatusSchema.safeParse(req.body)
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map(i => i.message).join('; ')
+    return res.status(400).json({ message: msg })
   }
 
+  const { status } = parsed.data
+
   try {
+    const opts = { lastStatusAt: req.body.lastStatusAt }
     const order = status === 'CONFIRMED'
-      ? await OrderService.confirmOrder(req.params.id)
-      : await OrderService.cancelOrder(req.params.id)
+      ? await OrderService.confirmOrder(req.params.id, req.user.sub, opts)
+      : await OrderService.cancelOrder(req.params.id, req.user.sub, opts)
     return res.json(order)
   } catch (err) {
     return res.status(err.status || 500).json({ message: err.message })
@@ -98,7 +91,7 @@ const updateStatus = async (req, res) => {
 /* ── Separate (CONFIRMED → SEPARATING) ── */
 const separateOrder = async (req, res) => {
   try {
-    const order = await OrderService.separateOrder(req.params.id, req.user.sub)
+    const order = await OrderService.separateOrder(req.params.id, req.user.sub, { lastStatusAt: req.body.lastStatusAt })
     return res.json(order)
   } catch (err) {
     return res.status(err.status || 500).json({ message: err.message })
@@ -107,9 +100,15 @@ const separateOrder = async (req, res) => {
 
 /* ── Pack (SEPARATING → READY) ── */
 const packOrder = async (req, res) => {
-  const { itemWeights } = req.body
+  const parsed = packOrderSchema.safeParse(req.body)
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map(i => i.message).join('; ')
+    return res.status(400).json({ message: msg })
+  }
+
+  const { itemWeights } = parsed.data
   try {
-    const order = await OrderService.packOrder(req.params.id, req.user.sub, itemWeights)
+    const order = await OrderService.packOrder(req.params.id, req.user.sub, itemWeights, { lastStatusAt: req.body.lastStatusAt })
     return res.json(order)
   } catch (err) {
     return res.status(err.status || 500).json({ message: err.message })
@@ -119,7 +118,7 @@ const packOrder = async (req, res) => {
 /* ── Load (READY → IN_TRANSIT) ── */
 const loadOrder = async (req, res) => {
   try {
-    const order = await OrderService.loadOrder(req.params.id)
+    const order = await OrderService.loadOrder(req.params.id, req.user.sub, { lastStatusAt: req.body.lastStatusAt })
     return res.json(order)
   } catch (err) {
     return res.status(err.status || 500).json({ message: err.message })

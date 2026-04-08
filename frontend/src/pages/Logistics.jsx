@@ -217,8 +217,9 @@ const Logistics = () => {
   const [filter,    setFilter]    = useState('ALL')
 
   const handleStatusChange = async (orderId, status) => {
+    const order = orders.find(o => o.id === orderId)
     try {
-      const updated = await updateOrderStatus(orderId, status)
+      const updated = await updateOrderStatus(orderId, status, order?.lastStatusAt)
       setOrders(prev => prev.map(o => o.id === updated.id ? updated : o))
     } catch (err) {
       alert(err.response?.data?.message ?? 'Erro ao actualizar status.')
@@ -227,8 +228,9 @@ const Logistics = () => {
 
   const handleDeliver = async (orderId) => {
     if (!window.confirm('Confirmar entrega deste pedido?')) return
+    const order = orders.find(o => o.id === orderId)
     try {
-      const updated = await deliverOrder(orderId)
+      const updated = await deliverOrder(orderId, order?.lastStatusAt)
       setOrders(prev => prev.map(o => o.id === updated.id ? updated : o))
     } catch (err) {
       alert(err.response?.data?.message ?? 'Erro ao marcar como entregue.')
