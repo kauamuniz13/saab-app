@@ -80,7 +80,7 @@ const generateInvoice = (order, stream) => {
       doc.font(BOLD).fontSize(11).fillColor(COLOR.black)
          .text('SAAB Foods LLC', PL, 40)
 
-      doc.font(BODY).fontSize(8).fillColor(COLOR.darkGray)
+      doc.font(BODY).fontSize(8).fillColor(COLOR.black)
          .text('6843 Conway Rd Ste 120', PL, 55)
          .text('Orlando, FL 32812', PL, 65)
          .text('saab@saabfoods.com', PL, 75)
@@ -98,7 +98,7 @@ const generateInvoice = (order, stream) => {
 
    // ── INVOICE title ──
    const invoiceY = 115
-   doc.font(BOLD).fontSize(22).fillColor(COLOR.red)
+   doc.font(BODY).fontSize(22).fillColor(COLOR.red)
       .text('INVOICE', PL, invoiceY)
 
    // Thin red line under title
@@ -114,14 +114,17 @@ const generateInvoice = (order, stream) => {
    // BILL TO
    doc.font(BOLD).fontSize(8).fillColor(COLOR.black)
       .text('BILL TO', col1, infoY)
-   doc.font(BODY).fontSize(9).fillColor(COLOR.darkGray)
-      .text(order.clientName || '—', col1, infoY + 14, { width: CW * 0.30 })
+   doc.font(BODY).fontSize(9).fillColor(COLOR.black)
+      .text(
+         ([order.clientName, order.address].filter(Boolean).join('\n') || '—').toUpperCase(),
+         col1, infoY + 14, { width: CW * 0.30 }
+      )
 
    // SHIP TO
    doc.font(BOLD).fontSize(8).fillColor(COLOR.black)
       .text('SHIP TO', col2, infoY)
-   doc.font(BODY).fontSize(9).fillColor(COLOR.darkGray)
-      .text(order.address || '—', col2, infoY + 14, { width: CW * 0.30 })
+   doc.font(BODY).fontSize(9).fillColor(COLOR.black)
+      .text((order.address || '—').toUpperCase(), col2, infoY + 14, { width: CW * 0.30 })
 
    // INVOICE # / DATE / DUE DATE / TERMS
    // DUE DATE = createdAt + 7 days
@@ -139,7 +142,7 @@ const generateInvoice = (order, stream) => {
       const ly = infoY + i * 14
       doc.font(BOLD).fontSize(8).fillColor(COLOR.black)
          .text(label, col3, ly, { width: 80 })
-      doc.font(BODY).fontSize(8).fillColor(COLOR.darkGray)
+      doc.font(BOLD).fontSize(8).fillColor(COLOR.black)
          .text(value, col3 + 82, ly, { width: 100 })
    })
 
@@ -147,7 +150,7 @@ const generateInvoice = (order, stream) => {
    const repY = infoY + 70
    doc.font(BOLD).fontSize(8).fillColor(COLOR.black)
       .text('SALES REP', col1, repY)
-   doc.font(BODY).fontSize(9).fillColor(COLOR.darkGray)
+   doc.font(BODY).fontSize(9).fillColor(COLOR.black)
       .text(order.client?.email || '—', col1, repY + 14)
 
    // Thin gray separator before table
@@ -172,8 +175,6 @@ const generateInvoice = (order, stream) => {
 
    // ── Draw table header row ──
    const drawTableHeader = (yPos) => {
-      doc.rect(PL, yPos, CW, headerH).fill(COLOR.lightRed)
-
       const headers = [
          ['QTY', cols.qty],
          ['ITEM', cols.item],
@@ -183,9 +184,13 @@ const generateInvoice = (order, stream) => {
       ]
 
       headers.forEach(([label, col]) => {
-         doc.font(BOLD).fontSize(7).fillColor(COLOR.white)
+         doc.font(BODY).fontSize(7).fillColor(COLOR.red)
             .text(label, col.x + 4, yPos + 6, { width: col.w - 8 })
       })
+
+      // Bottom border under header
+      doc.moveTo(PL, yPos + headerH).lineTo(PR, yPos + headerH)
+         .strokeColor(COLOR.red).lineWidth(0.5).stroke()
 
       return yPos + headerH
    }
@@ -259,10 +264,6 @@ const generateInvoice = (order, stream) => {
 
       // Check page overflow — leave room for at least this row + footer
       if (y + rowH > PAGE_BOTTOM) {
-         // Draw outer border for current page's table portion
-         doc.rect(PL, tableStartY, CW, y - tableStartY)
-            .strokeColor(COLOR.darkGray).lineWidth(0.5).stroke()
-
          doc.addPage()
          drawHeader()
          const newTableY = 115
@@ -305,10 +306,6 @@ const generateInvoice = (order, stream) => {
       rowIndex++
    }
 
-   // Outer table border
-   doc.rect(PL, tableStartY, CW, y - tableStartY)
-      .strokeColor(COLOR.darkGray).lineWidth(0.5).stroke()
-
    // ═══════════════════════════════════════════
    // ── BALANCE DUE + FOOTER (drawn as a single block) ──
    // ═══════════════════════════════════════════
@@ -344,28 +341,28 @@ const generateInvoice = (order, stream) => {
    doc.moveTo(PL, lineY).lineTo(PR, lineY)
       .strokeColor(COLOR.red).lineWidth(0.5).stroke()
 
-   doc.font(BODY).fontSize(6.5).fillColor(COLOR.lightGray)
+   doc.font(BODY).fontSize(6.5).fillColor(COLOR.black)
       .text(
          'Please, send your update Sales Tax Certificate to saab@saabfoods.com or delivering it to one of our representatives.',
          PL, certY, { width: CW, align: 'center' }
       )
 
-   doc.font(BOLD).fontSize(6.5).fillColor(COLOR.lightGray)
+   doc.font(BOLD).fontSize(6.5).fillColor(COLOR.black)
       .text('Zelle: 321-989-7211', PL, zeleY, { width: CW, align: 'center' })
 
    // ── Signature fields — anchored above bottom bar ──
    const lineLen = 180
    const sigY = lineY - 68
 
-   doc.font(BODY).fontSize(8).fillColor(COLOR.darkGray)
+   doc.font(BODY).fontSize(8).fillColor(COLOR.black)
       .text('Print name:', PL, sigY)
    doc.moveTo(PL + 58, sigY + 10).lineTo(PL + 58 + lineLen, sigY + 10)
       .strokeColor(COLOR.darkGray).lineWidth(0.5).stroke()
 
-   doc.font(BODY).fontSize(8).fillColor(COLOR.darkGray)
+   doc.font(BODY).fontSize(8).fillColor(COLOR.black)
       .text('Date:  ____/____/____', PL, sigY + 22)
 
-   doc.font(BODY).fontSize(8).fillColor(COLOR.darkGray)
+   doc.font(BODY).fontSize(8).fillColor(COLOR.black)
       .text('Please, sign:', PL, sigY + 44)
    doc.moveTo(PL + 70, sigY + 54).lineTo(PL + 70 + lineLen, sigY + 54)
       .strokeColor(COLOR.darkGray).lineWidth(0.5).stroke()
@@ -373,10 +370,10 @@ const generateInvoice = (order, stream) => {
    // ── NSF / Returns policy — anchored above signatures ──
    const nsfY = sigY - 50
 
-   doc.font(BODY).fontSize(6).fillColor(COLOR.lightGray)
+   doc.font(BODY).fontSize(6).fillColor(COLOR.black)
       .text('NSF Fee: $25/$30/$40 or 5% of check, per FL law.', PL, nsfY)
 
-   doc.font(BODY).fontSize(6).fillColor(COLOR.lightGray)
+   doc.font(BODY).fontSize(6).fillColor(COLOR.black)
       .text(
          '*PRODUCT RETURNS ONLY AT DELIVERY / DEVOLUCIONES\n' +
          'SOLO AL MOMENTO DE LA ENTREGA / DEVOLUÇÕES SOMENTE\n' +
