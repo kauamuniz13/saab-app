@@ -8,10 +8,10 @@ const LOGO_PATH       = path.join(ASSETS_DIR, 'Logo-do-invoice.png')
 const FONT_HELV_BOLD  = path.join(ASSETS_DIR, 'helvetica-world-italic.ttf')
 const FONT_IBM_ITALIC = path.join(ASSETS_DIR, 'IBMPlexSans-Italic-VariableFont_wdth,wght.ttf')
 
-// Fail-fast: verify assets exist at startup
+// Warn on missing assets at startup (non-fatal — invoice endpoint will fail individually)
 for (const f of [LOGO_PATH, FONT_HELV_BOLD, FONT_IBM_ITALIC]) {
   if (!fs.existsSync(f)) {
-    throw new Error(`InvoiceService: asset não encontrado — ${f}`)
+    console.warn(`[InvoiceService] asset não encontrado — ${f}`)
   }
 }
 
