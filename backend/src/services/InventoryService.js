@@ -53,10 +53,10 @@ const getProductStock = async (productId) => {
 }
 
 const createProduct = ({ name, type, priceType, pricePerLb, pricePerBox, pricePerUnit }) =>
-  prisma.product.create({ 
-    data: { 
-      name, 
-      type, 
+  prisma.product.create({
+    data: {
+      name: name?.trim().toUpperCase(),
+      type: type?.trim().toUpperCase(),
       active: true,
       ...(priceType && { priceType }),
       ...(pricePerLb !== undefined && { pricePerLb: Number(pricePerLb) }),
@@ -66,10 +66,12 @@ const createProduct = ({ name, type, priceType, pricePerLb, pricePerBox, pricePe
   })
 
 const updateProduct = (id, data) =>
-  prisma.product.update({ 
-    where: { id: Number(id) }, 
+  prisma.product.update({
+    where: { id: Number(id) },
     data: {
       ...data,
+      ...(data.name !== undefined && { name: data.name.trim().toUpperCase() }),
+      ...(data.type !== undefined && { type: data.type.trim().toUpperCase() }),
       ...(data.pricePerLb !== undefined && { pricePerLb: Number(data.pricePerLb) }),
       ...(data.pricePerBox !== undefined && { pricePerBox: Number(data.pricePerBox) }),
       ...(data.pricePerUnit !== undefined && { pricePerUnit: Number(data.pricePerUnit) }),

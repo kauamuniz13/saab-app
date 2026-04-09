@@ -102,7 +102,7 @@ const generateInvoice = (order, stream) => {
 
    // ── INVOICE title ──
    const invoiceY = 115
-   doc.font(BODY).fontSize(22).fillColor(COLOR.red)
+   doc.font('HelvItalic').fontSize(22).fillColor(COLOR.red)
       .text('INVOICE', PL, invoiceY)
 
 
@@ -298,7 +298,7 @@ const generateInvoice = (order, stream) => {
 
       // ITEM (product name — IBM bold)
       doc.font('IBMBold').fontSize(8).fillColor(COLOR.black)
-         .text(row.item, cols.item.x + 4, cellY, { width: cols.item.w - 8 })
+         .text(String(row.item).toUpperCase(), cols.item.x + 4, cellY, { width: cols.item.w - 8 })
 
       // DESCRIPTION (multi-line — HelvItalic uppercase)
       doc.font('HelvItalic').fontSize(8).fillColor(COLOR.black)
