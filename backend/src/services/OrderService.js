@@ -306,6 +306,8 @@ const packOrder = async (id, userId, itemWeights, { lastStatusAt: clientTs } = {
               orderItemId: iw.orderItemId,
               boxNumber:   bw.boxNumber,
               weightLb:    bw.weightLb,
+              ...(bw.expiryDate && { expiryDate: new Date(bw.expiryDate) }),
+              ...(bw.batch && { batch: bw.batch }),
               updatedById: Number(userId),
             })),
           })

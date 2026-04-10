@@ -7,6 +7,9 @@ import {
   packOrder,
   openInvoice,
 } from '../services/orderService'
+import { lookupGtin, createGtinMapping } from '../services/inventoryService'
+import BarcodeScanner from '../components/BarcodeScanner'
+import { parseGS1Barcode } from '../utils/gs1Parser'
 
 import { STATUS_CONFIG, STATUS_FALLBACK } from '../constants/status'
 
@@ -38,6 +41,13 @@ const ExpedicaoPickingList = () => {
   const [boxWeightsMap, setBoxWeightsMap] = useState({})
   // Per-item PER_BOX confirmation: { [orderItemId]: boolean }
   const [boxConfirmed,  setBoxConfirmed]  = useState({})
+
+  // Barcode scanner state
+  const [scannerOpen, setScannerOpen] = useState(false)
+  const [scanResult,  setScanResult]  = useState(null)
+  const [scanError,   setScanError]   = useState('')
+  // Track which item+box the scanner should fill
+  const [scanTarget,  setScanTarget]  = useState(null) // { itemId, boxNum }
 
   const load = () => {
     setLoading(true)
@@ -75,6 +85,52 @@ const ExpedicaoPickingList = () => {
 
   const toggleBoxConfirm = (itemId) => {
     setBoxConfirmed(prev => ({ ...prev, [itemId]: !prev[itemId] }))
+  }
+
+  const openScanner = (itemId, boxNum) => {
+    setScanTarget({ itemId, boxNum })
+    setScanResult(null)
+    setScanError('')
+    setScannerOpen(true)
+  }
+
+  const handleScan = async (rawText) => {
+    setScannerOpen(false)
+    const parsed = parseGS1Barcode(rawText)
+    setScanResult(parsed)
+
+    if (!parsed.gtin) {
+      setScanError('Codigo lido mas sem GTIN detectado.')
+      return
+    }
+
+    // Look up product by GTIN
+    try {
+      const mapping = await lookupGtin(parsed.gtin)
+      // If we have a target box and a weight, fill it
+      if (scanTarget && parsed.weightLb != null) {
+        setBoxWeight(scanTarget.itemId, scanTarget.boxNum, String(parsed.weightLb))
+      }
+      setScanResult(prev => ({ ...prev, productName: mapping.product?.name }))
+      setScanError('')
+    } catch {
+      // GTIN not mapped yet — offer to register
+      setScanError(`GTIN ${parsed.gtin} nao mapeado. Peso lido: ${parsed.weightLb ?? '—'} lbs`)
+      // Still fill the weight if available
+      if (scanTarget && parsed.weightLb != null) {
+        setBoxWeight(scanTarget.itemId, scanTarget.boxNum, String(parsed.weightLb))
+      }
+    }
+  }
+
+  const handleRegisterGtin = async (gtin, productId) => {
+    try {
+      await createGtinMapping(gtin, productId)
+      setScanError('')
+      setScanResult(prev => ({ ...prev, registered: true }))
+    } catch {
+      setScanError('Erro ao registrar GTIN.')
+    }
   }
 
   const itemSubtotals = useMemo(() => {
@@ -222,6 +278,17 @@ const ExpedicaoPickingList = () => {
                       value={boxWeightsMap[item.id]?.[boxNum] ?? ''}
                       onChange={e => setBoxWeight(item.id, boxNum, e.target.value)}
                     />
+                    <button
+                      type="button"
+                      className="p-2 text-secondary hover:text-red bg-transparent border border-border-input rounded cursor-pointer transition-colors duration-150 hover:border-red shrink-0"
+                      onClick={() => openScanner(item.id, boxNum)}
+                      title="Escanear codigo de barras"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+                      </svg>
+                    </button>
                   </div>
                 ))}
                 <div className="text-[0.8125rem] font-bold text-primary text-right pt-1 border-t border-border">
@@ -353,6 +420,55 @@ const ExpedicaoPickingList = () => {
         )}
 
       </div>
+
+      {/* ── Scan Result Banner ── */}
+      {scanResult && (
+        <div className={`bg-surface border rounded-md px-5 py-4 flex flex-col gap-2 ${scanError ? 'border-warn' : 'border-ok'}`}>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-secondary m-0">Resultado do Scan</p>
+            <button
+              onClick={() => { setScanResult(null); setScanError('') }}
+              className="text-secondary hover:text-primary bg-transparent border-0 cursor-pointer text-xs"
+            >
+              Fechar
+            </button>
+          </div>
+          {scanResult.productName && (
+            <p className="text-sm text-primary m-0">Produto: <strong>{scanResult.productName}</strong></p>
+          )}
+          {scanResult.gtin && <p className="text-xs text-secondary m-0">GTIN: {scanResult.gtin}</p>}
+          {scanResult.weightLb != null && <p className="text-xs text-secondary m-0">Peso: {scanResult.weightLb} lbs</p>}
+          {scanResult.expiryDate && <p className="text-xs text-secondary m-0">Validade: {scanResult.expiryDate}</p>}
+          {scanResult.batch && <p className="text-xs text-secondary m-0">Lote: {scanResult.batch}</p>}
+          {scanError && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <p className="text-xs text-warn m-0">{scanError}</p>
+              {scanResult.gtin && !scanResult.registered && scanTarget && (
+                <button
+                  className="text-xs text-red font-bold bg-transparent border border-red rounded px-3 py-1 cursor-pointer hover:bg-red hover:text-white transition-colors"
+                  onClick={() => {
+                    const item = order.items.find(i => i.id === scanTarget.itemId)
+                    if (item) handleRegisterGtin(scanResult.gtin, item.productId)
+                  }}
+                >
+                  Registrar GTIN para este produto
+                </button>
+              )}
+            </div>
+          )}
+          {scanResult.registered && (
+            <p className="text-xs text-ok m-0 font-semibold">GTIN registrado com sucesso!</p>
+          )}
+        </div>
+      )}
+
+      {/* ── Barcode Scanner Modal ── */}
+      {scannerOpen && (
+        <BarcodeScanner
+          onScan={handleScan}
+          onClose={() => setScannerOpen(false)}
+        />
+      )}
 
     </div>
   )

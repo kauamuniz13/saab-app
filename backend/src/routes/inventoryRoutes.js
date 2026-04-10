@@ -10,6 +10,10 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
+  getConsolidatedStock,
+  lookupGtin,
+  createGtinMapping,
+  listGtinMappings,
 } = require('../controllers/InventoryController')
 
 const router = Router()
@@ -28,5 +32,13 @@ router.get('/products/:id/stock',   authorizeRoles('ADMIN', 'VENDEDOR', 'EXPEDIC
 router.post('/products',            authorizeRoles('ADMIN'),            createProduct)
 router.patch('/products/:id',       authorizeRoles('ADMIN'),            updateProduct)
 router.delete('/products/:id',      authorizeRoles('ADMIN'),            deleteProduct)
+
+/* ── Consolidated Stock ── */
+router.get('/stock',                authorizeRoles('ADMIN', 'EXPEDICAO', 'VENDEDOR'), getConsolidatedStock)
+
+/* ── GTIN Mappings ── */
+router.get('/gtin',                 authorizeRoles('ADMIN', 'EXPEDICAO'), listGtinMappings)
+router.get('/gtin/:gtin',           authorizeRoles('ADMIN', 'EXPEDICAO'), lookupGtin)
+router.post('/gtin',                authorizeRoles('ADMIN', 'EXPEDICAO'), createGtinMapping)
 
 module.exports = router

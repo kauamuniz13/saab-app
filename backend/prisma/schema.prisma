@@ -18,6 +18,7 @@ model User {
   lat       Float?
   lon       Float?
   orders    Order[]
+  notices   Notice[]  @relation("NoticeCreator")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -33,8 +34,9 @@ model Product {
   pricePerBox  Decimal? @db.Decimal(10, 2)     // preço por caixa
   pricePerUnit Decimal? @db.Decimal(10, 2)     // preço por unidade
   createdAt  DateTime    @default(now())
-  containers Container[]
-  orderItems OrderItem[] @relation("OrderItemProduct")
+  containers  Container[]
+  orderItems  OrderItem[] @relation("OrderItemProduct")
+  gtinMappings GtinMapping[]
 
   @@index([type])
   @@index([active])
@@ -138,7 +140,30 @@ model BoxWeight {
   orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
   boxNumber   Int
   weightLb    Decimal   @db.Decimal(10, 4)
+  expiryDate  DateTime?
+  batch       String?
   updatedById Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
+}
+
+model GtinMapping {
+  id        Int      @id @default(autoincrement())
+  gtin      String   @unique
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+model Notice {
+  id          Int       @id @default(autoincrement())
+  title       String
+  body        String
+  createdById Int
+  createdBy   User      @relation("NoticeCreator", fields: [createdById], references: [id])
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

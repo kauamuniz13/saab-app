@@ -88,6 +88,15 @@ const IconClient = () => (
   </svg>
 )
 
+const IconNotices = () => (
+  <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75
+         a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0
+         01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+  </svg>
+)
+
 const IconLogout = () => (
   <svg style={{ width: '1rem', height: '1rem' }} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
@@ -99,23 +108,27 @@ const IconLogout = () => (
 
 const NAV_ITEMS = [
   { key: 'dashboard', label: 'Painel',     Icon: IconHome,    path: '/admin/dashboard' },
-  { key: 'inventory', label: 'Estoque',   Icon: IconInventory, path: '/admin/inventory' },
+  { key: 'inventory', label: 'Estoque',        Icon: IconInventory, path: '/admin/inventory' },
+  { key: 'stock',     label: 'Estoque Geral',  Icon: IconInventory, path: '/admin/stock' },
   { key: 'orders',    label: 'Pedidos',   Icon: IconOrders,    path: '/admin/orders/new' },
   { key: 'logistics', label: 'Logística', Icon: IconLogistics, path: '/admin/logistics' },
   { key: 'routes',    label: 'Rotas',     Icon: IconRoutes,    path: '/admin/routes' },
   { key: 'clients', label: 'Clientes', Icon: IconClient, path: '/admin/clients' },
   { key: 'users',       label: 'Utilizadores', Icon: IconUsers,      path: '/admin/users' },
+  { key: 'notices',  label: 'Avisos',   Icon: IconNotices, path: '/admin/notices' },
 ]
 
 const PAGE_TITLES = {
   dashboard: 'Painel de Controle',
   inventory: 'Estoque',
+  stock:     'Estoque Geral',
   products:  'Produtos',
   orders:    'Pedidos',
   logistics: 'Logística',
   routes:      'Rotas',
   clients:     'Clientes',
   users:       'Utilizadores',
+  notices:     'Avisos',
 }
 
 import { STATUS_CONFIG, STATUS_FALLBACK } from '../constants/status'
@@ -264,6 +277,7 @@ const AdminDashboard = () => {
 
   const activeKey = (() => {
     if (location.pathname.startsWith('/admin/dashboard')) return 'dashboard'
+    if (location.pathname.startsWith('/admin/stock'))     return 'stock'
     if (location.pathname.startsWith('/admin/inventory')) return 'inventory'
     if (location.pathname.startsWith('/admin/orders'))    return 'orders'
     if (location.pathname.startsWith('/admin/logistics')) return 'logistics'
@@ -271,6 +285,7 @@ const AdminDashboard = () => {
     if (location.pathname.startsWith('/admin/products'))     return 'products'
     if (location.pathname.startsWith('/admin/clients'))     return 'clients'
     if (location.pathname.startsWith('/admin/users'))       return 'users'
+    if (location.pathname.startsWith('/admin/notices'))     return 'notices'
     return 'inventory'
   })()
 

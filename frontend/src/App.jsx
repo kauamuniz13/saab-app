@@ -20,6 +20,8 @@ import ExpedicaoPickingList from './pages/ExpedicaoPickingList'
 import VendedorLayout    from './pages/VendedorLayout'
 import VendedorOrders    from './pages/VendedorOrders'
 import AdminClients      from './pages/AdminClients'
+import Notices           from './pages/Notices'
+import StockOverview     from './pages/StockOverview'
 
 const App = () => {
   return (
@@ -45,12 +47,14 @@ const App = () => {
             <Route index                element={<Navigate to="inventory" replace />} />
             <Route path="dashboard"     element={<AdminHome />} />
             <Route path="inventory"     element={<Inventory />} />
+            <Route path="stock"         element={<StockOverview />} />
             <Route path="orders/new"    element={<OrderEntry />} />
             <Route path="logistics"     element={<Logistics />} />
             <Route path="routes"        element={<DriverRoutes />} />
             <Route path="products"      element={<AdminProducts />} />
             <Route path="clients"       element={<AdminClients />} />
             <Route path="users"         element={<AdminUsers />} />
+            <Route path="notices"       element={<Notices />} />
             <Route path="*"             element={<Navigate to="inventory" replace />} />
           </Route>
 
@@ -68,7 +72,9 @@ const App = () => {
             <Route path="orders"        element={<ExpedicaoOrders />} />
             <Route path="orders/:id"    element={<ExpedicaoPickingList />} />
             <Route path="containers"    element={<Inventory />} />
+            <Route path="stock"         element={<StockOverview />} />
             <Route path="logistics"     element={<Logistics />} />
+            <Route path="notices"       element={<Notices />} />
             <Route path="*"             element={<Navigate to="dashboard" replace />} />
           </Route>
 
@@ -84,6 +90,7 @@ const App = () => {
             <Route index                    element={<Navigate to="routes" replace />} />
             <Route path="routes"            element={<DriverRoutes />} />
             <Route path="delivery/:id"      element={<DriverDelivery />} />
+            <Route path="notices"           element={<Notices />} />
             <Route path="*"                 element={<Navigate to="routes" replace />} />
           </Route>
 
@@ -99,6 +106,7 @@ const App = () => {
             <Route index             element={<Navigate to="orders" replace />} />
             <Route path="orders"     element={<VendedorOrders />} />
             <Route path="orders/new" element={<OrderEntry />} />
+            <Route path="notices"    element={<Notices />} />
             <Route path="*"          element={<Navigate to="orders" replace />} />
           </Route>
 

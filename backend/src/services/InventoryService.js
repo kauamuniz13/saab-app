@@ -104,6 +104,66 @@ const deleteProduct = async (id) => {
   })
 }
 
+/* ── Consolidated Stock ── */
+
+const getConsolidatedStock = async () => {
+  const containers = await prisma.container.findMany({
+    where: { productId: { not: null }, quantity: { gt: 0 } },
+    include: { product: true },
+    orderBy: [{ product: { type: 'asc' } }, { product: { name: 'asc' } }],
+  })
+
+  const map = new Map()
+  for (const c of containers) {
+    const pid = c.productId
+    if (!map.has(pid)) {
+      map.set(pid, {
+        productId: pid,
+        productName: c.product.name,
+        productType: c.product.type,
+        totalQuantity: 0,
+        unit: c.unit,
+        containers: [],
+      })
+    }
+    const entry = map.get(pid)
+    entry.totalQuantity += c.quantity
+    entry.containers.push({
+      id: c.id,
+      label: c.label,
+      zone: c.zone,
+      quantity: c.quantity,
+      capacity: c.capacity,
+    })
+  }
+
+  return [...map.values()].sort((a, b) =>
+    a.productType.localeCompare(b.productType) || a.productName.localeCompare(b.productName)
+  )
+}
+
+/* ── GTIN Mappings ── */
+
+const findProductByGtin = async (gtin) => {
+  const mapping = await prisma.gtinMapping.findUnique({
+    where: { gtin },
+    include: { product: true },
+  })
+  return mapping
+}
+
+const createGtinMapping = (gtin, productId) =>
+  prisma.gtinMapping.create({
+    data: { gtin, productId: Number(productId) },
+    include: { product: true },
+  })
+
+const listGtinMappings = () =>
+  prisma.gtinMapping.findMany({
+    include: { product: { select: { id: true, name: true, type: true } } },
+    orderBy: { createdAt: 'desc' },
+  })
+
 module.exports = {
   getAllContainers,
   getContainerById,
@@ -114,4 +174,8 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  getConsolidatedStock,
+  findProductByGtin,
+  createGtinMapping,
+  listGtinMappings,
 }

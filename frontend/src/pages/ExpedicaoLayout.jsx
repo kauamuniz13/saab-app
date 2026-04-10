@@ -56,6 +56,15 @@ const IconLogistics = () => (
   </svg>
 )
 
+const IconNotices = () => (
+  <svg className={navIconCls} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75
+         a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0
+         01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+  </svg>
+)
+
 const IconLogout = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
@@ -69,14 +78,18 @@ const NAV_ITEMS = [
   { key: 'dashboard',   label: 'Dashboard',   Icon: IconDashboard,   path: '/expedicao/dashboard'   },
   { key: 'orders',      label: 'Pedidos',      Icon: IconOrders,      path: '/expedicao/orders'      },
   { key: 'containers',  label: 'Estoque',      Icon: IconContainers,  path: '/expedicao/containers'  },
+  { key: 'stock',       label: 'Estoque Geral', Icon: IconContainers,  path: '/expedicao/stock'       },
   { key: 'logistics',   label: 'Logística',    Icon: IconLogistics,   path: '/expedicao/logistics'   },
+  { key: 'notices',     label: 'Avisos',       Icon: IconNotices,     path: '/expedicao/notices'     },
 ]
 
 const PAGE_TITLES = {
   dashboard:   'Dashboard',
   orders:      'Fila de Pedidos',
   containers:  'Estoque',
+  stock:       'Estoque Geral',
   logistics:   'Logística',
+  notices:     'Avisos',
 }
 
 const ExpedicaoLayout = () => {
@@ -101,9 +114,11 @@ const ExpedicaoLayout = () => {
 
   const activeKey = (() => {
     if (location.pathname.startsWith('/expedicao/orders'))      return 'orders'
+    if (location.pathname.startsWith('/expedicao/stock'))       return 'stock'
     if (location.pathname.startsWith('/expedicao/containers'))  return 'containers'
     if (location.pathname.startsWith('/expedicao/logistics'))   return 'logistics'
     if (location.pathname.startsWith('/expedicao/dashboard'))   return 'dashboard'
+    if (location.pathname.startsWith('/expedicao/notices'))    return 'notices'
     return 'dashboard'
   })()
 

@@ -106,6 +106,42 @@ const deleteProduct = async (req, res) => {
   }
 }
 
+/* ── Consolidated Stock ── */
+
+const getConsolidatedStock = async (_req, res) => {
+  const stock = await InventoryService.getConsolidatedStock()
+  return res.json(stock)
+}
+
+/* ── GTIN ── */
+
+const lookupGtin = async (req, res) => {
+  const mapping = await InventoryService.findProductByGtin(req.params.gtin)
+  if (!mapping) return res.status(404).json({ message: 'GTIN não encontrado.' })
+  return res.json(mapping)
+}
+
+const createGtinMapping = async (req, res) => {
+  const { gtin, productId } = req.body
+  if (!gtin?.trim() || !productId) {
+    return res.status(400).json({ message: 'GTIN e productId são obrigatórios.' })
+  }
+  try {
+    const mapping = await InventoryService.createGtinMapping(gtin.trim(), productId)
+    return res.status(201).json(mapping)
+  } catch (err) {
+    if (err.code === 'P2002') {
+      return res.status(409).json({ message: 'GTIN já registrado.' })
+    }
+    throw err
+  }
+}
+
+const listGtinMappings = async (_req, res) => {
+  const mappings = await InventoryService.listGtinMappings()
+  return res.json(mappings)
+}
+
 module.exports = {
   listContainers,
   getContainer,
@@ -116,4 +152,8 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  getConsolidatedStock,
+  lookupGtin,
+  createGtinMapping,
+  listGtinMappings,
 }

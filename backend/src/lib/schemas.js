@@ -19,8 +19,10 @@ const createOrderSchema = z.object({
 
 /* ── Pack Order (itemWeights) ── */
 const boxWeightSchema = z.object({
-  boxNumber: z.number().int().positive('boxNumber deve ser um inteiro positivo.'),
-  weightLb:  z.number().positive('weightLb deve ser maior que 0.'),
+  boxNumber:  z.number().int().positive('boxNumber deve ser um inteiro positivo.'),
+  weightLb:   z.number().positive('weightLb deve ser maior que 0.'),
+  expiryDate: z.string().nullish(),
+  batch:      z.string().nullish(),
 })
 
 const itemWeightSchema = z.object({

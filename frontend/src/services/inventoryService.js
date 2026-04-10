@@ -20,3 +20,15 @@ export const fetchProductStock = (id) =>
 
 export const searchProducts = (query) =>
   api.get(`/inventory/products/search?q=${encodeURIComponent(query)}`).then(r => r.data)
+
+export const fetchConsolidatedStock = () =>
+  api.get('/inventory/stock').then(r => r.data)
+
+export const lookupGtin = (gtin) =>
+  api.get(`/inventory/gtin/${encodeURIComponent(gtin)}`).then(r => r.data)
+
+export const createGtinMapping = (gtin, productId) =>
+  api.post('/inventory/gtin', { gtin, productId }).then(r => r.data)
+
+export const fetchGtinMappings = () =>
+  api.get('/inventory/gtin').then(r => r.data)
