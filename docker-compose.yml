@@ -1,0 +1,68 @@
+version: '3.9'
+
+# ═══════════════════════════════════════════════════
+# SAAB Gestão Logística — Docker Compose
+# Backend + PostgreSQL (frontend corre localmente)
+# ═══════════════════════════════════════════════════
+#
+# Arranque inicial:
+#
+#   1. Subir a base de dados e o backend:
+#      docker compose up --build -d
+#
+#   2. (Primeira vez) Criar migração e seed:
+#      docker compose exec backend npx prisma migrate dev --name init
+#      docker compose exec backend node prisma/seed.js
+#
+#   3. Frontend (fora do Docker):
+#      cd frontend && npm install && npm run dev
+#
+#   Ver logs:
+#      docker compose logs -f backend
+#
+#   Parar tudo:
+#      docker compose down
+#
+#   Parar e apagar dados (reset total):
+#      docker compose down -v
+#
+# ═══════════════════════════════════════════════════
+
+services:
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     saab
+      POSTGRES_PASSWORD: saab_secret
+      POSTGRES_DB:       saab
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saab -d saab"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL:   postgresql://saab:saab_secret@db:5432/saab
+      JWT_SECRET:     ${JWT_SECRET:-saab-jwt-secret-2026}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      PORT:           3000
+      FRONTEND_URL:   ${FRONTEND_URL:-http://localhost:5173}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
