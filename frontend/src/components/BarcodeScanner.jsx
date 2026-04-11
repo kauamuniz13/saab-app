@@ -78,14 +78,41 @@ const BarcodeScanner = ({ onScan, onClose }) => {
     if (!videoRef.current || !deviceId) return
 
     reader.reset()
+
+    // ZXing Library usa resoluções muito baixas por padrão (VGA). 
+    // Para ler um código GS1-128 longo, precisamos de alta resolução (HD/Full HD)
+    // E foco contínuo. Como a lib não deixa passar essas constraints no videoDevice,
+    // interceptamos a chamada nativa temporariamente:
+    const origGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices)
+    
+    navigator.mediaDevices.getUserMedia = async (constraints) => {
+      if (constraints && constraints.video) {
+        if (typeof constraints.video === 'boolean') {
+          constraints.video = {}
+        }
+        constraints.video.width = { ideal: 1920, min: 1280 }
+        constraints.video.height = { ideal: 1080, min: 720 }
+        constraints.video.advanced = [{ focusMode: 'continuous' }]
+      }
+      try {
+        const stream = await origGetUserMedia(constraints)
+        navigator.mediaDevices.getUserMedia = origGetUserMedia // Restaura imediatamente
+        return stream
+      } catch (err) {
+        navigator.mediaDevices.getUserMedia = origGetUserMedia
+        throw err
+      }
+    }
+
     reader.decodeFromVideoDevice(deviceId, videoRef.current, (result, err) => {
       if (result) {
         reader.reset()
         onScan(result.getText())
       }
-      // Ignore decode errors — they happen continuously until a code is found
-    }).catch(() => {
-      setError('Erro ao acessar a câmera.')
+    }).catch((err) => {
+      navigator.mediaDevices.getUserMedia = origGetUserMedia
+      console.error(err)
+      setError('Erro ao iniciar stream: ' + (err.message || ''))
     })
   }
 
