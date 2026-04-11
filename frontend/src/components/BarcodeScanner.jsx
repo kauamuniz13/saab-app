@@ -109,7 +109,7 @@ const BarcodeScanner = ({ onScan, onClose }) => {
 
         {/* Video feed */}
         <div className="relative aspect-[4/3] bg-black">
-          <video ref={videoRef} className="w-full h-full object-cover" />
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
           {/* Scan line overlay */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-[70%] h-0.5 bg-red/60 animate-pulse" />
