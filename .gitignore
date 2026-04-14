@@ -1,16 +1,23 @@
 # Claude Code
 .claude/
+.aider*
 
 # dependencies
-node_modules
+node_modules/
+backend/node_modules/
+frontend/node_modules/
 
 # env
 .env
 .env.*
+!.env.example
+*.local
 
 # build
-dist
-build
+dist/
+build/
+.vercel/
+.vite/
 
 # logs
 *.log
@@ -24,13 +31,10 @@ Thumbs.db
 desktop.ini
 
 # editors
-.vscode
-.idea
+.vscode/
+.idea/
 *.sw?
 *.suo
-
-# Vite
-.vite
 
 # Prisma SQLite (dev)
 *.db

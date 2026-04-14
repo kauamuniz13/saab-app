@@ -138,7 +138,6 @@ const NAV_GROUPS = [
     items: [
       { key: 'products',  label: 'Produtos',    Icon: IconProducts,  path: '/admin/products' },
       { key: 'inventory', label: 'Locais',      Icon: IconInventory, path: '/admin/inventory' },
-      { key: 'stock',     label: 'Visão Geral', Icon: IconInventory, path: '/admin/stock' },
       { key: 'gtin',      label: 'GTINs',       Icon: IconGtin,      path: '/admin/gtin' },
     ]
   },
@@ -167,7 +166,6 @@ const NAV_GROUPS = [
 const PAGE_TITLES = {
   dashboard: 'Painel de Controle',
   inventory: 'Locais de Estoque',
-  stock:     'Estoque Geral',
   products:  'Produtos',
   orders:    'Pedidos',
   logistics: 'Logística',
@@ -402,7 +400,6 @@ const AdminDashboard = () => {
 
   const activeKey = (() => {
     if (location.pathname.startsWith('/admin/dashboard')) return 'dashboard'
-    if (location.pathname.startsWith('/admin/stock'))     return 'stock'
     if (location.pathname.startsWith('/admin/inventory')) return 'inventory'
     if (location.pathname.startsWith('/admin/orders'))    return 'orders'
     if (location.pathname.startsWith('/admin/logistics')) return 'logistics'

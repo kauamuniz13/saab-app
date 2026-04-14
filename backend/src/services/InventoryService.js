@@ -125,12 +125,16 @@ const getConsolidatedStock = async () => {
     }
     const entry = map.get(pid)
     entry.totalQuantity += c.quantity
+    if (!entry.lastUpdatedAt || c.updatedAt > entry.lastUpdatedAt) {
+      entry.lastUpdatedAt = c.updatedAt
+    }
     entry.containers.push({
       id: c.id,
       label: c.label,
       zone: c.zone,
       quantity: c.quantity,
       capacity: c.capacity,
+      updatedAt: c.updatedAt,
     })
   }
 

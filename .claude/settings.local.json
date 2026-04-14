@@ -40,7 +40,8 @@
       "Bash(mv backend/src/controllers/RestaurantController.js backend/src/controllers/ClientController.js)",
       "Bash(mv backend/src/routes/restaurantRoutes.js backend/src/routes/clientRoutes.js)",
       "Bash(mv frontend/src/services/restaurantService.js frontend/src/services/clientService.js)",
-      "Bash(mv frontend/src/pages/AdminRestaurants.jsx frontend/src/pages/AdminClients.jsx)"
+      "Bash(mv frontend/src/pages/AdminRestaurants.jsx frontend/src/pages/AdminClients.jsx)",
+      "Bash(npm run *)"
     ]
   }
 }

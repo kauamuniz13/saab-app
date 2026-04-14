@@ -21,7 +21,6 @@ import VendedorLayout    from './pages/VendedorLayout'
 import VendedorOrders    from './pages/VendedorOrders'
 import AdminClients      from './pages/AdminClients'
 import Notices           from './pages/Notices'
-import StockOverview     from './pages/StockOverview'
 import GtinManager       from './pages/GtinManager'
 const App = () => {
   return (
@@ -47,7 +46,6 @@ const App = () => {
             <Route index                element={<Navigate to="inventory" replace />} />
             <Route path="dashboard"     element={<AdminHome />} />
             <Route path="inventory"     element={<Inventory />} />
-            <Route path="stock"         element={<StockOverview />} />
             <Route path="gtin"          element={<GtinManager />} />
             <Route path="orders/new"    element={<OrderEntry />} />
             <Route path="logistics"     element={<Logistics />} />
@@ -73,7 +71,6 @@ const App = () => {
             <Route path="orders"        element={<ExpedicaoOrders />} />
             <Route path="orders/:id"    element={<ExpedicaoPickingList />} />
             <Route path="containers"    element={<Inventory />} />
-            <Route path="stock"         element={<StockOverview />} />
             <Route path="gtin"          element={<GtinManager />} />
             <Route path="logistics"     element={<Logistics />} />
             <Route path="notices"       element={<Notices />} />

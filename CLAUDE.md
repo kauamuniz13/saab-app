@@ -6,7 +6,7 @@ Sistema de gestao para distribuidora de carnes, bebidas e acessorios para churra
 Moeda: **USD ($)**. Localizacao: **Orlando, Florida**.
 Fluxo operacional: **Vendedor faz pedido (digita nome da loja) -> Expedicao confirma, separa e insere pesos -> Motorista carrega e entrega -> Admin monitoriza tudo.**
 
-> **Nota**: O CLIENTE nao faz mais parte do fluxo. O vendedor digita o nome da loja diretamente no pedido. O campo `clientName` substitui o `clientId` do User.
+> **Nota**: O CLIENTE nao faz mais parte do fluxo de autenticacao. O vendedor digita o nome da loja diretamente no pedido (`clientName`). Existe um modelo `Client` separado (nome + endereco) sem ligacao a User.
 
 ## Tech Stack
 
@@ -57,33 +57,39 @@ cd backend && npx prisma generate && npx prisma migrate deploy
 ```
 project/
 ├── backend/
-│   ├── server.js                      # Express entry point, monta todas as rotas + serve frontend build
+│   ├── server.js                      # Express entry point, monta todas as rotas
 │   ├── prisma/
-│   │   ├── schema.prisma              # User, Product, Container, Order, OrderItem, BoxWeight
+│   │   ├── schema.prisma              # User, Product, Container, Order, OrderItem, BoxWeight, Client, GtinMapping, Notice
 │   │   └── seed.js                    # 4 users + ~191 produtos reais + ~240 conteineres
 │   └── src/
 │       ├── middlewares/authMiddleware.js   # authMiddleware + authorizeRoles
 │       ├── controllers/               # HTTP layer - validacao de input, status codes
 │       │   ├── AuthController.js      # login (public), register (ADMIN), listUsers (ADMIN)
-│       │   ├── InventoryController.js # containers + products CRUD
+│       │   ├── ClientController.js    # CRUD de clientes (modelo Client)
+│       │   ├── InventoryController.js # containers + products CRUD + stock consolidado + GTIN
+│       │   ├── NoticeController.js    # avisos internos (criar, listar, apagar)
 │       │   ├── OrderController.js     # order lifecycle + invoice PDF
 │       │   ├── RouteController.js     # daily route optimization
-│       │   └── UserController.js      # user/client CRUD
+│       │   └── UserController.js     # user CRUD
 │       ├── lib/
 │       │   ├── prisma.js              # Prisma client singleton (global, all environments)
-│       │   └── schemas.js             # Zod schemas - createOrderSchema, packOrderSchema, updateStatusSchema
+│       │   └── schemas.js            # Zod schemas - createOrderSchema, packOrderSchema, updateStatusSchema
 │       ├── services/                  # Business logic - Prisma queries, calculos
-│       │   ├── InventoryService.js    # Container/product operations, referential integrity
-│       │   ├── OrderService.js        # Status transitions with lastStatusAt conflict detection
+│       │   ├── ClientService.js       # Client CRUD
+│       │   ├── InventoryService.js    # Container/product operations, referential integrity, GTIN lookups
 │       │   ├── InvoiceService.js      # PDF generation (pdfkit), warns on missing assets (non-fatal)
+│       │   ├── NoticeService.js       # Notice CRUD, filtra por visibleTo[]
+│       │   ├── OrderService.js        # Status transitions with lastStatusAt conflict detection
 │       │   ├── RouteService.js        # Haversine + delivery window sorting, depot Orlando FL
-│       │   └── UserService.js         # User CRUD, bcrypt, client creation
+│       │   └── UserService.js         # User CRUD, bcrypt
 │       ├── routes/
 │       │   ├── authRoutes.js          # POST /auth/login, POST /auth/register, GET /auth/users
-│       │   ├── inventoryRoutes.js     # GET/PATCH /inventory/containers, GET/POST/PATCH/DELETE /inventory/products
-│       │   ├── orderRoutes.js         # CRUD + /status /separate /pack /load /deliver /invoice /clients
+│       │   ├── clientRoutes.js        # GET/POST /clients, PATCH/DELETE /clients/:id
+│       │   ├── inventoryRoutes.js     # containers, products, /inventory/stock, /inventory/gtin
+│       │   ├── noticeRoutes.js        # GET/POST /notices, DELETE /notices/:id
+│       │   ├── orderRoutes.js         # CRUD + /status /separate /pack /load /deliver /invoice
 │       │   ├── routeRoutes.js         # GET /routes/daily
-│       │   └── userRoutes.js          # GET/POST/PATCH /users, POST /users/clients
+│       │   └── userRoutes.js          # GET/POST/PATCH /users
 │       └── assets/                    # Invoice fonts + logo (committed to git)
 │           ├── helvetica-world-italic.ttf
 │           ├── IBMPlexSans-Italic-VariableFont_wdth,wght.ttf
@@ -96,14 +102,23 @@ project/
     │   └── ThemeContext.jsx           # Light/dark theme toggle (data-theme attribute)
     ├── services/
     │   ├── authService.js             # Axios instance + JWT interceptor + 401 redirect
-    │   ├── inventoryService.js        # fetchContainers, fetchProducts, fetchAllProducts, createProduct, updateProduct, deleteProduct, fetchProductStock, searchProducts
-    │   ├── orderService.js            # fetchOrders, fetchOrderById, createOrder, confirmOrder, separateOrder, packOrder, loadOrder, deliverOrder, openInvoice, fetchClients
+    │   ├── clientService.js           # fetchClients, createClient, updateClient, deleteClient
+    │   ├── inventoryService.js        # fetchContainers, fetchProducts, fetchAllProducts,
+    │   │                              #   createProduct, updateProduct, fetchProductStock,
+    │   │                              #   searchProducts, fetchConsolidatedStock,
+    │   │                              #   lookupGtin, createGtinMapping, fetchGtinMappings
+    │   ├── noticeService.js           # fetchNotices, createNotice, deleteNotice
+    │   ├── orderService.js            # fetchOrders, fetchOrderById, createOrder,
+    │   │                              #   confirmOrder, separateOrder, packOrder,
+    │   │                              #   loadOrder, deliverOrder, openInvoice
     │   ├── routeService.js            # fetchDailyRoute
-    │   └── userService.js             # fetchUsers, createUser, updateUser, createClient
+    │   └── userService.js             # fetchUsers, createUser, updateUser
     ├── constants/
-    │   ├── zones.js                   # ZONE_CONFIG, ZONE_LABELS, SUBZONE_LABELS
-    │   └── categories.js             # CATEGORIES (Bovino, Suino, Aves, Miudos, Laticinios, Congelados, Secos, Bebidas, Outros)
+    │   ├── status.js                  # STATUS_CONFIG (labels, colors, icons por status)
+    │   └── zones.js                   # ZONE_CONFIG, ZONE_LABELS, SUBZONE_LABELS
     ├── components/
+    │   ├── BarcodeScanner.jsx         # Scanner de código de barras (ZXing), emite gtin via onScan callback
+    │   ├── NoticesBanner.jsx          # Banner de avisos ativos para o role atual
     │   ├── ProtectedRoute.jsx         # Route guard por role JWT
     │   ├── ThemeToggle.jsx            # Light/dark theme switcher
     │   └── Inventory/
@@ -115,10 +130,14 @@ project/
         ├── Unauthorized.jsx
         ├── AdminDashboard.jsx         # Layout shell admin (sidebar + topbar + Outlet) + AdminHome (KPIs)
         ├── AdminUsers.jsx             # CRUD utilizadores (modal)
-        ├── AdminProducts.jsx          # CRUD produtos (modal, toggle activo/inactivo, precos em $) -- NOT ROUTED
+        ├── AdminProducts.jsx          # CRUD produtos (modal, toggle activo/inactivo, precos em $)
+        ├── AdminClients.jsx           # CRUD clientes (modelo Client - nome + endereco)
+        ├── GtinManager.jsx            # Mapeamento GTIN -> Product (scan + listagem)
         ├── Inventory.jsx              # Wrapper -> InventoryGrid
-        ├── OrderEntry.jsx             # Formulario de pedido com validacao de stock
         ├── Logistics.jsx              # Tabela de pedidos, fatura PDF, mapa (enderecos Orlando FL)
+        ├── Notices.jsx                # Avisos internos (criar/listar/apagar)
+        ├── OrderEntry.jsx             # Formulario de pedido com validacao de stock
+        ├── StockOverview.jsx          # Vista consolidada de stock por produto
         ├── DriverRoutes.jsx           # Rota optimizada, paradas, link Google Maps
         ├── DriverDelivery.jsx         # Detalhe entrega: carga -> assinatura -> entregue
         ├── ExpedicaoLayout.jsx        # Layout shell expedicao (sidebar + topbar + Outlet)
@@ -134,10 +153,10 @@ project/
 
 | Role       | Redirect        | Access |
 |------------|-----------------|--------|
-| `ADMIN`    | `/admin`        | Dashboard KPIs, inventario, pedidos, logistica, rotas, utilizadores |
-| `VENDEDOR` | `/vendedor`    | Criar pedidos, visualizar pedidos |
-| `EXPEDICAO`| `/expedicao`    | Dashboard contadores, fila de pedidos, picking list, conteineres, logistica |
-| `MOTORISTA`| `/motorista`    | Rota do dia, detalhe de entrega, assinatura digital |
+| `ADMIN`    | `/admin`        | Dashboard KPIs, inventario, pedidos, logistica, rotas, utilizadores, clientes, produtos, avisos, GTIN |
+| `VENDEDOR` | `/vendedor`    | Criar pedidos, visualizar pedidos, avisos |
+| `EXPEDICAO`| `/expedicao`    | Dashboard contadores, fila de pedidos, picking list, conteineres, logistica, avisos, GTIN |
+| `MOTORISTA`| `/motorista`    | Rota do dia, detalhe de entrega, assinatura digital, avisos |
 
 ## Order Status Pipeline
 
@@ -170,15 +189,21 @@ PENDING -> CONFIRMED -> SEPARATING -> READY -> IN_TRANSIT -> DELIVERED
 | GET    | `/`         | Yes  | ADMIN           |
 | POST   | `/`         | Yes  | ADMIN           |
 | PATCH  | `/:id`      | Yes  | ADMIN           |
-| POST   | `/clients`  | Yes  | ADMIN, VENDEDOR |
+
+### Clients (`/clients`)
+| Method | Path        | Auth | Roles           |
+|--------|-------------|------|-----------------|
+| GET    | `/`         | Yes  | ADMIN, VENDEDOR |
+| POST   | `/`         | Yes  | ADMIN, VENDEDOR |
+| PATCH  | `/:id`      | Yes  | ADMIN           |
+| DELETE | `/:id`      | Yes  | ADMIN           |
 
 ### Orders (`/orders`)
 | Method | Path             | Auth | Roles                              |
-|--------|------------------|------|------------------------------------|
+|--------|------------------|------|-------------------------------------|
 | GET    | `/`              | Yes  | ADMIN, EXPEDICAO, MOTORISTA, VENDEDOR |
 | POST   | `/`              | Yes  | ADMIN, VENDEDOR                    |
 | GET    | `/:id`           | Yes  | ADMIN, EXPEDICAO, MOTORISTA, VENDEDOR |
-| GET    | `/clients`       | Yes  | ADMIN, VENDEDOR                    |
 | GET    | `/:id/invoice`   | Yes  | ADMIN, VENDEDOR                    |
 | PATCH  | `/:id/status`    | Yes  | ADMIN, EXPEDICAO                   |
 | PATCH  | `/:id/separate`  | Yes  | ADMIN, EXPEDICAO                   |
@@ -194,10 +219,21 @@ PENDING -> CONFIRMED -> SEPARATING -> READY -> IN_TRANSIT -> DELIVERED
 | PATCH  | `/containers/:id`     | Yes  | ADMIN                    |
 | GET    | `/products`           | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
 | GET    | `/products/search`    | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
-| GET    | `/products/:id/stock` | Yes  | ADMIN, VENDEDOR, EXPEDICAO |
+| GET    | `/products/:id/stock` | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
 | POST   | `/products`           | Yes  | ADMIN                    |
 | PATCH  | `/products/:id`       | Yes  | ADMIN                    |
 | DELETE | `/products/:id`       | Yes  | ADMIN                    |
+| GET    | `/stock`              | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
+| GET    | `/gtin`               | Yes  | ADMIN, EXPEDICAO         |
+| GET    | `/gtin/:gtin`         | Yes  | ADMIN, EXPEDICAO         |
+| POST   | `/gtin`               | Yes  | ADMIN, EXPEDICAO         |
+
+### Notices (`/notices`)
+| Method | Path        | Auth | Roles                              |
+|--------|-------------|------|-------------------------------------|
+| GET    | `/`         | Yes  | ADMIN, EXPEDICAO, MOTORISTA, VENDEDOR |
+| POST   | `/`         | Yes  | ADMIN, EXPEDICAO                   |
+| DELETE | `/:id`      | Yes  | ADMIN, EXPEDICAO                   |
 
 ### Routes (`/routes`)
 | Method | Path     | Auth | Roles           |
@@ -219,45 +255,63 @@ PENDING -> CONFIRMED -> SEPARATING -> READY -> IN_TRANSIT -> DELIVERED
 /admin                     -> AdminDashboard (layout) [ADMIN]
   /admin/dashboard         -> AdminHome (KPIs)
   /admin/inventory         -> Inventory (default redirect)
+  /admin/gtin              -> GtinManager
   /admin/orders/new        -> OrderEntry
   /admin/logistics         -> Logistics
   /admin/routes            -> DriverRoutes
-  /admin/users             -> AdminUsers (CRUD)
+  /admin/products          -> AdminProducts
+  /admin/clients           -> AdminClients
+  /admin/users             -> AdminUsers
+  /admin/notices           -> Notices
 
 /vendedor                  -> VendedorLayout [VENDEDOR]
   /vendedor/orders         -> VendedorOrders (default redirect)
   /vendedor/orders/new     -> OrderEntry
+  /vendedor/notices        -> Notices
 
 /expedicao                 -> ExpedicaoLayout [EXPEDICAO]
   /expedicao/dashboard     -> ExpedicaoDashboard (default redirect)
   /expedicao/orders        -> ExpedicaoOrders
   /expedicao/orders/:id    -> ExpedicaoPickingList
   /expedicao/containers    -> Inventory (reutilizado)
+  /expedicao/gtin          -> GtinManager
   /expedicao/logistics     -> Logistics (reutilizado)
+  /expedicao/notices       -> Notices
 
 /motorista                 -> MotoristaLayout [MOTORISTA]
   /motorista/routes        -> DriverRoutes (default redirect)
   /motorista/delivery/:id  -> DriverDelivery
+  /motorista/notices       -> Notices
 ```
-
-> **Nota**: `/admin/products` NAO esta definido no router. AdminProducts.jsx existe mas nao e acessivel.
 
 ## Database Models (Prisma)
 
 ```
-User         -> id, name, email, password, role (ADMIN|VENDEDOR|EXPEDICAO|MOTORISTA)
-               address, lat?, lon?
-Product      -> id, name, type (texto livre), active, priceType (PER_LB|PER_BOX|PER_UNIT),
-               pricePerLb?, pricePerBox?, pricePerUnit?
+User         -> id, name, email, password, role (ADMIN|VENDEDOR|EXPEDICAO|MOTORISTA),
+                address, lat?, lon?
+
+Product      -> id, name, type (texto livre), active,
+                priceType (PER_LB|PER_BOX|PER_UNIT),
+                pricePerLb?, pricePerBox?, pricePerUnit?
+
 Container    -> id, label, zone (enum ContainerZone), capacity, quantity, unit,
-               productId?, updatedById?
+                productId?, updatedById?
+
+Client       -> id, name, address  — modelo independente, sem ligacao a User
+
 Order        -> id, clientName (string), clientId? (legacy), status, totalBoxes, weightLb,
-               address, lat/lon, deliveryWindowStart/End,
-               deliveredAt/By, separatedAt/By, packedAt/By, loadedAt,
-               updatedById?, lastStatusAt?
+                address, lat/lon, deliveryWindowStart/End,
+                deliveredAt/By, separatedAt/By, packedAt/By, loadedAt,
+                updatedById?, lastStatusAt?
+
 OrderItem    -> id, orderId, containerId, productId, quantity, weightLb,
-               priceType (PER_LB|PER_BOX), pricePerLb?, pricePerBox?, boxWeights[]
-BoxWeight    -> id, orderItemId, boxNumber, weightLb, updatedById?
+                priceType (PER_LB|PER_BOX), pricePerLb?, pricePerBox?, boxWeights[]
+
+BoxWeight    -> id, orderItemId, boxNumber, weightLb, expiryDate?, batch?, updatedById?
+
+GtinMapping  -> id, gtin (unique), productId  — mapeia barcode EAN/UPC -> Product
+
+Notice       -> id, title, body, createdById, visibleTo[] (roles), expiresAt?
 ```
 
 ### ContainerZone (enum)
@@ -295,6 +349,7 @@ BoxWeight    -> id, orderItemId, boxNumber, weightLb, updatedById?
 - **Stock consistency**: `cancelOrder` reverts container quantities inside a transaction.
 - **Patterns**: Clean Code, DRY, SOLID. Reusable components in `src/components/`.
 - **Boolean fields**: Use `!== false` checks (not truthy) when a DB field has `@default(true)`, to handle `undefined` gracefully.
+- **STATUS_CONFIG**: Use the shared constant in `src/constants/status.js` — do NOT duplicate inline per-page.
 
 ## Style Guide
 
@@ -350,9 +405,7 @@ Mobile-first. Tailwind breakpoints: `sm` (640px) -> `md` (768px) -> `lg` (1024px
 
 ## Known Issues
 
-- `/admin/products` route NOT defined in App.jsx -- AdminProducts.jsx page exists but is unreachable
 - `fetchOrders()` and `fetchMyOrders()` in orderService.js are duplicates (same endpoint)
-- `STATUS_CONFIG` objects duplicated across multiple page files (should be in constants)
 - `react-signature-canvas` is installed but not imported anywhere (SignatureModal.jsx does not exist)
 
 ## Dead Code (do NOT import)

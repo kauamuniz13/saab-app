@@ -106,7 +106,6 @@ const NAV_GROUPS = [
     icon: IconContainers,
     items: [
       { key: 'containers', label: 'Locais',       Icon: IconContainers, path: '/expedicao/containers' },
-      { key: 'stock',      label: 'Estoque Geral', Icon: IconContainers, path: '/expedicao/stock' },
       { key: 'gtin',       label: 'GTINs',         Icon: IconGtin,       path: '/expedicao/gtin' },
     ]
   },
@@ -133,7 +132,6 @@ const PAGE_TITLES = {
   dashboard:   'Dashboard',
   orders:      'Fila de Pedidos',
   containers:  'Estoque',
-  stock:       'Estoque Geral',
   gtin:        'Cadastro de GTIN',
   logistics:   'Logística',
   notices:     'Avisos',
@@ -238,7 +236,6 @@ const ExpedicaoLayout = () => {
 
   const activeKey = (() => {
     if (location.pathname.startsWith('/expedicao/orders'))      return 'orders'
-    if (location.pathname.startsWith('/expedicao/stock'))       return 'stock'
     if (location.pathname.startsWith('/expedicao/gtin'))        return 'gtin'
     if (location.pathname.startsWith('/expedicao/containers'))  return 'containers'
     if (location.pathname.startsWith('/expedicao/logistics'))   return 'logistics'
