@@ -82,14 +82,51 @@ const IconLogout = () => (
   </svg>
 )
 
-const NAV_ITEMS = [
-  { key: 'dashboard',   label: 'Dashboard',   Icon: IconDashboard,   path: '/expedicao/dashboard'   },
-  { key: 'orders',      label: 'Pedidos',      Icon: IconOrders,      path: '/expedicao/orders'      },
-  { key: 'containers',  label: 'Estoque',      Icon: IconContainers,  path: '/expedicao/containers'  },
-  { key: 'stock',       label: 'Estoque Geral', Icon: IconContainers,  path: '/expedicao/stock'       },
-  { key: 'gtin',        label: 'GTINs',         Icon: IconGtin,        path: '/expedicao/gtin'        },
-  { key: 'logistics',   label: 'Logística',    Icon: IconLogistics,   path: '/expedicao/logistics'   },
-  { key: 'notices',     label: 'Avisos',       Icon: IconNotices,     path: '/expedicao/notices'     },
+const IconChevron = ({ open }) => (
+  <svg
+    className={`w-3.5 h-3.5 shrink-0 text-muted transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+    fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+)
+
+const NAV_GROUPS = [
+  {
+    key: 'home',
+    title: null,
+    icon: IconDashboard,
+    items: [
+      { key: 'dashboard', label: 'Dashboard', Icon: IconDashboard, path: '/expedicao/dashboard' },
+    ]
+  },
+  {
+    key: 'estoque',
+    title: 'Estoque',
+    icon: IconContainers,
+    items: [
+      { key: 'containers', label: 'Locais',       Icon: IconContainers, path: '/expedicao/containers' },
+      { key: 'stock',      label: 'Estoque Geral', Icon: IconContainers, path: '/expedicao/stock' },
+      { key: 'gtin',       label: 'GTINs',         Icon: IconGtin,       path: '/expedicao/gtin' },
+    ]
+  },
+  {
+    key: 'operacional',
+    title: 'Operacional',
+    icon: IconOrders,
+    items: [
+      { key: 'orders',    label: 'Pedidos',   Icon: IconOrders,    path: '/expedicao/orders' },
+      { key: 'logistics', label: 'Logística', Icon: IconLogistics, path: '/expedicao/logistics' },
+    ]
+  },
+  {
+    key: 'geral',
+    title: null,
+    icon: IconNotices,
+    items: [
+      { key: 'notices', label: 'Avisos', Icon: IconNotices, path: '/expedicao/notices' },
+    ]
+  }
 ]
 
 const PAGE_TITLES = {
@@ -100,6 +137,87 @@ const PAGE_TITLES = {
   gtin:        'Cadastro de GTIN',
   logistics:   'Logística',
   notices:     'Avisos',
+}
+
+/* ── Collapsible nav group ── */
+const NavGroup = ({ group, activeKey, onNavigate }) => {
+  const isTopLevel = !group.title
+  const groupHasActive = group.items.some(i => i.key === activeKey)
+  const [open, setOpen] = useState(groupHasActive)
+
+  useEffect(() => {
+    if (groupHasActive) setOpen(true)
+  }, [groupHasActive])
+
+  if (isTopLevel) {
+    const item = group.items[0]
+    return (
+      <button
+        className={`flex items-center gap-3 mx-3 px-3 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer bg-transparent border-0 w-[calc(100%-1.5rem)] text-left transition-all duration-150
+          ${activeKey === item.key
+            ? 'bg-sidebar-active text-primary'
+            : 'text-secondary hover:bg-sidebar-hover hover:text-primary'
+          }`}
+        onClick={() => onNavigate(item.path)}
+      >
+        <item.Icon />
+        <span>{item.label}</span>
+        {activeKey === item.key && (
+          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-red shrink-0" />
+        )}
+      </button>
+    )
+  }
+
+  return (
+    <div className="flex flex-col">
+      <button
+        className="flex items-center gap-3 mx-3 px-3 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer bg-transparent border-0 w-[calc(100%-1.5rem)] text-left transition-all duration-150 text-secondary hover:bg-sidebar-hover hover:text-primary"
+        onClick={() => setOpen(o => !o)}
+      >
+        <group.icon />
+        <span>{group.title}</span>
+        <span className="ml-auto"><IconChevron open={open} /></span>
+      </button>
+
+      <div
+        className="overflow-hidden transition-all duration-200"
+        style={{
+          maxHeight: open ? `${group.items.length * 40}px` : '0px',
+          opacity: open ? 1 : 0,
+        }}
+      >
+        <div className="relative ml-[1.6rem] pl-0 mt-0.5 mb-1">
+          {/* Vertical guide line */}
+          <div className="absolute left-[0.75rem] top-0 bottom-0 w-px bg-border-sidebar" />
+
+          {group.items.map(({ key, label, path }) => (
+            <button
+              key={key}
+              className={`relative flex items-center w-full pl-7 pr-3 py-[0.4rem] text-[0.8125rem] border-0 cursor-pointer bg-transparent text-left transition-all duration-150 rounded-r-md
+                ${activeKey === key
+                  ? 'text-primary font-medium'
+                  : 'text-muted hover:text-primary font-normal'
+                }`}
+              onClick={() => onNavigate(path)}
+            >
+              {/* Horizontal tick from guide line */}
+              <span
+                className={`absolute left-[0.75rem] top-1/2 -translate-y-1/2 h-px w-3 ${
+                  activeKey === key ? 'bg-red' : 'bg-border-sidebar'
+                }`}
+              />
+              {/* Active dot */}
+              {activeKey === key && (
+                <span className="absolute left-[0.625rem] top-1/2 -translate-y-1/2 w-[0.4375rem] h-[0.4375rem] rounded-full bg-red border-2 border-sidebar z-[1]" />
+              )}
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 const ExpedicaoLayout = () => {
@@ -118,10 +236,6 @@ const ExpedicaoLayout = () => {
     navigate('/login')
   }
 
-  const initials = user?.email
-    ? user.email.slice(0, 2).toUpperCase()
-    : 'EX'
-
   const activeKey = (() => {
     if (location.pathname.startsWith('/expedicao/orders'))      return 'orders'
     if (location.pathname.startsWith('/expedicao/stock'))       return 'stock'
@@ -129,16 +243,21 @@ const ExpedicaoLayout = () => {
     if (location.pathname.startsWith('/expedicao/containers'))  return 'containers'
     if (location.pathname.startsWith('/expedicao/logistics'))   return 'logistics'
     if (location.pathname.startsWith('/expedicao/dashboard'))   return 'dashboard'
-    if (location.pathname.startsWith('/expedicao/notices'))    return 'notices'
+    if (location.pathname.startsWith('/expedicao/notices'))     return 'notices'
     return 'dashboard'
   })()
+
+  const handleNav = (path) => {
+    navigate(path)
+    setSidebarOpen(false)
+  }
 
   return (
     <div className="flex flex-col md:flex-row min-h-[100svh] bg-page">
 
       {/* ── Mobile overlay ── */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -147,60 +266,51 @@ const ExpedicaoLayout = () => {
       {/* ── Sidebar ── */}
       <aside className={`
         fixed md:relative z-50 md:z-auto
-        w-[75vw] max-w-[300px] md:w-[220px] md:min-w-[220px]
-        bg-sidebar border-b md:border-b-0 md:border-r border-border-sidebar 
+        w-[75vw] max-w-[280px] md:w-[232px] md:min-w-[232px]
+        bg-sidebar border-r border-border-sidebar
         flex flex-col transition-transform duration-200
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         h-full md:h-auto
       `}>
-        <div className="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-1 px-5 pt-6 pb-5 border-b border-border-sidebar">
-          <div className="flex items-center gap-2">
-            <img src={logoSaab} alt="SAAB" className="h-10 w-auto max-w-[120px] object-contain object-left" />
-            <span className="text-[0.9375rem] font-medium tracking-wide" style={{ color: '#eb3138' }}>SAAB Foods</span>
-            <span className="text-[0.9375rem] text-secondary hidden md:inline">|</span>
-            <span className="text-[0.8125rem] text-secondary hidden md:inline">Expedição</span>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4">
+          <div className="flex items-center gap-2.5">
+            <img src={logoSaab} alt="SAAB" className="h-8 w-auto object-contain" />
+            <span className="text-sm font-semibold tracking-wide" style={{ color: '#eb3138' }}>SAAB Foods</span>
           </div>
-          <button 
-            className="md:hidden p-2 text-primary hover:text-secondary"
+          <button
+            className="md:hidden p-1.5 text-muted hover:text-primary"
             onClick={() => setSidebarOpen(false)}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-secondary m-0 md:mt-2 hidden md:block">Expedição</p>
         </div>
 
-        <nav className="flex-1 flex flex-col gap-0.5 py-4 px-0 overflow-x-visible">
-          {NAV_ITEMS.map(({ key, label, Icon, path }) => (
-            <button
-              key={key}
-              className={`flex items-center gap-3 px-5 py-3 text-sm font-medium text-primary
-                border-l-[3px] border-transparent w-full text-left cursor-pointer
-                bg-transparent transition-colors duration-150
-                hover:bg-sidebar-hover hover:text-nav-hover hover:border-l-border-input
-                ${activeKey === key
-                  ? 'bg-sidebar-active text-primary !border-l-red'
-                  : ''
-                }`}
-              onClick={() => {
-                navigate(path)
-                setSidebarOpen(false)
-              }}
-            >
-              <Icon />
-              <span>{label}</span>
-            </button>
+        <div className="mx-5 mb-4 h-px bg-border-sidebar" />
+
+        {/* Navigation */}
+        <nav className="flex-1 flex flex-col gap-1 py-0 overflow-y-auto overflow-x-hidden">
+          {NAV_GROUPS.map((group) => (
+            <NavGroup
+              key={group.key}
+              group={group}
+              activeKey={activeKey}
+              onNavigate={handleNav}
+            />
           ))}
         </nav>
 
-        <div className="hidden md:block px-5 py-4 border-t border-border-sidebar mt-auto">
+        {/* Footer */}
+        <div className="hidden md:flex flex-col gap-2 px-4 py-4 border-t border-border-sidebar mt-auto">
+          <span className="text-[0.6875rem] text-muted truncate px-2">{user?.email}</span>
           <button
-            className="flex items-center gap-3 w-full bg-transparent border-none px-3 py-2.5 text-[0.8125rem] text-secondary cursor-pointer transition-[color,background-color] duration-150 rounded hover:text-error hover:bg-error-bg"
+            className="flex items-center gap-2.5 w-full bg-transparent border-none px-2 py-2 text-[0.8125rem] text-secondary cursor-pointer transition-all duration-150 rounded-md hover:text-error hover:bg-error-bg"
             onClick={handleLogout}
           >
             <IconLogout />
-            Sair
+            <span>Sair</span>
           </button>
         </div>
       </aside>
@@ -210,7 +320,7 @@ const ExpedicaoLayout = () => {
 
         <header className="h-14 bg-surface border-b border-border flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-3">
-            <button 
+            <button
               className="md:hidden p-2 text-secondary hover:text-primary"
               onClick={() => setSidebarOpen(true)}
             >
@@ -224,12 +334,11 @@ const ExpedicaoLayout = () => {
             <ThemeToggle />
             <span className="text-xs text-secondary max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap hidden sm:block">{user?.email}</span>
             <button
-              className="flex items-center gap-2 bg-transparent border border-border-input px-3 py-2 text-[0.8125rem] text-secondary cursor-pointer rounded transition-colors duration-150 hover:text-error hover:bg-error-bg hover:border-error"
+              className="flex items-center gap-2 bg-transparent border border-border-input px-3 py-2 text-[0.8125rem] text-secondary cursor-pointer rounded transition-colors duration-150 hover:text-error hover:bg-error-bg hover:border-error md:hidden"
               onClick={handleLogout}
               title="Sair"
             >
-              <span className="hidden sm:inline">Sair</span>
-              <svg className="w-4 h-4 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>
