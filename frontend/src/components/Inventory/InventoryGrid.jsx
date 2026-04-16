@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { fetchContainers, fetchProducts, fetchConsolidatedStock } from '../../services/inventoryService'
+import { fetchContainers, fetchProducts } from '../../services/inventoryService'
 import { ZONE_CONFIG, ZONE_LABELS } from '../../constants/zones'
+import { fmtDate, fmtRelative } from '../../utils/dateFormatters'
 import ContainerEditModal from './ContainerEditModal'
 
 /* ── Icons ── */
@@ -32,39 +33,7 @@ const EditIcon = () => (
   </svg>
 )
 
-const SortIcon = ({ active, direction }) => (
-  <svg className={`w-3.5 h-3.5 shrink-0 transition-colors ${active ? 'text-primary' : 'text-muted'}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    {direction === 'asc'
-      ? <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12" />
-      : <path strokeLinecap="round" strokeLinejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25" />
-    }
-  </svg>
-)
-
-/* ── Date formatting ── */
-const fmtDate = (dateStr) => {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) +
-    ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-}
-
-const fmtRelative = (dateStr) => {
-  if (!dateStr) return ''
-  const now = new Date()
-  const d = new Date(dateStr)
-  const diffMs = now - d
-  const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return 'agora'
-  if (diffMin < 60) return `${diffMin}min atrás`
-  const diffH = Math.floor(diffMin / 60)
-  if (diffH < 24) return `${diffH}h atrás`
-  const diffD = Math.floor(diffH / 24)
-  if (diffD < 7) return `${diffD}d atrás`
-  return fmtDate(dateStr)
-}
-
-/* ── ListRow (Por Local view) ── */
+/* ── ListRow ── */
 const ListRow = ({ container, onClick }) => {
   const { label, quantity, product, unit, updatedAt } = container
   const qtyLabel = unit || 'caixas'
@@ -136,74 +105,20 @@ const ZoneSection = ({ zone, containers, onSelect, defaultOpen }) => {
   )
 }
 
-/* ── ProductRow (Por Produto view) ── */
-const ProductRow = ({ item, expanded, onToggle }) => (
-  <div>
-    <div
-      className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_100px_90px_130px_40px] items-center gap-2 px-5 py-3 border-b border-border last:border-b-0 cursor-pointer transition-colors duration-[120ms] hover:bg-hover"
-      onClick={onToggle}
-    >
-      <span className="text-[0.8125rem] font-medium text-primary">{item.productName}</span>
-      <span className="hidden sm:block text-[0.8125rem] font-bold text-primary text-right">{item.totalQuantity}</span>
-      <span className="hidden sm:block text-xs text-secondary text-right">{item.unit}</span>
-      <span className="hidden sm:block text-[0.6875rem] text-muted text-right" title={item.lastUpdatedAt ? fmtDate(item.lastUpdatedAt) : ''}>
-        {item.lastUpdatedAt ? fmtRelative(item.lastUpdatedAt) : '—'}
-      </span>
-      {/* Mobile qty */}
-      <span className="sm:hidden text-sm font-bold text-primary text-right">{item.totalQuantity} {item.unit}</span>
-      <span className="hidden sm:flex justify-center">
-        <svg
-          className={`w-4 h-4 text-secondary transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </span>
-    </div>
-
-    {expanded && (
-      <div className="bg-hover/50 border-b border-border">
-        <div className="px-8 py-2">
-          <p className="text-[0.625rem] font-bold uppercase tracking-[0.15em] text-muted mb-2">Locais</p>
-          {item.containers.map(c => (
-            <div key={c.id} className="flex items-center justify-between py-1.5 text-xs">
-              <span className="text-secondary">
-                {ZONE_LABELS[c.zone] || c.zone} — {c.label}
-              </span>
-              <div className="flex items-center gap-4">
-                <span className="font-medium text-primary">{c.quantity} / {c.capacity}</span>
-                {c.updatedAt && (
-                  <span className="text-[0.625rem] text-muted whitespace-nowrap" title={fmtDate(c.updatedAt)}>
-                    {fmtRelative(c.updatedAt)}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
-  </div>
-)
-
 /* ── InventoryGrid ── */
 const InventoryGrid = () => {
   const [containers,        setContainers]        = useState([])
   const [products,          setProducts]          = useState([])
-  const [stock,             setStock]             = useState([])
   const [loading,           setLoading]           = useState(true)
   const [error,             setError]             = useState('')
   const [search,            setSearch]            = useState('')
   const [selectedContainer, setSelectedContainer] = useState(null)
-  const [viewMode,          setViewMode]          = useState('local')   // 'local' | 'product'
-  const [sortBy,            setSortBy]            = useState('name')    // 'name' | 'date'
-  const [expanded,          setExpanded]          = useState({})
 
   const load = useCallback(() => {
     setLoading(true)
     setError('')
-    Promise.all([fetchContainers(), fetchProducts(), fetchConsolidatedStock()])
-      .then(([c, p, s]) => { setContainers(c); setProducts(p); setStock(s) })
+    Promise.all([fetchContainers(), fetchProducts()])
+      .then(([c, p]) => { setContainers(c); setProducts(p) })
       .catch(() => setError('Erro ao carregar inventário. Verifique a ligação ao servidor.'))
       .finally(() => setLoading(false))
   }, [])
@@ -213,7 +128,6 @@ const InventoryGrid = () => {
   const query = search.trim().toLowerCase()
   const isSearching = query.length > 0
 
-  /* ── Por Local ── */
   const matchesQuery = useCallback((c) =>
     c.product?.name.toLowerCase().includes(query) ||
     c.product?.type?.toLowerCase().includes(query) ||
@@ -245,73 +159,13 @@ const InventoryGrid = () => {
     return map
   }, [containers])
 
-  /* ── Por Produto ── */
-  const filteredStock = useMemo(() => {
-    let list = stock
-    if (query) {
-      list = list.filter(s => s.productName.toLowerCase().includes(query))
-    }
-    if (sortBy === 'date') {
-      list = [...list].sort((a, b) => {
-        const da = a.lastUpdatedAt ? new Date(a.lastUpdatedAt).getTime() : 0
-        const db = b.lastUpdatedAt ? new Date(b.lastUpdatedAt).getTime() : 0
-        return db - da // mais recente primeiro
-      })
-    }
-    // 'name' já vem ordenado do backend
-    return list
-  }, [stock, query, sortBy])
-
-  const totalItems = filteredStock.reduce((s, f) => s + f.totalQuantity, 0)
-
-  const toggleExpand = (pid) =>
-    setExpanded(prev => ({ ...prev, [pid]: !prev[pid] }))
-
   const handleSaved = (updated) => {
     setContainers(prev => prev.map(c => c.id === updated.id ? updated : c))
     setSelectedContainer(null)
-    // Recarregar stock consolidado
-    fetchConsolidatedStock().then(setStock).catch(() => {})
   }
-
-  const toggleSort = () => setSortBy(prev => prev === 'name' ? 'date' : 'name')
 
   return (
     <div className="flex flex-col gap-5">
-
-      {/* View toggle + sort */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex border border-border-input rounded overflow-hidden">
-          <button
-            className={`px-4 py-2 text-xs font-semibold cursor-pointer transition-[background-color,color] duration-150 border-none ${viewMode === 'local' ? 'bg-red text-on-red' : 'bg-transparent text-muted hover:text-primary'}`}
-            onClick={() => setViewMode('local')}
-          >
-            Por Local
-          </button>
-          <button
-            className={`px-4 py-2 text-xs font-semibold cursor-pointer transition-[background-color,color] duration-150 border-l border-border-input ${viewMode === 'product' ? 'bg-red text-on-red' : 'bg-transparent text-muted hover:text-primary'}`}
-            onClick={() => setViewMode('product')}
-          >
-            Por Produto
-          </button>
-        </div>
-
-        {viewMode === 'product' && (
-          <div className="flex items-center gap-3">
-            <p className="text-xs text-secondary m-0">
-              {filteredStock.length} produtos | {totalItems} unidades
-            </p>
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-transparent border border-border-input rounded cursor-pointer transition-colors duration-150 hover:border-muted hover:text-primary text-secondary"
-              onClick={toggleSort}
-              title={sortBy === 'name' ? 'Ordenar por modificação' : 'Ordenar por nome'}
-            >
-              <SortIcon active={sortBy === 'date'} direction="desc" />
-              {sortBy === 'name' ? 'A → Z' : 'Recente'}
-            </button>
-          </div>
-        )}
-      </div>
 
       {/* Search bar */}
       <div className="flex items-center gap-3 bg-surface border border-border rounded-md px-4">
@@ -319,17 +173,14 @@ const InventoryGrid = () => {
         <input
           className="flex-1 bg-transparent border-none outline-none py-3 text-sm text-primary placeholder:text-muted"
           type="text"
-          placeholder={viewMode === 'local' ? 'Buscar por produto, tipo ou contêiner…' : 'Buscar produto…'}
+          placeholder="Buscar por produto, tipo ou contêiner..."
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
         {isSearching && (
           <>
             <span className="text-xs text-secondary whitespace-nowrap">
-              {viewMode === 'local'
-                ? `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}`
-                : `${filteredStock.length} produto${filteredStock.length !== 1 ? 's' : ''}`
-              }
+              {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
             </span>
             <button
               className="flex items-center justify-center bg-transparent border-none cursor-pointer p-1 rounded shrink-0 transition-colors duration-150 hover:bg-hover"
@@ -346,8 +197,8 @@ const InventoryGrid = () => {
       {loading && <p className="py-12 px-4 text-center text-muted text-sm">A carregar inventário…</p>}
       {!loading && error && <p className="py-12 px-4 text-center text-error text-sm">{error}</p>}
 
-      {/* ════════ VIEW: POR LOCAL ════════ */}
-      {!loading && !error && viewMode === 'local' && (
+      {/* Zone-based container view */}
+      {!loading && !error && (
         <>
           {/* Search results grouped by zone */}
           {isSearching && (
@@ -386,37 +237,6 @@ const InventoryGrid = () => {
               />
             )
           })}
-        </>
-      )}
-
-      {/* ════════ VIEW: POR PRODUTO ════════ */}
-      {!loading && !error && viewMode === 'product' && (
-        <>
-          {filteredStock.length === 0 ? (
-            <div className="bg-surface border border-border rounded-md p-8 text-center">
-              <p className="text-sm text-secondary m-0">Nenhum produto em estoque.</p>
-            </div>
-          ) : (
-            <div className="bg-surface border border-border rounded-md overflow-hidden shadow-card">
-              {/* Header */}
-              <div className="hidden sm:grid grid-cols-[1fr_100px_90px_130px_40px] gap-2 px-5 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-muted border-b border-border">
-                <span>Produto</span>
-                <span className="text-right">Quantidade</span>
-                <span className="text-right">Unidade</span>
-                <span className="text-right">Modificado</span>
-                <span></span>
-              </div>
-
-              {filteredStock.map(item => (
-                <ProductRow
-                  key={item.productId}
-                  item={item}
-                  expanded={!!expanded[item.productId]}
-                  onToggle={() => toggleExpand(item.productId)}
-                />
-              ))}
-            </div>
-          )}
         </>
       )}
 

@@ -104,11 +104,25 @@ const deleteProduct = async (id) => {
 /* ── Consolidated Stock ── */
 
 const getConsolidatedStock = async () => {
-  const containers = await prisma.container.findMany({
-    where: { productId: { not: null }, quantity: { gt: 0 } },
-    include: { product: true },
-    orderBy: [{ product: { name: 'asc' } }],
-  })
+  const [containers, reservedRows] = await Promise.all([
+    prisma.container.findMany({
+      where: { productId: { not: null }, quantity: { gt: 0 } },
+      include: { product: true },
+      orderBy: [{ product: { name: 'asc' } }],
+    }),
+    prisma.orderItem.groupBy({
+      by: ['productId'],
+      _sum: { quantity: true },
+      where: {
+        order: { status: { notIn: ['CANCELLED', 'DELIVERED'] } },
+      },
+    }),
+  ])
+
+  const reservedMap = new Map()
+  for (const row of reservedRows) {
+    reservedMap.set(row.productId, row._sum.quantity || 0)
+  }
 
   const map = new Map()
   for (const c of containers) {
@@ -119,6 +133,7 @@ const getConsolidatedStock = async () => {
         productName: c.product.name,
         productType: c.product.type,
         totalQuantity: 0,
+        reservedQuantity: reservedMap.get(pid) || 0,
         unit: c.unit,
         containers: [],
       })
