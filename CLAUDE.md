@@ -1,183 +1,417 @@
-# 🧠 Claude System Instructions - Projeto Full Stack Profissional
+# CLAUDE.md — SAAB Gestao Logistica
 
-Você é um desenvolvedor full-stack sênior com experiência em arquitetura de software, performance, segurança e boas práticas modernas.
+## Project Overview
 
-Seu objetivo é ajudar a construir, refatorar e manter um projeto profissional, escalável e bem estruturado.
+Sistema de gestao para distribuidora de carnes, bebidas e acessorios para churrasco, baseada em Orlando, FL (EUA).
+Moeda: **USD ($)**. Localizacao: **Orlando, Florida**.
+Fluxo operacional: **Vendedor faz pedido (digita nome da loja) -> Expedicao confirma, separa e insere pesos -> Motorista carrega e entrega -> Admin monitoriza tudo.**
 
----
+> **Nota**: O CLIENTE nao faz mais parte do fluxo de autenticacao. O vendedor digita o nome da loja diretamente no pedido (`clientName`). Existe um modelo `Client` separado (nome + endereco) sem ligacao a User.
 
-# 🎯 OBJETIVO DO PROJETO
+## Tech Stack
 
-Criar e manter uma aplicação web com:
+| Camada    | Stack                                       |
+|-----------|---------------------------------------------|
+| Frontend  | React 19, Vite 8, Tailwind CSS 3, react-router-dom 7, axios |
+| Backend   | Node.js, Express 5, Prisma ORM 5, PostgreSQL, JWT, Zod 4, pdfkit, bcrypt |
+| Infra     | Backend: Railway, DB: Supabase (PostgreSQL), Frontend: Vercel |
 
-- Front-end desacoplado
-- Back-end estruturado em API
-- Código limpo, reutilizável e escalável
-- Boas práticas de segurança e performance
+## Environment Variables
 
----
+### Backend (Railway)
 
-# 🏗️ ARQUITETURA PADRÃO
+| Variable         | Required | Default              | Purpose                        |
+|------------------|----------|----------------------|--------------------------------|
+| `DATABASE_URL`   | Yes      | —                    | Supabase PostgreSQL connection |
+| `JWT_SECRET`     | Yes      | —                    | Token signing (use strong random value) |
+| `JWT_EXPIRES_IN` | No       | `8h`                 | Token expiration               |
+| `FRONTEND_URL`   | Yes      | `http://localhost:5173` | CORS origin (Vercel URL in prod). Comma-separated for multiple origins |
+| `NODE_ENV`       | Recommended | —                 | `production` hides error stack traces |
+| `PORT`           | No       | `3000`               | Railway injects automatically  |
 
-Sempre seguir separação clara:
+### Frontend (Vercel)
 
-## Front-end
-- HTML → estrutura
-- CSS → estilos (separado)
-- JavaScript → lógica (separado)
-- Comunicação via API (fetch/axios)
+| Variable       | Required | Default              | Purpose                  |
+|----------------|----------|----------------------|--------------------------|
+| `VITE_API_URL` | Yes      | `http://localhost:3000` | Backend URL (Railway URL in prod, no trailing slash). Must be set at **build time** |
 
-## Back-end
-- Responsável por:
-  - Regras de negócio
-  - Autenticação
-  - Banco de dados
-  - Validações sensíveis
+## Commands
 
----
+```bash
+# Migrations & Seed
+cd backend && npx prisma migrate dev --name <nome>
+cd backend && npx prisma db seed
 
-# 📁 ESTRUTURA DE PASTAS (PADRÃO)
+# Dev - Frontend (local)
+cd frontend && npm install && npm run dev
 
-Sugira e utilize:
+# Dev - Backend (local)
+cd backend && npm install && npm run dev
 
-/frontend
-  ├── index.html
-  ├── /css
-  │     └── styles.css
-  ├── /js
-  │     └── script.js
+# Build (Railway runs this automatically)
+cd backend && npx prisma generate && npx prisma migrate deploy
+```
 
-/backend
-  ├── /controllers
-  ├── /services
-  ├── /routes
-  ├── /models
-  ├── server.js
+## Architecture
 
----
+```
+project/
+├── backend/
+│   ├── server.js                      # Express entry point, monta todas as rotas
+│   ├── prisma/
+│   │   ├── schema.prisma              # User, Product, Container, Order, OrderItem, BoxWeight, Client, GtinMapping, Notice
+│   │   └── seed.js                    # 4 users + ~191 produtos reais + ~240 conteineres
+│   └── src/
+│       ├── middlewares/authMiddleware.js   # authMiddleware + authorizeRoles
+│       ├── controllers/               # HTTP layer - validacao de input, status codes
+│       │   ├── AuthController.js      # login (public), register (ADMIN), listUsers (ADMIN)
+│       │   ├── ClientController.js    # CRUD de clientes (modelo Client)
+│       │   ├── InventoryController.js # containers + products CRUD + stock consolidado + GTIN
+│       │   ├── NoticeController.js    # avisos internos (criar, listar, apagar)
+│       │   ├── OrderController.js     # order lifecycle + invoice PDF
+│       │   ├── RouteController.js     # daily route optimization
+│       │   └── UserController.js     # user CRUD
+│       ├── lib/
+│       │   ├── prisma.js              # Prisma client singleton (global, all environments)
+│       │   └── schemas.js            # Zod schemas - createOrderSchema, packOrderSchema, updateStatusSchema
+│       ├── services/                  # Business logic - Prisma queries, calculos
+│       │   ├── ClientService.js       # Client CRUD
+│       │   ├── InventoryService.js    # Container/product operations, referential integrity, GTIN lookups
+│       │   ├── InvoiceService.js      # PDF generation (pdfkit), warns on missing assets (non-fatal)
+│       │   ├── NoticeService.js       # Notice CRUD, filtra por visibleTo[]
+│       │   ├── OrderService.js        # Status transitions with lastStatusAt conflict detection
+│       │   ├── RouteService.js        # Haversine + delivery window sorting, depot Orlando FL
+│       │   └── UserService.js         # User CRUD, bcrypt
+│       ├── routes/
+│       │   ├── authRoutes.js          # POST /auth/login, POST /auth/register, GET /auth/users
+│       │   ├── clientRoutes.js        # GET/POST /clients, PATCH/DELETE /clients/:id
+│       │   ├── inventoryRoutes.js     # containers, products, /inventory/stock, /inventory/gtin
+│       │   ├── noticeRoutes.js        # GET/POST /notices, DELETE /notices/:id
+│       │   ├── orderRoutes.js         # CRUD + /status /separate /pack /load /deliver /invoice
+│       │   ├── routeRoutes.js         # GET /routes/daily
+│       │   └── userRoutes.js          # GET/POST/PATCH /users
+│       └── assets/                    # Invoice fonts + logo (committed to git)
+│           ├── helvetica-world-italic.ttf
+│           ├── IBMPlexSans-Italic-VariableFont_wdth,wght.ttf
+│           └── Logo-do-invoice.png
+└── frontend/src/
+    ├── main.jsx                       # Entry point, ThemeProvider wrapper
+    ├── App.jsx                        # Route definitions + AuthProvider
+    ├── context/
+    │   ├── AuthContext.jsx            # AuthProvider, useAuth - login, logout, token, user
+    │   └── ThemeContext.jsx           # Light/dark theme toggle (data-theme attribute)
+    ├── services/
+    │   ├── authService.js             # Axios instance + JWT interceptor + 401 redirect
+    │   ├── clientService.js           # fetchClients, createClient, updateClient, deleteClient
+    │   ├── inventoryService.js        # fetchContainers, fetchProducts, fetchAllProducts,
+    │   │                              #   createProduct, updateProduct, fetchProductStock,
+    │   │                              #   searchProducts, fetchConsolidatedStock,
+    │   │                              #   lookupGtin, createGtinMapping, fetchGtinMappings
+    │   ├── noticeService.js           # fetchNotices, createNotice, deleteNotice
+    │   ├── orderService.js            # fetchOrders, fetchOrderById, createOrder,
+    │   │                              #   confirmOrder, separateOrder, packOrder,
+    │   │                              #   loadOrder, deliverOrder, openInvoice
+    │   ├── routeService.js            # fetchDailyRoute
+    │   └── userService.js             # fetchUsers, createUser, updateUser
+    ├── constants/
+    │   ├── status.js                  # STATUS_CONFIG (labels, colors, icons por status)
+    │   └── zones.js                   # ZONE_CONFIG, ZONE_LABELS, SUBZONE_LABELS
+    ├── components/
+    │   ├── BarcodeScanner.jsx         # Scanner de código de barras (ZXing), emite gtin via onScan callback
+    │   ├── NoticesBanner.jsx          # Banner de avisos ativos para o role atual
+    │   ├── ProtectedRoute.jsx         # Route guard por role JWT
+    │   ├── ThemeToggle.jsx            # Light/dark theme switcher
+    │   └── Inventory/
+    │       ├── InventoryGrid.jsx      # Grid de conteineres por zona com busca e progresso
+    │       ├── ContainerEditModal.jsx # Modal edicao de conteiner
+    │       └── ProductList.jsx        # Lista de produtos
+    └── pages/
+        ├── Login.jsx                  # Autenticacao, redireciona por role
+        ├── Unauthorized.jsx
+        ├── AdminDashboard.jsx         # Layout shell admin (sidebar + topbar + Outlet) + AdminHome (KPIs)
+        ├── AdminUsers.jsx             # CRUD utilizadores (modal)
+        ├── AdminProducts.jsx          # CRUD produtos (modal, toggle activo/inactivo, precos em $)
+        ├── AdminClients.jsx           # CRUD clientes (modelo Client - nome + endereco)
+        ├── GtinManager.jsx            # Mapeamento GTIN -> Product (scan + listagem)
+        ├── Inventory.jsx              # Wrapper -> InventoryGrid
+        ├── Logistics.jsx              # Tabela de pedidos, fatura PDF, mapa (enderecos Orlando FL)
+        ├── Notices.jsx                # Avisos internos (criar/listar/apagar)
+        ├── OrderEntry.jsx             # Formulario de pedido com validacao de stock
+        ├── StockOverview.jsx          # Vista consolidada de stock por produto
+        ├── DriverRoutes.jsx           # Rota optimizada, paradas, link Google Maps
+        ├── DriverDelivery.jsx         # Detalhe entrega: carga -> assinatura -> entregue
+        ├── ExpedicaoLayout.jsx        # Layout shell expedicao (sidebar + topbar + Outlet)
+        ├── ExpedicaoDashboard.jsx     # Contadores por status
+        ├── ExpedicaoOrders.jsx        # Fila de trabalho com filtros
+        ├── ExpedicaoPickingList.jsx   # Picking list + transicoes de status
+        ├── VendedorLayout.jsx         # Layout shell vendedor (topbar + Outlet)
+        ├── VendedorOrders.jsx         # Lista de pedidos criados
+        └── MotoristaLayout.jsx        # Layout shell motorista (topbar + Outlet)
+```
 
-# ⚙️ REGRAS DE DESENVOLVIMENTO
+## Roles & Permissions
 
-## 1. Separação de responsabilidades
-- Nunca misturar lógica de backend no front-end
-- Nunca colocar dados sensíveis no front
-- Sempre usar API para comunicação
+| Role       | Redirect        | Access |
+|------------|-----------------|--------|
+| `ADMIN`    | `/admin`        | Dashboard KPIs, inventario, pedidos, logistica, rotas, utilizadores, clientes, produtos, avisos, GTIN |
+| `VENDEDOR` | `/vendedor`    | Criar pedidos, visualizar pedidos, avisos |
+| `EXPEDICAO`| `/expedicao`    | Dashboard contadores, fila de pedidos, picking list, conteineres, logistica, avisos, GTIN |
+| `MOTORISTA`| `/motorista`    | Rota do dia, detalhe de entrega, assinatura digital, avisos |
 
----
+## Order Status Pipeline
 
-## 2. Código limpo
-- Funções pequenas e reutilizáveis
-- Nomes claros (variáveis, funções, classes)
-- Evitar duplicação (DRY)
-- Comentários apenas quando necessário
+```
+PENDING -> CONFIRMED -> SEPARATING -> READY -> IN_TRANSIT -> DELIVERED
+                 \-> CANCELLED (antes de DELIVERED)
+```
 
----
+| Transition              | Who              | Endpoint                  |
+|-------------------------|------------------|---------------------------|
+| -> CONFIRMED            | Admin, Expedicao | PATCH /orders/:id/status  |
+| -> SEPARATING           | Admin, Expedicao | PATCH /orders/:id/separate|
+| -> READY                | Admin, Expedicao | PATCH /orders/:id/pack    |
+| -> IN_TRANSIT           | Motorista        | PATCH /orders/:id/load    |
+| -> DELIVERED            | Motorista        | PATCH /orders/:id/deliver |
+| -> CANCELLED            | Admin, Expedicao | PATCH /orders/:id/status  |
 
-## 3. Front-end
-- Nunca usar CSS inline
-- Nunca usar JavaScript inline
-- Priorizar:
-  - Responsividade
-  - Acessibilidade básica
-  - Performance
+## API Endpoints
 
----
+### Auth (`/auth`)
+| Method | Path        | Auth | Roles  |
+|--------|-------------|------|--------|
+| POST   | `/login`    | No   | Public |
+| POST   | `/register` | Yes  | ADMIN  |
+| GET    | `/users`    | Yes  | ADMIN  |
 
-## 4. Back-end
-- Criar endpoints REST:
-  - GET
-  - POST
-  - PUT
-  - DELETE
+### Users (`/users`)
+| Method | Path        | Auth | Roles           |
+|--------|-------------|------|-----------------|
+| GET    | `/`         | Yes  | ADMIN           |
+| POST   | `/`         | Yes  | ADMIN           |
+| PATCH  | `/:id`      | Yes  | ADMIN           |
 
-- Separar:
-  - Controller → recebe requisição
-  - Service → lógica
-  - Model → dados
+### Clients (`/clients`)
+| Method | Path        | Auth | Roles           |
+|--------|-------------|------|-----------------|
+| GET    | `/`         | Yes  | ADMIN, VENDEDOR |
+| POST   | `/`         | Yes  | ADMIN, VENDEDOR |
+| PATCH  | `/:id`      | Yes  | ADMIN           |
+| DELETE | `/:id`      | Yes  | ADMIN           |
 
----
+### Orders (`/orders`)
+| Method | Path             | Auth | Roles                              |
+|--------|------------------|------|-------------------------------------|
+| GET    | `/`              | Yes  | ADMIN, EXPEDICAO, MOTORISTA, VENDEDOR |
+| POST   | `/`              | Yes  | ADMIN, VENDEDOR                    |
+| GET    | `/:id`           | Yes  | ADMIN, EXPEDICAO, MOTORISTA, VENDEDOR |
+| GET    | `/:id/invoice`   | Yes  | ADMIN, VENDEDOR                    |
+| PATCH  | `/:id/status`    | Yes  | ADMIN, EXPEDICAO                   |
+| PATCH  | `/:id/separate`  | Yes  | ADMIN, EXPEDICAO                   |
+| PATCH  | `/:id/pack`      | Yes  | ADMIN, EXPEDICAO                   |
+| PATCH  | `/:id/load`      | Yes  | MOTORISTA                          |
+| PATCH  | `/:id/deliver`   | Yes  | ADMIN, MOTORISTA                   |
 
-## 🔐 SEGURANÇA (OBRIGATÓRIO)
-Sempre considerar:
+### Inventory (`/inventory`)
+| Method | Path                  | Auth | Roles                    |
+|--------|-----------------------|------|--------------------------|
+| GET    | `/containers`         | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
+| GET    | `/containers/:id`     | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
+| PATCH  | `/containers/:id`     | Yes  | ADMIN                    |
+| GET    | `/products`           | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
+| GET    | `/products/search`    | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
+| GET    | `/products/:id/stock` | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
+| POST   | `/products`           | Yes  | ADMIN                    |
+| PATCH  | `/products/:id`       | Yes  | ADMIN                    |
+| DELETE | `/products/:id`       | Yes  | ADMIN                    |
+| GET    | `/stock`              | Yes  | ADMIN, EXPEDICAO, VENDEDOR |
+| GET    | `/gtin`               | Yes  | ADMIN, EXPEDICAO         |
+| GET    | `/gtin/:gtin`         | Yes  | ADMIN, EXPEDICAO         |
+| POST   | `/gtin`               | Yes  | ADMIN, EXPEDICAO         |
 
-- Validação de dados no backend
-- Nunca confiar no front-end
-- Sanitização de inputs
-- Evitar exposição de dados sensíveis
-- Preparar estrutura para autenticação (JWT ou sessão)
+### Notices (`/notices`)
+| Method | Path        | Auth | Roles                              |
+|--------|-------------|------|-------------------------------------|
+| GET    | `/`         | Yes  | ADMIN, EXPEDICAO, MOTORISTA, VENDEDOR |
+| POST   | `/`         | Yes  | ADMIN, EXPEDICAO                   |
+| DELETE | `/:id`      | Yes  | ADMIN, EXPEDICAO                   |
 
----
+### Routes (`/routes`)
+| Method | Path     | Auth | Roles           |
+|--------|----------|------|-----------------|
+| GET    | `/daily` | Yes  | ADMIN, MOTORISTA |
 
-# ⚡ OTIMIZAÇÃO DE TOKENS (MUITO IMPORTANTE)
+### System
+| Method | Path      | Auth | Purpose          |
+|--------|-----------|------|------------------|
+| GET    | `/health` | No   | DB connectivity  |
 
-## Regras obrigatórias:
+## Routes (React Router)
 
-- NÃO repetir código já enviado anteriormente
-- NÃO explicar coisas óbvias
-- Responder de forma direta e técnica
-- Quando possível:
-  - Retornar apenas partes modificadas
-  - Evitar verbosidade desnecessária
+```
+/                          -> Login
+/login                     -> Login
+/unauthorized              -> Unauthorized
 
-## Quando gerar código:
-- Seja completo, mas enxuto
-- Evite comentários excessivos
-- Não duplicar trechos
+/admin                     -> AdminDashboard (layout) [ADMIN]
+  /admin/dashboard         -> AdminHome (KPIs)
+  /admin/inventory         -> Inventory (default redirect)
+  /admin/gtin              -> GtinManager
+  /admin/orders/new        -> OrderEntry
+  /admin/logistics         -> Logistics
+  /admin/routes            -> DriverRoutes
+  /admin/products          -> AdminProducts
+  /admin/clients           -> AdminClients
+  /admin/users             -> AdminUsers
+  /admin/notices           -> Notices
 
----
+/vendedor                  -> VendedorLayout [VENDEDOR]
+  /vendedor/orders         -> VendedorOrders (default redirect)
+  /vendedor/orders/new     -> OrderEntry
+  /vendedor/notices        -> Notices
 
-# 🧠 MODO DE RESPOSTA
+/expedicao                 -> ExpedicaoLayout [EXPEDICAO]
+  /expedicao/dashboard     -> ExpedicaoDashboard (default redirect)
+  /expedicao/orders        -> ExpedicaoOrders
+  /expedicao/orders/:id    -> ExpedicaoPickingList
+  /expedicao/containers    -> Inventory (reutilizado)
+  /expedicao/gtin          -> GtinManager
+  /expedicao/logistics     -> Logistics (reutilizado)
+  /expedicao/notices       -> Notices
 
-Sempre seguir este padrão:
+/motorista                 -> MotoristaLayout [MOTORISTA]
+  /motorista/routes        -> DriverRoutes (default redirect)
+  /motorista/delivery/:id  -> DriverDelivery
+  /motorista/notices       -> Notices
+```
 
-1. Resumo rápido (1–3 linhas)
-2. Implementação (código)
-3. Explicação técnica curta (se necessário)
-4. Próximo passo sugerido
+## Database Models (Prisma)
 
----
+```
+User         -> id, name, email, password, role (ADMIN|VENDEDOR|EXPEDICAO|MOTORISTA),
+                address, lat?, lon?
 
-# 🔄 FLUXO DE DESENVOLVIMENTO
+Product      -> id, name, type (texto livre), active,
+                priceType (PER_LB|PER_BOX|PER_UNIT),
+                pricePerLb?, pricePerBox?, pricePerUnit?
 
-Sempre pensar em etapas:
+Container    -> id, label, zone (enum ContainerZone), capacity, quantity, unit,
+                productId?, updatedById?
 
-1. Estrutura
-2. Funcionalidade básica
-3. Integração front-back
-4. Validação
-5. Refatoração
-6. Otimização
+Client       -> id, name, address  — modelo independente, sem ligacao a User
 
----
+Order        -> id, clientName (string), clientId? (legacy), status, totalBoxes, weightLb,
+                address, lat/lon, deliveryWindowStart/End,
+                deliveredAt/By, separatedAt/By, packedAt/By, loadedAt,
+                updatedById?, lastStatusAt?
 
-# 🚫 EVITAR
+OrderItem    -> id, orderId, containerId, productId, quantity, weightLb,
+                priceType (PER_LB|PER_BOX), pricePerLb?, pricePerBox?, boxWeights[]
 
-- Código desnecessariamente complexo
-- Misturar responsabilidades
-- Criar arquivos sem necessidade
-- Explicações longas sem valor prático
+BoxWeight    -> id, orderItemId, boxNumber, weightLb, expiryDate?, batch?, updatedById?
 
----
+GtinMapping  -> id, gtin (unique), productId  — mapeia barcode EAN/UPC -> Product
 
-# ✅ PRIORIDADE
+Notice       -> id, title, body, createdById, visibleTo[] (roles), expiresAt?
+```
 
-1. Clareza
-2. Organização
-3. Escalabilidade
-4. Performance
-5. Segurança
+### ContainerZone (enum)
+`CAMARA_FRIA` | `CONTAINER_31` | `CONTAINER_32` | `CONTAINER_33` | `CONTAINER_36` | `BEBIDAS` | `SECOS`
 
----
+## Seed Data
 
-# 📌 COMPORTAMENTO
+### Accounts
 
-Se algo estiver errado no código do usuário:
-- Corrija
-- Explique brevemente
-- Sugira melhoria
+| Email               | Password       | Role      |
+|---------------------|----------------|-----------|
+| admin@saab.com      | 123456         | ADMIN     |
+| vendedor@saab.com   | vendedor123    | VENDEDOR  |
+| expedicao@saab.com  | expedicao123   | EXPEDICAO |
+| motorista@saab.com  | motorist123    | MOTORISTA |
 
-Se faltar contexto:
-- Faça perguntas OBJETIVAS
+### Product Categories
 
-Se houver múltiplas abordagens:
-- Escolha a mais simples e escalável
+`Bovino` | `Suino` | `Aves` | `Miudos` | `Laticinios` | `Congelados` | `Secos` | `Bebidas` | `Outros`
+
+### Location (Orlando, FL)
+
+- **Depot:** 28.4626, -81.3305 (6843 Conway Rd Ste 120, Orlando, FL 32812)
+
+## Coding Standards
+
+- **React**: Functional components, Hooks only. No class components.
+- **CSS**: Tailwind CSS utility classes with CSS custom properties for theming (light/dark via `data-theme`). Fonts: Inter (sans), Montserrat (display).
+- **Node**: Express 5, REST, Controllers/Services separation. Controllers = HTTP layer, Services = business logic + Prisma.
+- **Currency**: USD ($). `toLocaleString('en-US', { currency: 'USD' })`.
+- **Security**: JWT authentication (header-only, no query param tokens), bcrypt for passwords, environment variables for secrets.
+- **Validation**: Zod schemas in `src/lib/schemas.js` for backend input validation. Frontend (UX) + Backend (Security). Never trust client input.
+- **Audit**: All status-changing operations set `updatedById` (who) and `lastStatusAt` (when). Container mutations track `updatedById`.
+- **Offline conflict detection**: Status endpoints accept optional `lastStatusAt` from client; server rejects (409) if stale.
+- **Stock consistency**: `cancelOrder` reverts container quantities inside a transaction.
+- **Patterns**: Clean Code, DRY, SOLID. Reusable components in `src/components/`.
+- **Boolean fields**: Use `!== false` checks (not truthy) when a DB field has `@default(true)`, to handle `undefined` gracefully.
+- **STATUS_CONFIG**: Use the shared constant in `src/constants/status.js` — do NOT duplicate inline per-page.
+
+## Style Guide
+
+### Theme
+Suporta light/dark mode via `ThemeContext` + CSS custom properties. Toggle via `ThemeToggle.jsx`.
+
+### Palette (CSS custom properties in index.css)
+
+| Token         | Dark          | Light         | Usage                          |
+|---------------|---------------|---------------|--------------------------------|
+| --bg-page     | `#1a1a1a`     | `#f5f5f5`     | Page backgrounds               |
+| --bg-surface  | `#1e1e1e`     | `#ffffff`     | Cards, panels, sidebars        |
+| --bg-input    | `#2a2a2a`     | `#f9fafb`     | Inputs, selects                |
+| --bg-hover    | `#252525`     | `#f3f4f6`     | Table row hover                |
+| --border-base | `#333333`     | `#e5e7eb`     | Card borders                   |
+| --border-input| `#3a3a3a`     | `#d1d5db`     | Input borders                  |
+| --text-primary| `#f0f0f0`     | `#111827`     | Titles, body                   |
+| --text-secondary| `#888888`   | `#6b7280`     | Labels, meta                   |
+| --red-base    | `#8b0000`     | `#8b0000`     | Primary buttons, focus, badges |
+| --red-hover   | `#720000`     | `#720000`     | Button hover                   |
+| --status-ok   | `#15803d`     | `#15803d`     | Success, ready, delivered      |
+| --status-warn | `#b45309`     | `#b45309`     | Warning, pending               |
+| --status-error| `#f87171`     | `#ef4444`     | Error, cancelled               |
+
+### Components
+- Cards: `rounded-md`, `border border-base`
+- Buttons primary: `bg-red-base`, white text, bold, uppercase
+- Buttons secondary: `bg-transparent`, `border border-input`
+- Badges: `rounded-full` (pill), colored per status
+- Logo: Use `logo-saab.png` (transparent background), NOT the SVG
+- Brand name text: **SAAB Foods** (not just "SAAB"). Use `font-medium`, color `#eb3138`. This color is ONLY for the brand name text.
+
+### Responsiveness
+Mobile-first. Tailwind breakpoints: `sm` (640px) -> `md` (768px) -> `lg` (1024px).
+
+### Invoice PDF (InvoiceService.js)
+
+**Fonts** (only two, no built-in Helvetica):
+- `Helvetica World Italic` (`helvetica-world-italic.ttf`) -> alias `HelvBold` -- titles, labels, headers, amounts
+- `IBM Plex Sans Italic` (`IBMPlexSans-Italic-VariableFont_wdth,wght.ttf`) -> alias `IBMItalic` -- addresses, descriptions, footer
+
+**Logo**: `Logo-do-invoice.png` (includes "SAAB FOODS" text -- do NOT render text separately)
+
+**Assets**: All in `backend/src/assets/`. Warns on missing assets at startup (non-fatal). Invoice endpoint fails individually if assets missing.
+
+**Layout rules**:
+- One row per item; box weights consolidated into multi-line DESCRIPTION
+- Dynamic row height via `doc.heightOfString()`
+- Table values (RATE, AMOUNT) use plain numbers; only BALANCE DUE uses `$`
+- Multi-page support with header + table header on each page
+- DUE DATE = `createdAt + 7 days`; TERMS = `Net 7`
+- SALES REP shows `order.client?.email`
+
+## Known Issues
+
+- `fetchOrders()` and `fetchMyOrders()` in orderService.js are duplicates (same endpoint)
+- `react-signature-canvas` is installed but not imported anywhere (SignatureModal.jsx does not exist)
+
+## Dead Code (do NOT import)
+
+### Frontend
+`NewOrder.jsx`, `ContainerCard.jsx`, `ContainerMap.jsx`, `InventoryList.jsx`, `OrderForm.jsx`, `ProductSelector.jsx`, `ClientPanel.jsx`, `ProductPanel.jsx`, `App.css`
+
+### Backend
+`fix.js` (one-off migration script), `vercel.js` (outdated serverless wrapper), `prisma/parser.js`, `prisma/parser.py`, `assets/Logo-saab-S.png` (unused)

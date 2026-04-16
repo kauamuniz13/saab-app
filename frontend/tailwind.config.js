@@ -1,0 +1,53 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    './index.html',
+    './src/**/*.{js,jsx,ts,tsx}',
+  ],
+  darkMode: ['selector', '[data-theme="dark"]'],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Montserrat', 'system-ui', 'sans-serif'],
+      },
+      colors: {
+        page:       'var(--bg-page)',
+        surface:    'var(--bg-surface)',
+        input:      'var(--bg-input)',
+        hover:      'var(--bg-hover)',
+        sidebar:    'var(--bg-sidebar)',
+        'sidebar-hover':  'var(--bg-sidebar-hover)',
+        'sidebar-active': 'var(--bg-sidebar-active)',
+        border:     'var(--border-base)',
+        'border-input': 'var(--border-input)',
+        'border-sidebar': 'var(--border-sidebar)',
+        primary:    'var(--text-primary)',
+        secondary:  'var(--text-secondary)',
+        muted:      'var(--text-muted)',
+        nav:        'var(--text-nav)',
+        'nav-hover':'var(--text-nav-hover)',
+        'on-red':   'var(--text-on-red)',
+        red:        'var(--red-base)',
+        'red-h':    'var(--red-hover)',
+        'red-a':    'var(--red-active)',
+        'red-light':'var(--red-light)',
+        'avatar-bg':'var(--avatar-bg)',
+        'avatar-tx':'var(--avatar-text)',
+        'ok':       'var(--status-ok)',
+        'ok-bg':    'var(--status-ok-bg)',
+        warn:       'var(--status-warn)',
+        'warn-bg':  'var(--status-warn-bg)',
+        error:      'var(--status-error)',
+        'error-bg': 'var(--status-error-bg)',
+        info:       'var(--status-info)',
+        'info-bg':  'var(--status-info-bg)',
+      },
+      boxShadow: {
+        card:     'var(--shadow-card)',
+        elevated: 'var(--shadow-elevated)',
+      },
+    },
+  },
+  plugins: [],
+}

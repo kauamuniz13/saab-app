@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Valores válidos: "ADMIN" | "EXPEDICAO" | "MOTORISTA" | "VENDEDOR"
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   @default("")        // Nome do cliente (opcional para staff)
+  email     String   @unique
+  password  String
+  role      String   @default("VENDEDOR")
+  address   String   @default("")
+  lat       Float?
+  lon       Float?
+  orders    Order[]
+  notices   Notice[]  @relation("NoticeCreator")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id         Int         @id @default(autoincrement())
+  name       String
+  type       String      // categoria livre: "Bovino", "Bebidas", "Acessórios", etc.
+  active     Boolean     @default(true)
+  // Preços padrão
+  priceType   String      @default("PER_LB")  // "PER_LB" | "PER_BOX" | "PER_UNIT"
+  pricePerLb   Decimal? @db.Decimal(10, 4)      // preço por libra
+  pricePerBox  Decimal? @db.Decimal(10, 2)     // preço por caixa
+  pricePerUnit Decimal? @db.Decimal(10, 2)     // preço por unidade
+  createdAt  DateTime    @default(now())
+  containers  Container[]
+  orderItems  OrderItem[] @relation("OrderItemProduct")
+  gtinMappings GtinMapping[]
+
+  @@index([type])
+  @@index([active])
+}
+
+enum ContainerZone {
+  CAMARA_FRIA
+  CONTAINER_31
+  CONTAINER_32
+  CONTAINER_33
+  CONTAINER_36
+  BEBIDAS
+  SECOS
+}
+
+model Container {
+  id          Int              @id @default(autoincrement())
+  label       String           @unique // ex: "CF-01", "SN-02"
+  zone        ContainerZone    @default(SECOS)
+  capacity    Int
+  quantity    Int              @default(0)
+  unit        String           @default("caixas")
+  productId   Int?
+  product     Product?         @relation(fields: [productId], references: [id])
+  orderItems  OrderItem[]
+  updatedById Int?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([zone])
+  @@index([productId])
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+// Valores válidos: "PENDING" | "CONFIRMED" | "SEPARATING" | "READY" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED"
+model Order {
+  id                  Int         @id @default(autoincrement())
+  clientId            Int?                              // opcional (legacy)
+  client              User?        @relation(fields: [clientId], references: [id])
+  clientName          String       @default("")          // nome da loja (vendedor digita)
+  status              String      @default("PENDING")
+  totalBoxes          Int
+  // Entrega
+  address             String      @default("")
+  lat                 Float?
+  lon                 Float?
+  deliveryWindowStart String      @default("08:00") // "HH:MM"
+  deliveryWindowEnd   String      @default("18:00") // "HH:MM"
+  // Peso
+  weightLb            Decimal     @default(0) @db.Decimal(10, 4)
+  deliveredAt         DateTime?
+  deliveredById       Int?
+  // Expedição
+  separatedById       Int?
+  separatedAt         DateTime?
+  packedById          Int?
+  packedAt            DateTime?
+  // Motorista
+  loadedAt            DateTime?
+  // Auditoria
+  updatedById         Int?
+  lastStatusAt        DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  items               OrderItem[]
+
+  @@index([status])
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id          Int         @id @default(autoincrement())
+  orderId     Int
+  order       Order       @relation(fields: [orderId], references: [id])
+  containerId Int
+  container   Container   @relation(fields: [containerId], references: [id])
+  productId   Int
+  product     Product     @relation("OrderItemProduct", fields: [productId], references: [id])
+  quantity    Int
+  priceType   String      @default("PER_LB")  // "PER_LB" | "PER_BOX"
+  pricePerLb  Decimal?    @db.Decimal(10, 4)   // preenchido pelo vendedor se PER_LB
+  pricePerBox Decimal?    @db.Decimal(10, 2)   // preenchido pelo vendedor se PER_BOX
+  weightLb    Decimal     @default(0) @db.Decimal(10, 4) // soma das boxWeights (calculado ao embalar)
+  boxWeights  BoxWeight[]
+}
+
+model BoxWeight {
+  id          Int       @id @default(autoincrement())
+  orderItemId Int
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  boxNumber   Int
+  weightLb    Decimal   @db.Decimal(10, 4)
+  expiryDate  DateTime?
+  batch       String?
+  updatedById Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+}
+
+model GtinMapping {
+  id        Int      @id @default(autoincrement())
+  gtin      String   @unique
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+model Notice {
+  id          Int       @id @default(autoincrement())
+  title       String
+  body        String
+  createdById Int
+  createdBy   User      @relation("NoticeCreator", fields: [createdById], references: [id])
+  visibleTo   String[]  @default([])
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
