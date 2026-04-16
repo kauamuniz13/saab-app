@@ -56,15 +56,6 @@ const IconRoutes = () => (
   </svg>
 )
 
-const IconProducts = () => (
-  <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round"
-      d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591
-         l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223
-         c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z
-         M6 6h.008v.008H6V6z" />
-  </svg>
-)
 
 const IconUsers = () => (
   <svg className={navIconClass} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -144,7 +135,6 @@ const NAV_GROUPS = [
     icon: IconInventory,
     items: [
       { key: 'stock',     label: 'Estoque',     Icon: IconStock,     path: '/admin/stock' },
-      { key: 'products',  label: 'Produtos',    Icon: IconProducts,  path: '/admin/products' },
       { key: 'inventory', label: 'Locais',      Icon: IconInventory, path: '/admin/inventory' },
       { key: 'gtin',      label: 'GTINs',       Icon: IconGtin,      path: '/admin/gtin' },
     ]
@@ -175,7 +165,6 @@ const PAGE_TITLES = {
   dashboard: 'Painel de Controle',
   stock:     'Estoque Geral',
   inventory: 'Locais de Estoque',
-  products:  'Produtos',
   orders:    'Pedidos',
   logistics: 'Logística',
   routes:      'Rotas',
@@ -414,7 +403,7 @@ const AdminDashboard = () => {
     if (location.pathname.startsWith('/admin/orders'))    return 'orders'
     if (location.pathname.startsWith('/admin/logistics')) return 'logistics'
     if (location.pathname.startsWith('/admin/routes'))    return 'routes'
-    if (location.pathname.startsWith('/admin/products'))  return 'products'
+    if (location.pathname.startsWith('/admin/products'))  return 'stock'
     if (location.pathname.startsWith('/admin/clients'))   return 'clients'
     if (location.pathname.startsWith('/admin/users'))     return 'users'
     if (location.pathname.startsWith('/admin/gtin'))      return 'gtin'

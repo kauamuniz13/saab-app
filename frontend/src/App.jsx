@@ -9,7 +9,6 @@ import Inventory      from './pages/Inventory'
 import OrderEntry     from './pages/OrderEntry'
 import Logistics      from './pages/Logistics'
 import AdminUsers     from './pages/AdminUsers'
-import AdminProducts  from './pages/AdminProducts'
 import DriverRoutes    from './pages/DriverRoutes'
 import DriverDelivery  from './pages/DriverDelivery'
 import MotoristaLayout from './pages/MotoristaLayout'
@@ -52,7 +51,7 @@ const App = () => {
             <Route path="orders/new"    element={<OrderEntry />} />
             <Route path="logistics"     element={<Logistics />} />
             <Route path="routes"        element={<DriverRoutes />} />
-            <Route path="products"      element={<AdminProducts />} />
+            <Route path="products"      element={<Navigate to="/admin/stock" replace />} />
             <Route path="clients"       element={<AdminClients />} />
             <Route path="users"         element={<AdminUsers />} />
             <Route path="notices"       element={<Notices />} />
